@@ -11,6 +11,7 @@ Terminal-centric development environment managed with [GNU Stow](https://www.gnu
 | `tmux`       | Tmux: C-q prefix, catppuccin, git status, resurrect   |
 | `doom`       | Doom Emacs: LSP, vterm, org capture, magit, AI helpers |
 | `nvim`       | LazyVim: catppuccin, org-mode, OSC 52 clipboard       |
+| `ghostty`    | Ghostty terminal: catppuccin, JetBrainsMono Nerd Font |
 | `fontconfig` | Font fallback: JetBrainsMono Nerd Font                |
 | `starship`   | Starship prompt config                                |
 
@@ -26,7 +27,7 @@ sudo apt install stow   # Debian/Ubuntu
 brew install stow        # macOS
 
 # Symlink everything
-stow zsh git tmux doom nvim fontconfig starship
+stow zsh git tmux doom nvim ghostty fontconfig starship
 
 # Create local overrides (for secrets)
 cp templates/zshrc.local.example ~/.zshrc.local
@@ -38,6 +39,10 @@ ln -sf ~/.tmux/.tmux.conf ~/.tmux.conf
 ```
 
 See [CLAUDE.md](CLAUDE.md) for full setup instructions including tool installation.
+
+Ghostty reads `~/.config/ghostty/config.ghostty` from the `ghostty` stow package.
+Keep machine-specific overrides in `~/.config/ghostty/config`; Ghostty loads that
+after `config.ghostty`.
 
 ## Design Philosophy
 
@@ -140,6 +145,7 @@ doom sync
 ├── nvim/.config/nvim/lua/
 │   ├── config/          # LazyVim core config
 │   └── plugins/         # plugin specs
+├── ghostty/.config/ghostty/config.ghostty
 ├── fontconfig/.config/fontconfig/fonts.conf
 ├── starship/.config/starship.toml
 ├── templates/           # example local override files

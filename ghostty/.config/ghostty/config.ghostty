@@ -1,0 +1,3 @@
+# Shared Ghostty baseline for this dotfiles repo.
+theme = Catppuccin Mocha
+font-family = JetBrainsMono Nerd Font Mono

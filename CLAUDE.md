@@ -21,6 +21,7 @@ dotfiles/
   tmux/.tmux/scripts/                 → ~/.tmux/scripts/
   doom/.config/doom/{init,config,packages}.el → ~/.config/doom/
   nvim/.config/nvim/lua/              → ~/.config/nvim/lua/
+  ghostty/.config/ghostty/config.ghostty → ~/.config/ghostty/config.ghostty
   fontconfig/.config/fontconfig/      → ~/.config/fontconfig/
   starship/.config/starship.toml      → ~/.config/starship.toml
   templates/                          → example local override files
@@ -40,6 +41,12 @@ sudo apt install -y git zsh stow tmux emacs neovim fontconfig curl unzip direnv 
 **macOS (brew):**
 ```bash
 brew install git zsh stow tmux emacs neovim fontconfig curl direnv node shellcheck pandoc python
+```
+
+**Ghostty terminal (optional but recommended):**
+```bash
+brew install --cask ghostty
+# Linux: install from https://ghostty.org/docs/install/binary
 ```
 
 ### 2. Required CLI tools
@@ -75,7 +82,7 @@ brew install git zsh stow tmux emacs neovim fontconfig curl direnv node shellche
 git clone git@github.com:leoxiaobin/dotfiles.git ~/dotfiles
 # git clone https://github.com/leoxiaobin/dotfiles.git ~/dotfiles
 cd ~/dotfiles
-stow zsh git tmux doom nvim fontconfig starship
+stow zsh git tmux doom nvim ghostty fontconfig starship
 ```
 
 ### 4. Create local override files
@@ -135,6 +142,8 @@ fi
   `bat` and `fd` use native names (no alias needed). For better Emacs performance,
   consider `emacs-plus@30 --with-native-comp`.
 - **Linux**: Font and clipboard should work automatically with modern terminal emulators.
+- **Ghostty**: Shared settings live in `~/.config/ghostty/config.ghostty`.
+  Put machine-specific overrides in `~/.config/ghostty/config`, which Ghostty loads afterward.
 - **Terminal Emacs**: Themes render poorly if `TERM=xterm-color`; `.zshrc` upgrades it
   to `xterm-256color` and exports `COLORTERM=truecolor`.
 
