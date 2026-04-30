@@ -34,12 +34,12 @@ Install these tools first. Use the platform's package manager.
 
 **Ubuntu/Debian (apt):**
 ```bash
-sudo apt install -y git zsh stow tmux emacs neovim fontconfig curl direnv nodejs npm shellcheck pandoc python3-pip
+sudo apt install -y git zsh stow tmux emacs neovim fontconfig curl unzip direnv nodejs npm shellcheck pandoc python3-pip python3-venv
 ```
 
 **macOS (brew):**
 ```bash
-brew install git zsh stow tmux emacs neovim fontconfig curl direnv node shellcheck pandoc
+brew install git zsh stow tmux emacs neovim fontconfig curl direnv node shellcheck pandoc python
 ```
 
 ### 2. Required CLI tools
@@ -63,14 +63,17 @@ brew install git zsh stow tmux emacs neovim fontconfig curl direnv node shellche
 # - node/npm (LSP servers) : apt install nodejs npm / brew install node
 # - shellcheck (sh lint)   : apt install shellcheck / brew install shellcheck
 # - pandoc (markdown)      : apt install pandoc / brew install pandoc
-# - pipenv (Python envs)   : pip install pipenv
-# - nose (legacy tests)    : pip install nose
+# - pipenv (Python envs)   : python3 -m pip install --user pipenv
+# - nose (legacy tests)    : python3 -m pip install --user nose
+#   NOTE: If pip is externally managed, use pipx/apt/brew packages instead.
 ```
 
 ### 3. Clone and stow
 
 ```bash
+# Use git@github.com:... once SSH keys are configured; otherwise use HTTPS.
 git clone git@github.com:leoxiaobin/dotfiles.git ~/dotfiles
+# git clone https://github.com/leoxiaobin/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 stow zsh git tmux doom nvim fontconfig starship
 ```
@@ -90,14 +93,15 @@ cp ~/dotfiles/templates/gitconfig.local.example ~/.gitconfig.local
 ln -sf ~/.tmux/.tmux.conf ~/.tmux.conf
 
 # tmux plugins (TPM)
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-tmux new-session -d && tmux source ~/.tmux.conf
+[ -d ~/.tmux/plugins/tpm ] || git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+tmux new-session -d && tmux source-file ~/.tmux.conf
 ~/.tmux/plugins/tpm/bin/install_plugins
 
 # oh-my-zsh
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 # install zsh-syntax-highlighting plugin
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+[ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] || git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
 
 # Doom Emacs
 # Emacs prefers ~/.emacs.d over ~/.config/emacs; move old configs aside first.
@@ -105,9 +109,9 @@ git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:
 [ ! -e ~/.doom.d ] || mv ~/.doom.d ~/.doom.d.backup-$(date +%Y%m%d-%H%M%S)
 git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
 ~/.config/emacs/bin/doom install
-source ~/.zshrc
+export PATH="$HOME/.config/emacs/bin:$PATH"
 doom sync
-doom doctor
+PAGER=cat doom doctor
 
 # LazyVim bootstrap (lazy.nvim auto-installs on first nvim launch)
 nvim --headless "+Lazy! sync" +qa

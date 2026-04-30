@@ -204,8 +204,15 @@ new_tmux () {
     fi
   fi
 
-  if [-s "$session_name" ]; then
-    notify-send "$notification"
+  if [[ -n "$notification" ]]; then
+    if (( $+commands[notify-send] )); then
+      notify-send "$notification"
+    elif [[ "$IS_MACOS" == true ]] && (( $+commands[osascript] )); then
+      osascript -e 'on run argv' \
+                -e 'display notification (item 1 of argv) with title "tmux"' \
+                -e 'end run' \
+                "$notification"
+    fi
   fi
 }
 
