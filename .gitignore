@@ -1,0 +1,13 @@
+# Dependencies (managed by package managers / TPM / Doom)
+.tmux/plugins/
+
+# Neovim (managed by lazy.nvim)
+.config/nvim/lazy-lock.json
+
+# Local overrides (machine-specific, contain secrets)
+.zshrc.local
+.gitconfig.local
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,40 @@
+[user]
+	name = Bin Xiao
+	email = xiaobi@microsoft.com
+[core]
+	editor = nvim
+	pager = delta
+
+# Platform-specific config (credential helpers, etc.)
+# WSL: ~/.gitconfig.local has Windows Git Credential Manager
+# macOS: uses osxkeychain by default
+# Linux: configure in ~/.gitconfig.local
+[include]
+	path = ~/.gitconfig.local
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true
+	side-by-side = true
+	line-numbers = true
+	syntax-theme = Catppuccin Mocha
+	dark = true
+	hyperlinks = true
+[diff]
+	algorithm = histogram
+[merge]
+	conflictstyle = zdiff3
+[pull]
+	rebase = true
+[push]
+	autoSetupRemote = true
+[rerere]
+	enabled = true
+[alias]
+	st = status
+	co = checkout
+	br = branch
+	cm = commit -m
+	d = diff
+	ds = diff --staged
+	lg = log --oneline --graph --decorate --all -20

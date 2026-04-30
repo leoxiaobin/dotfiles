@@ -1,0 +1,10 @@
+# Machine-specific zsh config — NOT tracked in dotfiles repo
+# Copy this to ~/.zshrc.local and edit with your secrets
+
+# Example: WANDB
+# export WANDB_ORGANIZATION="https://..."
+# export WANDB_API_KEY="local-..."
+# export WANDB_ENTITY="..."
+
+# Example: machine-specific hooks
+# source "/path/to/some-hook.zsh"

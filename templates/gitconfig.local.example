@@ -1,0 +1,15 @@
+# Machine-specific git config — NOT tracked in dotfiles repo
+# Copy this to ~/.gitconfig.local and edit for your platform
+
+# WSL — Windows Git Credential Manager:
+# [credential]
+# 	helper = /mnt/c/Program\\ Files/Git/mingw64/bin/git-credential-manager.exe
+# 	useHttpPath = true
+
+# macOS — osxkeychain (usually auto-configured):
+# [credential]
+# 	helper = osxkeychain
+
+# Linux — libsecret or store:
+# [credential]
+# 	helper = /usr/lib/git-core/git-credential-libsecret
