@@ -26,16 +26,13 @@ cd ~/dotfiles
 sudo apt install stow   # Debian/Ubuntu
 brew install stow        # macOS
 
-# Symlink everything
-stow zsh git tmux doom nvim ghostty fontconfig starship
+# Symlink everything and create compatibility links
+./sync.sh
 
 # Create local overrides (for secrets)
 cp templates/zshrc.local.example ~/.zshrc.local
 cp templates/gitconfig.local.example ~/.gitconfig.local
 # Edit these ↑ with your machine-specific settings
-
-# Create tmux.conf symlink
-ln -sf ~/.tmux/.tmux.conf ~/.tmux.conf
 ```
 
 See [CLAUDE.md](CLAUDE.md) for full setup instructions including tool installation.
@@ -124,8 +121,15 @@ cd ~/dotfiles
 # Edit files here (not the symlink targets)
 nvim zsh/.zshrc
 
-# If you add new files to a package:
-stow -R zsh
+# Apply local changes to this machine
+./sync.sh
+
+# On another machine, after pushing/pulling:
+git pull --ff-only
+./sync.sh
+
+# Preview changes first:
+./sync.sh --dry-run
 
 # After Doom Emacs changes:
 doom sync
@@ -155,6 +159,7 @@ doom sync
 ├── fontconfig/.config/fontconfig/fonts.conf
 ├── starship/.config/starship.toml
 ├── templates/           # example local override files and snippets
+├── sync.sh              # re-stow packages after git pull
 ├── CLAUDE.md            # AI agent bootstrap guide
 └── README.md            # this file
 ```
