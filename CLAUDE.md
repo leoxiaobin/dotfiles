@@ -34,12 +34,12 @@ Install these tools first. Use the platform's package manager.
 
 **Ubuntu/Debian (apt):**
 ```bash
-sudo apt install -y git zsh stow tmux emacs neovim fontconfig curl
+sudo apt install -y git zsh stow tmux emacs neovim fontconfig curl direnv nodejs npm shellcheck pandoc python3-pip
 ```
 
 **macOS (brew):**
 ```bash
-brew install git zsh stow tmux emacs neovim fontconfig curl
+brew install git zsh stow tmux emacs neovim fontconfig curl direnv node shellcheck pandoc
 ```
 
 ### 2. Required CLI tools
@@ -59,6 +59,12 @@ brew install git zsh stow tmux emacs neovim fontconfig curl
 # - yazi (file manager)    : cargo install yazi-fm / brew install yazi
 # - lazygit                : go install github.com/jesseduffield/lazygit@latest / brew install lazygit
 # - nvm (node manager)     : curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/HEAD/install.sh | bash
+# - direnv (project envs)  : apt install direnv / brew install direnv
+# - node/npm (LSP servers) : apt install nodejs npm / brew install node
+# - shellcheck (sh lint)   : apt install shellcheck / brew install shellcheck
+# - pandoc (markdown)      : apt install pandoc / brew install pandoc
+# - pipenv (Python envs)   : pip install pipenv
+# - nose (legacy tests)    : pip install nose
 ```
 
 ### 3. Clone and stow
@@ -94,25 +100,39 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/too
 git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 
 # Doom Emacs
+# Emacs prefers ~/.emacs.d over ~/.config/emacs; move old configs aside first.
+[ ! -e ~/.emacs.d ] || mv ~/.emacs.d ~/.emacs.d.backup-$(date +%Y%m%d-%H%M%S)
+[ ! -e ~/.doom.d ] || mv ~/.doom.d ~/.doom.d.backup-$(date +%Y%m%d-%H%M%S)
 git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
 ~/.config/emacs/bin/doom install
+source ~/.zshrc
+doom sync
+doom doctor
 
 # LazyVim bootstrap (lazy.nvim auto-installs on first nvim launch)
 nvim --headless "+Lazy! sync" +qa
 
 # Fonts: install JetBrainsMono Nerd Font
-mkdir -p ~/.local/share/fonts
-curl -fLo /tmp/JetBrainsMono.zip https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip
-unzip -o /tmp/JetBrainsMono.zip -d ~/.local/share/fonts/
-fc-cache -fv
+if [[ "$(uname)" == "Darwin" ]]; then
+  brew install --cask font-jetbrains-mono-nerd-font
+else
+  mkdir -p ~/.local/share/fonts
+  curl -fLo /tmp/JetBrainsMono.zip https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip
+  unzip -o /tmp/JetBrainsMono.zip -d ~/.local/share/fonts/
+  fc-cache -fv
+fi
 ```
 
 ## Platform Notes
 
 - **WSL**: Set terminal font to "JetBrainsMono Nerd Font Mono" in Windows Terminal settings.
   Clipboard uses OSC 52 (no xclip needed).
-- **macOS**: Set terminal font in iTerm2/Alacritty/etc. `bat` and `fd` use native names (no alias needed).
+- **macOS**: Set terminal font in iTerm2/Alacritty/etc. to "JetBrainsMono Nerd Font Mono".
+  `bat` and `fd` use native names (no alias needed). For better Emacs performance,
+  consider `emacs-plus@30 --with-native-comp`.
 - **Linux**: Font and clipboard should work automatically with modern terminal emulators.
+- **Terminal Emacs**: Themes render poorly if `TERM=xterm-color`; `.zshrc` upgrades it
+  to `xterm-256color` and exports `COLORTERM=truecolor`.
 
 ## Design Principles
 

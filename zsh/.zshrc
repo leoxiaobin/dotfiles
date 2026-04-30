@@ -245,3 +245,11 @@ ai () {
 
   "$tool" "${@:2}"
 }
+
+# Doom Emacs
+export PATH="$HOME/.config/emacs/bin:$PATH"
+
+# Terminal Emacs renders themes poorly when TERM is only xterm-color.
+if [[ "$TERM" == "xterm-color" ]]; then
+  export TERM=xterm-256color
+fi
