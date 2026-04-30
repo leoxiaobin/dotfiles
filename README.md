@@ -96,6 +96,8 @@ In Doom Emacs: `SPC g g` for Magit.
 | `C-q C-r`        | Restore session                     |
 
 Status bar shows: directory | windows `[pane-count]` | git branch | session | time.
+Pane borders show each pane number/command, and the active pane gets a bright
+`ACTIVE` label.
 
 ### Org Notes
 

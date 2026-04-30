@@ -160,7 +160,7 @@ fi
 
 ### tmux (prefix: C-q)
 - `C-q v/b` — split vertical/horizontal
-- `C-q h/j/k/l` — navigate panes
+- `C-q h/j/k/l` — navigate panes; active pane gets a bright `ACTIVE` border label
 - `C-q z` — zoom pane (status shows `[N] 󰊓` when zoomed)
 - `C-q C-s` — save session (resurrect)
 - `C-q C-r` — restore session (resurrect)
