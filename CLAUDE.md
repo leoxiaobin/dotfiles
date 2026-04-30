@@ -123,8 +123,9 @@ PAGER=cat doom doctor
 # LazyVim bootstrap (lazy.nvim auto-installs on first nvim launch)
 nvim --headless "+Lazy! sync" +qa
 
-# Fonts: install JetBrainsMono Nerd Font
+# Fonts: install terminal/editor fonts
 if [[ "$(uname)" == "Darwin" ]]; then
+  brew install --cask font-ibm-plex
   brew install --cask font-jetbrains-mono-nerd-font
 else
   mkdir -p ~/.local/share/fonts
@@ -136,9 +137,11 @@ fi
 
 ## Platform Notes
 
-- **WSL**: Set terminal font to "JetBrainsMono Nerd Font Mono" in Windows Terminal settings.
+- **WSL**: Set Windows Terminal font to "BlexMono Nerd Font Mono" at 16pt.
+  It is the Nerd Font-patched IBM Plex Mono family, so tmux/starship icons render correctly.
   Clipboard uses OSC 52 (no xclip needed).
-- **macOS**: Set terminal font in iTerm2/Alacritty/etc. to "JetBrainsMono Nerd Font Mono".
+- **macOS**: Ghostty uses IBM Plex Mono at 16pt from `ghostty/.config/ghostty/config.ghostty`.
+  For iTerm2/Alacritty/etc., use IBM Plex Mono 16pt or BlexMono Nerd Font Mono if you need Nerd Font icons.
   `bat` and `fd` use native names (no alias needed). For better Emacs performance,
   consider `emacs-plus@30 --with-native-comp`.
 - **Linux**: Font and clipboard should work automatically with modern terminal emulators.
@@ -152,7 +155,8 @@ fi
 - **No API keys in configs.** Secrets go in `~/.zshrc.local` / `~/.gitconfig.local`.
 - **No heavy AI packages in editors.** AI runs in terminal (Claude Code, Codex, Copilot CLI).
 - **Catppuccin Mocha** theme everywhere (Emacs, Neovim, tmux, terminal).
-- **JetBrainsMono Nerd Font Mono** everywhere.
+- **IBM Plex Mono 16pt** in Ghostty; **BlexMono Nerd Font Mono 16pt** in Windows Terminal for Nerd Font glyphs.
+- **JetBrainsMono Nerd Font Mono** remains the editor/fontconfig fallback.
 - **OSC 52** clipboard (works over SSH, tmux, WSL).
 - **Keyboard-first.** Minimal mouse usage.
 

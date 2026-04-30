@@ -11,7 +11,7 @@ Terminal-centric development environment managed with [GNU Stow](https://www.gnu
 | `tmux`       | Tmux: C-q prefix, catppuccin, git status, resurrect   |
 | `doom`       | Doom Emacs: LSP, vterm, org capture, magit, AI helpers |
 | `nvim`       | LazyVim: catppuccin, org-mode, OSC 52 clipboard       |
-| `ghostty`    | Ghostty terminal: catppuccin, JetBrainsMono Nerd Font |
+| `ghostty`    | Ghostty terminal: catppuccin, IBM Plex Mono 16pt      |
 | `fontconfig` | Font fallback: JetBrainsMono Nerd Font                |
 | `starship`   | Starship prompt config                                |
 
@@ -44,11 +44,15 @@ Ghostty reads `~/.config/ghostty/config.ghostty` from the `ghostty` stow package
 Keep machine-specific overrides in `~/.config/ghostty/config`; Ghostty loads that
 after `config.ghostty`.
 
+For Windows Terminal/WSL, use `BlexMono Nerd Font Mono` at 16pt. It is the
+Nerd Font-patched IBM Plex Mono family, so tmux/starship icons render correctly;
+see `templates/windows-terminal-profile.example.jsonc`.
+
 ## Design Philosophy
 
 - **Editors for editing, terminals for AI.** Claude Code / Codex / Copilot CLI run in tmux, not inside Emacs or Neovim.
 - **No API keys in config.** Secrets stay in `~/.zshrc.local` and `~/.gitconfig.local` (not tracked).
-- **One theme everywhere.** Catppuccin Mocha + JetBrainsMono Nerd Font Mono.
+- **One theme, practical fonts.** Catppuccin Mocha everywhere; Ghostty uses IBM Plex Mono 16pt, while Windows Terminal should use BlexMono Nerd Font Mono 16pt for icons.
 - **Cross-platform.** Works on Linux, WSL, and macOS with conditional aliases.
 - **Keyboard-first.** Optimized for terminal + tmux workflows.
 
@@ -150,7 +154,7 @@ doom sync
 ├── ghostty/.config/ghostty/config.ghostty
 ├── fontconfig/.config/fontconfig/fonts.conf
 ├── starship/.config/starship.toml
-├── templates/           # example local override files
+├── templates/           # example local override files and snippets
 ├── CLAUDE.md            # AI agent bootstrap guide
 └── README.md            # this file
 ```

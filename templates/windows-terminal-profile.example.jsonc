@@ -1,0 +1,13 @@
+// Windows Terminal equivalent of Ghostty's IBM Plex Mono 16pt.
+// Install BlexMono Nerd Font Mono first:
+// https://github.com/ryanoasis/nerd-fonts/releases/latest/download/IBMPlexMono.zip
+{
+  "profiles": {
+    "defaults": {
+      "font": {
+        "face": "BlexMono Nerd Font Mono",
+        "size": 16
+      }
+    }
+  }
+}
