@@ -45,7 +45,16 @@ sudo apt install -y git zsh stow tmux emacs neovim fontconfig curl unzip direnv 
 
 **macOS (brew):**
 ```bash
-brew install git zsh stow tmux emacs neovim fontconfig curl direnv node shellcheck discount pandoc python
+brew doctor
+test -w /opt/homebrew || echo "Homebrew is not writable. Run: sudo chown -R $USER /opt/homebrew && chmod -R u+w /opt/homebrew"
+brew install git zsh stow tmux emacs neovim fontconfig curl direnv node shellcheck discount pandoc python pipenv pytest isort pipx
+```
+
+The Neovim config currently enables `lazyvim.plugins.extras.ai.copilot-native`,
+which requires Neovim `>= 0.12`. On macOS, upgrade before running LazyVim sync:
+
+```bash
+brew upgrade neovim
 ```
 
 **Ghostty terminal (optional but recommended):**
@@ -75,9 +84,11 @@ brew install --cask ghostty
 # - node/npm (LSP servers) : apt install nodejs npm / brew install node
 # - shellcheck (sh lint)   : apt install shellcheck / brew install shellcheck
 # - markdown compiler      : apt install markdown pandoc / brew install discount pandoc
-# - pipenv (Python envs)   : python3 -m pip install --user pipenv
-# - nose (legacy tests)    : python3 -m pip install --user nose
-#   NOTE: If pip is externally managed, use pipx/apt/brew packages instead.
+# - pipenv (Python envs)   : apt install pipenv / brew install pipenv
+# - pytest/isort           : apt install python3-pytest isort / brew install pytest isort
+# - nose (legacy tests)    : pipx install nose
+#   NOTE: Homebrew Python is externally managed by PEP 668. Prefer brew/pipx
+#   over `python3 -m pip install --user ...` on macOS.
 ```
 
 ### 3. Install framework-level dependencies
@@ -106,7 +117,36 @@ ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 git clone git@github-leoxiaobin:leoxiaobin/dotfiles.git ~/dotfiles
 # git clone https://github.com/leoxiaobin/dotfiles.git ~/dotfiles
 cd ~/dotfiles
+./sync.sh --dry-run
 ./sync.sh
+```
+
+On an existing machine, `stow` will refuse to overwrite real files already at
+the target paths. If `./sync.sh --dry-run` reports conflicts, back them up
+before syncing:
+
+```bash
+backup_dir="$HOME/dotfiles-backups/$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$backup_dir"
+
+for path in \
+  .zshrc .gitconfig .tmux.conf .tmux/.tmux.conf \
+  .config/starship.toml \
+  .config/doom/config.el .config/doom/init.el .config/doom/packages.el \
+  .config/nvim/init.lua .config/nvim/lazyvim.json .config/nvim/stylua.toml \
+  .config/nvim/lua/config/autocmds.lua \
+  .config/nvim/lua/config/keymaps.lua \
+  .config/nvim/lua/config/lazy.lua \
+  .config/nvim/lua/config/options.lua \
+  .config/nvim/lua/plugins/colorscheme.lua \
+  .config/nvim/lua/plugins/orgmode.lua
+do
+  target="$HOME/$path"
+  if [ -e "$target" ] || [ -L "$target" ]; then
+    mkdir -p "$backup_dir/$(dirname "$path")"
+    mv "$target" "$backup_dir/$path"
+  fi
+done
 ```
 
 ### 5. Create local override files
@@ -133,7 +173,7 @@ fi
 ln -sfn "$HOME/.config/emacs" "$HOME/.emacs.d"
 ~/.config/emacs/bin/doom install
 export PATH="$HOME/.config/emacs/bin:$PATH"
-doom sync
+doom sync --force --rebuild
 PAGER=cat doom doctor
 
 # LazyVim bootstrap (lazy.nvim auto-installs on first Neovim launch)
@@ -150,6 +190,21 @@ else
 fi
 ```
 
+Known long-running steps:
+
+- `doom sync --force --rebuild` can take 10-15 minutes on a fresh or upgraded setup.
+- If `doom upgrade` appears stuck for many minutes while fetching recipe repos,
+  stop it, make sure no orphaned `git fetch` children are still running, then use
+  `doom sync --force --rebuild`.
+- If Doom fails with `Could not find package git-commit`, add this package
+  override to `doom/.config/doom/packages.el` and rerun sync:
+
+```elisp
+(package! git-commit
+  :recipe (:host github :repo "magit/magit"
+           :files ("lisp/git-commit.el" "lisp/git-commit-pkg.el")))
+```
+
 ## Platform Notes
 
 - **WSL**: Set Windows Terminal font to "BlexMono Nerd Font Mono" at 16pt.
@@ -159,6 +214,9 @@ fi
   For iTerm2/Alacritty/etc., use BlexMono Nerd Font Mono 16pt for consistent icons.
   `bat` and `fd` use native names (no alias needed). For better Emacs performance,
   consider `emacs-plus@30 --with-native-comp`.
+  Doom doctor may warn about the legacy Symbola fallback font. Homebrew may not
+  provide `font-symbola`; this is not blocking when Symbols Nerd Font Mono is
+  present.
 - **Linux**: Font and clipboard should work automatically with modern terminal emulators.
 - **Ghostty**: Shared settings live in `~/.config/ghostty/config.ghostty`.
   Put machine-specific overrides in `~/.config/ghostty/config`, which Ghostty loads afterward.
@@ -206,11 +264,13 @@ fi
 - Preserve local override files (`~/.zshrc.local`, `~/.gitconfig.local`, `~/.config/ghostty/config`)
 - After running `./sync.sh`, verify the synced environment before reporting success:
   - `zsh -n ~/.zshrc`
-  - `test -L ~/.tmux.conf && test "$(readlink ~/.tmux.conf)" = "$HOME/.tmux/.tmux.conf"`
+  - `test -L ~/.tmux.conf`
   - `tmux source-file ~/.tmux.conf` when tmux is installed
-  - `ghostty +validate-config --config-file=ghostty/.config/ghostty/config.ghostty` when Ghostty is installed
-  - run changed-tool checks such as `doom sync`, `nvim --headless "+Lazy! sync" +qa`, or `fc-cache -fv` only when those areas changed
+  - `ghostty +validate-config --config-file=~/.config/ghostty/config.ghostty` when Ghostty is installed
+  - `nvim --headless "+Lazy! sync" +qa`
+  - `doom sync --force --rebuild`
+  - `PAGER=cat doom doctor`
 - Test with `zsh -n ~/.zshrc` (syntax check) before committing
-- After Doom changes: `doom sync`
+- After Doom changes: `doom sync --force --rebuild`
 - After tmux changes: `C-q r` to reload
 - Keep platform-specific logic behind `IS_WSL` / `IS_MACOS` checks in .zshrc
