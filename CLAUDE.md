@@ -6,7 +6,7 @@ and work with this dotfiles repository.
 ## What This Repo Is
 
 A GNU Stow-managed dotfiles repo for a terminal-centric dev workflow.
-Covers: zsh, git, tmux, Doom Emacs, LazyVim (Neovim), fontconfig, starship.
+Covers: zsh, git, tmux, Doom Emacs, LazyVim (Neovim), Ghostty, fontconfig, starship.
 
 ## Directory Structure
 
@@ -25,6 +25,7 @@ dotfiles/
   fontconfig/.config/fontconfig/      → ~/.config/fontconfig/
   starship/.config/starship.toml      → ~/.config/starship.toml
   templates/                          → example local override files
+  sync.sh                             → re-stow packages after git pull
 ```
 
 ## Setup on a New Machine
@@ -75,14 +76,14 @@ brew install --cask ghostty
 #   NOTE: If pip is externally managed, use pipx/apt/brew packages instead.
 ```
 
-### 3. Clone and stow
+### 3. Clone and sync
 
 ```bash
 # Use git@github.com:... once SSH keys are configured; otherwise use HTTPS.
 git clone git@github.com:leoxiaobin/dotfiles.git ~/dotfiles
 # git clone https://github.com/leoxiaobin/dotfiles.git ~/dotfiles
 cd ~/dotfiles
-stow zsh git tmux doom nvim ghostty fontconfig starship
+./sync.sh
 ```
 
 ### 4. Create local override files
@@ -96,8 +97,7 @@ cp ~/dotfiles/templates/gitconfig.local.example ~/.gitconfig.local
 ### 5. Post-stow setup
 
 ```bash
-# tmux: the config expects ~/.tmux.conf → ~/.tmux/.tmux.conf
-ln -sf ~/.tmux/.tmux.conf ~/.tmux.conf
+# sync.sh creates ~/.tmux.conf → ~/.tmux/.tmux.conf
 
 # tmux plugins (TPM)
 [ -d ~/.tmux/plugins/tpm ] || git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
@@ -111,10 +111,14 @@ ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 [ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] || git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
 
 # Doom Emacs
-# Emacs prefers ~/.emacs.d over ~/.config/emacs; move old configs aside first.
-[ ! -e ~/.emacs.d ] || mv ~/.emacs.d ~/.emacs.d.backup-$(date +%Y%m%d-%H%M%S)
+# Emacs prefers ~/.emacs.d over ~/.config/emacs; make it point at Doom.
+if [ -e ~/.emacs.d ] && [ ! -L ~/.emacs.d ]; then
+  mv ~/.emacs.d ~/.emacs.d.backup-$(date +%Y%m%d-%H%M%S)
+fi
+[ ! -L ~/.emacs.d ] || rm ~/.emacs.d
 [ ! -e ~/.doom.d ] || mv ~/.doom.d ~/.doom.d.backup-$(date +%Y%m%d-%H%M%S)
-git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
+[ -d ~/.config/emacs ] || git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
+ln -sfn "$HOME/.config/emacs" "$HOME/.emacs.d"
 ~/.config/emacs/bin/doom install
 export PATH="$HOME/.config/emacs/bin:$PATH"
 doom sync
@@ -185,8 +189,17 @@ fi
 ## When Modifying These Configs
 
 - Edit files in `~/dotfiles/`, not the symlink targets
-- Run `stow <package>` after adding new files to a package
-- Test with `zsh -n ~/.zshrc` (syntax check) before committing
+- Run `./sync.sh` after adding or changing managed dotfiles
+- To sync another machine after changes are pushed: `cd ~/dotfiles && git pull --ff-only && ./sync.sh`
+- Agents may use `./sync.sh --pull` to pull and sync in one step, or `./sync.sh --dry-run` to preview
+- Prefer `./sync.sh` over raw `stow`; use direct `stow` only when debugging the sync script itself
+- Preserve local override files (`~/.zshrc.local`, `~/.gitconfig.local`, `~/.config/ghostty/config`)
+- After running `./sync.sh`, verify the synced environment before reporting success:
+  - `zsh -n ~/.zshrc`
+  - `test -L ~/.tmux.conf && test "$(readlink ~/.tmux.conf)" = "$HOME/.tmux/.tmux.conf"`
+  - `tmux source-file ~/.tmux.conf` when tmux is installed
+  - `ghostty +validate-config --config-file=ghostty/.config/ghostty/config.ghostty` when Ghostty is installed
+  - run changed-tool checks such as `doom sync`, `nvim --headless "+Lazy! sync" +qa`, or `fc-cache -fv` only when those areas changed
 - After Doom changes: `doom sync`
 - After tmux changes: `C-q r` to reload
 - Keep platform-specific logic behind `IS_WSL` / `IS_MACOS` checks in .zshrc
