@@ -12,6 +12,8 @@
 (setq doom-theme 'catppuccin)
 (setq display-line-numbers-type t)
 (setq org-directory "~/org/")
+(setq global-auto-revert-non-file-buffers t)
+(global-auto-revert-mode 1)
 
 ;; ============================================================
 ;; Fonts — BlexMono Nerd Font (IBM Plex Mono patched with Nerd Font glyphs)
