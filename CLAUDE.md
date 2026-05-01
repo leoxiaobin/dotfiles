@@ -141,12 +141,11 @@ nvim --headless "+Lazy! sync" +qa
 
 # Fonts: install terminal/editor fonts
 if [[ "$(uname)" == "Darwin" ]]; then
-  brew install --cask font-ibm-plex
-  brew install --cask font-jetbrains-mono-nerd-font
+  brew install --cask font-blex-mono-nerd-font
 else
   mkdir -p ~/.local/share/fonts
-  curl -fLo /tmp/JetBrainsMono.zip https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip
-  unzip -o /tmp/JetBrainsMono.zip -d ~/.local/share/fonts/
+  curl -fLo /tmp/IBMPlexMono.zip https://github.com/ryanoasis/nerd-fonts/releases/latest/download/IBMPlexMono.zip
+  unzip -o /tmp/IBMPlexMono.zip -d ~/.local/share/fonts/
   fc-cache -fv
 fi
 ```
@@ -156,8 +155,8 @@ fi
 - **WSL**: Set Windows Terminal font to "BlexMono Nerd Font Mono" at 16pt.
   It is the Nerd Font-patched IBM Plex Mono family, so tmux/starship icons render correctly.
   Clipboard uses OSC 52 (no xclip needed).
-- **macOS**: Ghostty uses IBM Plex Mono at 16pt from `ghostty/.config/ghostty/config.ghostty`.
-  For iTerm2/Alacritty/etc., use IBM Plex Mono 16pt or BlexMono Nerd Font Mono if you need Nerd Font icons.
+- **macOS**: Ghostty uses BlexMono Nerd Font Mono at 16pt from `ghostty/.config/ghostty/config.ghostty`.
+  For iTerm2/Alacritty/etc., use BlexMono Nerd Font Mono 16pt for consistent icons.
   `bat` and `fd` use native names (no alias needed). For better Emacs performance,
   consider `emacs-plus@30 --with-native-comp`.
 - **Linux**: Font and clipboard should work automatically with modern terminal emulators.
@@ -171,8 +170,7 @@ fi
 - **No API keys in configs.** Secrets go in `~/.zshrc.local` / `~/.gitconfig.local`.
 - **Terminal-first AI workflow.** Claude Code, Codex, and Copilot CLI run in tmux/vterm; editor AI extras are optional and account-authenticated.
 - **Catppuccin Mocha** theme everywhere (Emacs, Neovim, tmux, terminal).
-- **IBM Plex Mono 16pt** in Ghostty; **BlexMono Nerd Font Mono 16pt** in Windows Terminal for Nerd Font glyphs.
-- **JetBrainsMono Nerd Font Mono** remains the editor/fontconfig fallback.
+- **BlexMono Nerd Font Mono 16pt** in terminals; **BlexMono Nerd Font Mono** in Emacs/fontconfig.
 - **OSC 52** clipboard (works over SSH, tmux, WSL).
 - **Keyboard-first.** Minimal mouse usage.
 

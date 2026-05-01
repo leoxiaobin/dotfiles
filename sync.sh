@@ -79,7 +79,7 @@ fi
 if [[ -f /proc/version ]] && grep -qiE 'microsoft|wsl' /proc/version; then
   echo "WSL note: configure Windows Terminal with templates/windows-terminal-profile.example.jsonc"
 elif [[ "$(uname -s)" == "Darwin" ]]; then
-  echo "macOS note: Ghostty uses IBM Plex Mono 16pt; install it with: brew install --cask font-ibm-plex"
+  echo "macOS note: Ghostty uses BlexMono Nerd Font Mono 16pt; install it with: brew install --cask font-blex-mono-nerd-font"
 fi
 
 echo "Dotfiles sync complete."

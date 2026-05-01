@@ -14,14 +14,14 @@
 (setq org-directory "~/org/")
 
 ;; ============================================================
-;; Fonts — JetBrainsMono Nerd Font for icons & ligatures
+;; Fonts — BlexMono Nerd Font (IBM Plex Mono patched with Nerd Font glyphs)
 ;; ============================================================
 ;; GUI Emacs: set primary + symbol fonts directly
-(setq doom-font (font-spec :family "JetBrainsMono Nerd Font Mono" :size 14)
-      doom-variable-pitch-font (font-spec :family "JetBrainsMono Nerd Font" :size 14)
+(setq doom-font (font-spec :family "BlexMono Nerd Font Mono" :size 14)
+      doom-variable-pitch-font (font-spec :family "BlexMono Nerd Font" :size 14)
       doom-symbol-font (font-spec :family "Symbols Nerd Font Mono"))
 ;; Terminal Emacs: set your terminal emulator's font to
-;; "JetBrainsMono Nerd Font Mono" for icons to work.
+;; "BlexMono Nerd Font Mono" for icons to work.
 
 ;; ============================================================
 ;; Performance

@@ -1,4 +1,4 @@
 # Shared Ghostty baseline for this dotfiles repo.
 theme = Catppuccin Mocha
-font-family = IBM Plex Mono
+font-family = BlexMono Nerd Font Mono
 font-size = 16
