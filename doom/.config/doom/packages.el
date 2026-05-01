@@ -12,6 +12,10 @@
   :recipe (:host github :repo "magit/magit"
            :files ("lisp/git-commit.el" "lisp/git-commit-pkg.el")))
 
+;; Visual polish for Org buffers. This changes display only; Org files remain
+;; plain text with normal stars, drawers, tables, and checkboxes.
+(package! org-modern)
+
 ;; ============================================================
 ;; OPTIONAL: Future AI packages (all disabled)
 ;; Uncomment only if you want API-based AI inside Emacs.

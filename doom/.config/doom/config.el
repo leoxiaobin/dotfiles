@@ -152,7 +152,8 @@ Reuses an existing buffer if one exists for this project+name."
   ;; Org-mode niceties
   (setq org-log-done 'time)
   (setq org-startup-folded 'content)
-  (setq org-ellipsis " ▾"))
+  (setq org-ellipsis " ▾")
+  (add-hook 'org-mode-hook #'org-modern-mode))
 
 ;; ============================================================
 ;; Magit — central to reviewing AI-generated diffs
