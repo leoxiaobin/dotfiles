@@ -152,7 +152,22 @@ Reuses an existing buffer if one exists for this project+name."
   ;; Org-mode niceties
   (setq org-log-done 'time)
   (setq org-startup-folded 'content)
-  (setq org-ellipsis " ▾"))
+  (setq org-ellipsis " ▾")
+
+  (defun my/save-file-buffers ()
+    "Save all modified file-backed buffers."
+    (dolist (buf (buffer-list))
+      (with-current-buffer buf
+        (when (and buffer-file-name
+                   (buffer-modified-p))
+          (let ((inhibit-message t))
+            (save-buffer))))))
+
+  (defvar my/file-auto-save-timer nil)
+  (when (timerp my/file-auto-save-timer)
+    (cancel-timer my/file-auto-save-timer))
+  (setq my/file-auto-save-timer (run-with-idle-timer 5 t #'my/save-file-buffers))
+  (add-hook 'focus-out-hook #'my/save-file-buffers))
 
 ;; ============================================================
 ;; Magit — central to reviewing AI-generated diffs
