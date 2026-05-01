@@ -267,3 +267,13 @@ alias eg='emacsclient -c -a ""'
 if [[ "$TERM" == "xterm-color" ]]; then
   export TERM=xterm-256color
 fi
+
+# Ghostty exports TERMINFO pointing at its bundled directory, which only
+# contains the `xterm-ghostty` entry. Inside tmux (TERM=tmux-256color),
+# emacsclient -t cannot find a usable terminfo entry there and renders
+# Catppuccin with a blue background. Unset it so ncurses falls back to the
+# system terminfo database. Doom also caches env vars at sync time, so this
+# keeps `doom env` regenerations clean.
+if [[ "$IS_MACOS" == "true" && -n "$TERMINFO" && "$TERMINFO" == /Applications/Ghostty.app/* ]]; then
+  unset TERMINFO
+fi

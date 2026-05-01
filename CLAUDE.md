@@ -196,6 +196,14 @@ Known long-running steps:
 - If `doom upgrade` appears stuck for many minutes while fetching recipe repos,
   stop it, make sure no orphaned `git fetch` children are still running, then use
   `doom sync --force --rebuild`.
+- macOS+Ghostty: if a tty `emacsclient -t` frame (the `e` alias) renders
+  Catppuccin with a blue background while plain `emacs` (GUI) looks correct,
+  the cause is Ghostty exporting `TERMINFO=/Applications/Ghostty.app/...`
+  whose terminfo db only contains `xterm-ghostty`. Inside tmux this breaks
+  ncurses lookup for `tmux-256color`. The zshrc now unsets that TERMINFO on
+  macOS, but Doom may have cached it: edit `~/.config/emacs/.local/env` and
+  remove the `TERMINFO=...` line, then restart the daemon.
+
 - If Doom fails with `Could not find package git-commit`, add this package
   override to `doom/.config/doom/packages.el` and rerun sync:
 
