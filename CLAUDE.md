@@ -16,10 +16,14 @@ Each top-level folder is a "stow package" that mirrors `$HOME`:
 dotfiles/
   zsh/.zshrc                          → ~/.zshrc
   git/.gitconfig                      → ~/.gitconfig
+  tmux/.tmux.conf                     → ~/.tmux.conf
   tmux/.tmux/.tmux.conf               → ~/.tmux/.tmux.conf
   tmux/.tmux/custom/                  → ~/.tmux/custom/
   tmux/.tmux/scripts/                 → ~/.tmux/scripts/
   doom/.config/doom/{init,config,packages}.el → ~/.config/doom/
+  nvim/.config/nvim/init.lua          → ~/.config/nvim/init.lua
+  nvim/.config/nvim/lazyvim.json      → ~/.config/nvim/lazyvim.json
+  nvim/.config/nvim/stylua.toml       → ~/.config/nvim/stylua.toml
   nvim/.config/nvim/lua/              → ~/.config/nvim/lua/
   ghostty/.config/ghostty/config.ghostty → ~/.config/ghostty/config.ghostty
   fontconfig/.config/fontconfig/      → ~/.config/fontconfig/
@@ -36,12 +40,12 @@ Install these tools first. Use the platform's package manager.
 
 **Ubuntu/Debian (apt):**
 ```bash
-sudo apt install -y git zsh stow tmux emacs neovim fontconfig curl unzip direnv nodejs npm shellcheck pandoc python3-pip python3-venv
+sudo apt install -y git zsh stow tmux emacs neovim fontconfig curl unzip direnv nodejs npm shellcheck markdown fonts-symbola pandoc python3-pip python3-venv
 ```
 
 **macOS (brew):**
 ```bash
-brew install git zsh stow tmux emacs neovim fontconfig curl direnv node shellcheck pandoc python
+brew install git zsh stow tmux emacs neovim fontconfig curl direnv node shellcheck discount pandoc python
 ```
 
 **Ghostty terminal (optional but recommended):**
@@ -70,23 +74,42 @@ brew install --cask ghostty
 # - direnv (project envs)  : apt install direnv / brew install direnv
 # - node/npm (LSP servers) : apt install nodejs npm / brew install node
 # - shellcheck (sh lint)   : apt install shellcheck / brew install shellcheck
-# - pandoc (markdown)      : apt install pandoc / brew install pandoc
+# - markdown compiler      : apt install markdown pandoc / brew install discount pandoc
 # - pipenv (Python envs)   : python3 -m pip install --user pipenv
 # - nose (legacy tests)    : python3 -m pip install --user nose
 #   NOTE: If pip is externally managed, use pipx/apt/brew packages instead.
 ```
 
-### 3. Clone and sync
+### 3. Install framework-level dependencies
+
+Install these before syncing so their installers do not overwrite symlinked
+dotfiles.
 
 ```bash
-# Use git@github.com:... once SSH keys are configured; otherwise use HTTPS.
-git clone git@github.com:leoxiaobin/dotfiles.git ~/dotfiles
+# oh-my-zsh (do not generate/overwrite .zshrc)
+RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+[ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] || git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+
+# Doom Emacs framework (not tracked in this repo)
+[ -d ~/.config/emacs ] || git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
+
+# tmux plugin manager
+[ -d ~/.tmux/plugins/tpm ] || git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+```
+
+### 4. Clone and sync
+
+```bash
+# If multiple GitHub accounts are used, configure github-leoxiaobin first.
+# See templates/ssh-config.github.example.
+git clone git@github-leoxiaobin:leoxiaobin/dotfiles.git ~/dotfiles
 # git clone https://github.com/leoxiaobin/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ./sync.sh
 ```
 
-### 4. Create local override files
+### 5. Create local override files
 
 ```bash
 cp ~/dotfiles/templates/zshrc.local.example ~/.zshrc.local
@@ -94,21 +117,11 @@ cp ~/dotfiles/templates/gitconfig.local.example ~/.gitconfig.local
 # Edit these with machine-specific secrets and credential helpers
 ```
 
-### 5. Post-stow setup
+### 6. Post-sync setup
 
 ```bash
-# sync.sh creates ~/.tmux.conf → ~/.tmux/.tmux.conf
-
-# tmux plugins (TPM)
-[ -d ~/.tmux/plugins/tpm ] || git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-tmux new-session -d && tmux source-file ~/.tmux.conf
+tmux start-server \; source-file ~/.tmux.conf
 ~/.tmux/plugins/tpm/bin/install_plugins
-
-# oh-my-zsh
-RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-# install zsh-syntax-highlighting plugin
-ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
-[ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] || git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
 
 # Doom Emacs
 # Emacs prefers ~/.emacs.d over ~/.config/emacs; make it point at Doom.
@@ -117,14 +130,13 @@ if [ -e ~/.emacs.d ] && [ ! -L ~/.emacs.d ]; then
 fi
 [ ! -L ~/.emacs.d ] || rm ~/.emacs.d
 [ ! -e ~/.doom.d ] || mv ~/.doom.d ~/.doom.d.backup-$(date +%Y%m%d-%H%M%S)
-[ -d ~/.config/emacs ] || git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
 ln -sfn "$HOME/.config/emacs" "$HOME/.emacs.d"
 ~/.config/emacs/bin/doom install
 export PATH="$HOME/.config/emacs/bin:$PATH"
 doom sync
 PAGER=cat doom doctor
 
-# LazyVim bootstrap (lazy.nvim auto-installs on first nvim launch)
+# LazyVim bootstrap (lazy.nvim auto-installs on first Neovim launch)
 nvim --headless "+Lazy! sync" +qa
 
 # Fonts: install terminal/editor fonts
@@ -157,7 +169,7 @@ fi
 ## Design Principles
 
 - **No API keys in configs.** Secrets go in `~/.zshrc.local` / `~/.gitconfig.local`.
-- **No heavy AI packages in editors.** AI runs in terminal (Claude Code, Codex, Copilot CLI).
+- **Terminal-first AI workflow.** Claude Code, Codex, and Copilot CLI run in tmux/vterm; editor AI extras are optional and account-authenticated.
 - **Catppuccin Mocha** theme everywhere (Emacs, Neovim, tmux, terminal).
 - **IBM Plex Mono 16pt** in Ghostty; **BlexMono Nerd Font Mono 16pt** in Windows Terminal for Nerd Font glyphs.
 - **JetBrainsMono Nerd Font Mono** remains the editor/fontconfig fallback.
@@ -200,6 +212,7 @@ fi
   - `tmux source-file ~/.tmux.conf` when tmux is installed
   - `ghostty +validate-config --config-file=ghostty/.config/ghostty/config.ghostty` when Ghostty is installed
   - run changed-tool checks such as `doom sync`, `nvim --headless "+Lazy! sync" +qa`, or `fc-cache -fv` only when those areas changed
+- Test with `zsh -n ~/.zshrc` (syntax check) before committing
 - After Doom changes: `doom sync`
 - After tmux changes: `C-q r` to reload
 - Keep platform-specific logic behind `IS_WSL` / `IS_MACOS` checks in .zshrc

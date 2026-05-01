@@ -62,22 +62,18 @@ fi
 
 echo "Syncing dotfiles from $repo_dir to $HOME"
 
-stow_args=(--dir "$repo_dir" --target "$HOME" -R)
+stow_args=(--dir "$repo_dir" --target "$HOME" --no-folding -R)
 if $dry_run; then
   stow_args=(-n -v "${stow_args[@]}")
 fi
 
 stow "${stow_args[@]}" "${packages[@]}"
 
-tmux_source="$HOME/.tmux/.tmux.conf"
 tmux_target="$HOME/.tmux.conf"
 if $dry_run; then
-  echo "DRY-RUN: would ensure $tmux_target -> $tmux_source"
-elif [[ -L "$tmux_target" || ! -e "$tmux_target" ]]; then
-  ln -sfn "$tmux_source" "$tmux_target"
-  echo "Ensured $tmux_target -> $tmux_source"
-else
-  echo "warning: $tmux_target exists and is not a symlink; leaving it untouched" >&2
+  echo "DRY-RUN: Stow manages $tmux_target via the tmux package"
+elif [[ ! -L "$tmux_target" ]]; then
+  echo "warning: $tmux_target is not a symlink; tmux may not load the stowed config" >&2
 fi
 
 if [[ -f /proc/version ]] && grep -qiE 'microsoft|wsl' /proc/version; then

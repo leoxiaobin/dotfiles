@@ -19,7 +19,8 @@ Terminal-centric development environment managed with [GNU Stow](https://www.gnu
 
 ```bash
 # Clone
-git clone git@github.com:leoxiaobin/dotfiles.git ~/dotfiles
+# If you use multiple GitHub accounts, configure the github-leoxiaobin SSH alias first.
+git clone git@github-leoxiaobin:leoxiaobin/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 
 # Install GNU Stow
@@ -45,9 +46,13 @@ For Windows Terminal/WSL, use `BlexMono Nerd Font Mono` at 16pt. It is the
 Nerd Font-patched IBM Plex Mono family, so tmux/starship icons render correctly;
 see `templates/windows-terminal-profile.example.jsonc`.
 
+If `github-leoxiaobin` is not configured yet, copy the example from
+`templates/ssh-config.github.example` into `~/.ssh/config`, then adjust the
+`IdentityFile` path to your personal GitHub key.
+
 ## Design Philosophy
 
-- **Editors for editing, terminals for AI.** Claude Code / Codex / Copilot CLI run in tmux, not inside Emacs or Neovim.
+- **Editors for editing, terminals for AI.** Claude Code / Codex / Copilot CLI primarily run in tmux/vterm.
 - **No API keys in config.** Secrets stay in `~/.zshrc.local` and `~/.gitconfig.local` (not tracked).
 - **One theme, practical fonts.** Catppuccin Mocha everywhere; Ghostty uses IBM Plex Mono 16pt, while Windows Terminal should use BlexMono Nerd Font Mono 16pt for icons.
 - **Cross-platform.** Works on Linux, WSL, and macOS with conditional aliases.
@@ -144,17 +149,23 @@ doom sync
 ~/dotfiles/
 ├── zsh/.zshrc
 ├── git/.gitconfig
-├── tmux/.tmux/
-│   ├── .tmux.conf
-│   ├── custom/          # git status bar module
-│   └── scripts/         # helper scripts
+├── tmux/
+│   ├── .tmux.conf      # symlink to .tmux/.tmux.conf
+│   └── .tmux/
+│       ├── .tmux.conf
+│       ├── custom/      # git status bar module
+│       └── scripts/     # helper scripts
 ├── doom/.config/doom/
 │   ├── init.el          # module declarations
 │   ├── config.el        # main configuration
 │   └── packages.el      # package declarations
-├── nvim/.config/nvim/lua/
-│   ├── config/          # LazyVim core config
-│   └── plugins/         # plugin specs
+├── nvim/.config/nvim/
+│   ├── init.lua         # LazyVim bootstrap
+│   ├── lazyvim.json     # enabled LazyVim extras
+│   ├── stylua.toml
+│   └── lua/
+│       ├── config/      # LazyVim core config
+│       └── plugins/     # plugin specs
 ├── ghostty/.config/ghostty/config.ghostty
 ├── fontconfig/.config/fontconfig/fonts.conf
 ├── starship/.config/starship.toml

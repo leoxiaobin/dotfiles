@@ -1,0 +1,8 @@
+# Example SSH config for a personal GitHub account.
+# Copy this block into ~/.ssh/config and update IdentityFile as needed.
+
+Host github-leoxiaobin
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519_leoxiaobin
+    IdentitiesOnly yes

@@ -90,7 +90,7 @@ zstyle ':omz:update' mode auto      # update automatically without asking
 # plugins=(git)
 plugins=(git zsh-syntax-highlighting)
 
-source $ZSH/oh-my-zsh.sh
+[[ -s "$ZSH/oh-my-zsh.sh" ]] && source "$ZSH/oh-my-zsh.sh"
 
 # User configuration
 
@@ -127,7 +127,7 @@ alias b='brix'
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 # [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 # ─── Platform Detection ──────────────────────────────────────────────
-if [[ "$(uname -r)" == *microsoft* ]]; then
+if [[ "$(uname -r)" == *microsoft* || "$(uname -r)" == *Microsoft* ]]; then
   IS_WSL=true
 elif [[ "$(uname)" == "Darwin" ]]; then
   IS_MACOS=true
@@ -147,8 +147,12 @@ nvm() {
 node() { unset -f nvm node npm npx; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"; node "$@"; }
 npm() { unset -f nvm node npm npx; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"; npm "$@"; }
 npx() { unset -f nvm node npm npx; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"; npx "$@"; }
-# Add node to PATH without loading nvm (for tools like copilot that need node)
-[ -d "$NVM_DIR/versions/node" ] && PATH="$(find "$NVM_DIR/versions/node" -maxdepth 1 -type d | sort -V | tail -1)/bin:$PATH"
+# Add the newest installed Node to PATH without loading nvm.
+# This keeps tools like Copilot available while avoiding nvm startup cost.
+if [[ -d "$NVM_DIR/versions/node" ]]; then
+  latest_node_dir=("$NVM_DIR"/versions/node/*(N/om[1]))
+  [[ -n "$latest_node_dir[1]" ]] && export PATH="$latest_node_dir[1]/bin:$PATH"
+fi
 
 
 function y() {
@@ -162,14 +166,14 @@ function y() {
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 # Cross-platform aliases: bat/fd have different names on Debian/Ubuntu vs macOS/Arch
 if (( $+commands[fdfind] )); then alias fd=fdfind; fi
-export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
+[[ -d "$HOME/.local/share/bob/nvim-bin" ]] && export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
 
 # Zoxide — smarter cd (replaces autojump)
-eval "$(zoxide init zsh)"
+(( $+commands[zoxide] )) && eval "$(zoxide init zsh)"
 
 typeset -g POWERLEVEL9K_INSTANT_PROMPT=off
 
-eval "$(starship init zsh)"
+(( $+commands[starship] )) && eval "$(starship init zsh)"
 
 # ─── Local overrides (secrets, machine-specific) ────────────────────
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
@@ -185,9 +189,10 @@ if (( $+commands[batcat] )); then alias cat='batcat'; elif (( $+commands[bat] ))
 # Tmux
 new_tmux () {
   session_dir=$(zoxide query --list | fzf)
+  [[ -z "$session_dir" ]] && return 0
   session_name=$(basename "$session_dir")
 
-  if tmux has-session -t $session_name 2>/dev/null; then
+  if tmux has-session -t "$session_name" 2>/dev/null; then
     if [ -n "$TMUX" ]; then
       tmux switch-client -t "$session_name"
     else

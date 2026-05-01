@@ -1,14 +1,9 @@
-[user]
-	name = Bin Xiao
-	email = xiaobi@microsoft.com
 [core]
 	editor = nvim
 	pager = delta
 
-# Platform-specific config (credential helpers, etc.)
-# WSL: ~/.gitconfig.local has Windows Git Credential Manager
-# macOS: uses osxkeychain by default
-# Linux: configure in ~/.gitconfig.local
+# Machine-specific config (user identity, credential helpers, etc.)
+# Keep account-specific GitHub identities out of the shared dotfiles repo.
 [include]
 	path = ~/.gitconfig.local
 [interactive]
