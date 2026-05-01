@@ -15,6 +15,13 @@
 (setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode 1)
 
+;; Emacs daemon/client support. Skip this in noninteractive commands such as
+;; `doom sync' so package operations do not start a server.
+(unless noninteractive
+  (require 'server)
+  (unless (server-running-p)
+    (server-start)))
+
 ;; ============================================================
 ;; Fonts — BlexMono Nerd Font (IBM Plex Mono patched with Nerd Font glyphs)
 ;; ============================================================

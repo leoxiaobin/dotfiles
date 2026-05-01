@@ -260,6 +260,8 @@ ai () {
 
 # Doom Emacs
 export PATH="$HOME/.config/emacs/bin:$PATH"
+alias e='emacsclient -t -a ""'
+alias eg='emacsclient -c -a ""'
 
 # Terminal Emacs renders themes poorly when TERM is only xterm-color.
 if [[ "$TERM" == "xterm-color" ]]; then
