@@ -174,6 +174,35 @@ Reuses an existing buffer if one exists for this project+name."
   (add-hook 'org-mode-hook #'org-modern-mode))
 
 ;; ============================================================
+;; Markdown — editing, reading, and preview
+;; ============================================================
+(after! markdown-mode
+  ;; Syntax highlight fenced code blocks
+  (setq markdown-fontify-code-blocks-natively t)
+  ;; Soft-wrap lines for comfortable reading
+  (add-hook 'markdown-mode-hook #'visual-line-mode)
+  ;; Mixed-pitch: variable-pitch for prose, fixed-pitch for code/tables
+  (add-hook 'markdown-mode-hook #'mixed-pitch-mode)
+  ;; Distinct heading colors (Catppuccin Mocha palette)
+  (custom-set-faces!
+    '(markdown-header-face-1 :weight bold :foreground "#cba6f7")
+    '(markdown-header-face-2 :weight bold :foreground "#89b4fa")
+    '(markdown-header-face-3 :weight bold :foreground "#a6e3a1")
+    '(markdown-header-face-4 :weight bold :foreground "#f9e2af")
+    '(markdown-header-face-5 :weight bold :foreground "#f5c2e7")
+    '(markdown-header-face-6 :weight bold :foreground "#94e2d5")))
+
+;; Mixed-pitch — keep code in monospace, prose in variable-pitch
+(after! mixed-pitch
+  (setq mixed-pitch-set-height t))
+
+;; Grip-mode — GitHub-flavored markdown preview in browser
+;; Requires: pip install grip (or pipx install grip)
+(after! grip-mode
+  (setq grip-preview-use-webkit nil)  ; use external browser
+  (setq grip-sleep-time 2))           ; reduce API calls
+
+;; ============================================================
 ;; Magit — central to reviewing AI-generated diffs
 ;; ============================================================
 (after! magit

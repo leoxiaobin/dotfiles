@@ -163,7 +163,13 @@ function y() {
 	rm -f -- "$tmp"
 }
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+# fzf shell integration (keybindings + completion)
+if [[ -f /opt/homebrew/opt/fzf/shell/key-bindings.zsh ]]; then
+  source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
+  source /opt/homebrew/opt/fzf/shell/completion.zsh
+elif [[ -f ~/.fzf.zsh ]]; then
+  source ~/.fzf.zsh
+fi
 # Cross-platform aliases: bat/fd have different names on Debian/Ubuntu vs macOS/Arch
 if (( $+commands[fdfind] )); then alias fd=fdfind; fi
 [[ -d "$HOME/.local/share/bob/nvim-bin" ]] && export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
