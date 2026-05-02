@@ -160,41 +160,14 @@ Reuses an existing buffer if one exists for this project+name."
   (setq org-log-done 'time)
   (setq org-startup-folded 'content)
   (setq org-ellipsis " ▾")
-  ;; org-modern: disable table rendering (terminal can't show :overline).
-  ;; Use Unicode box-drawing instead.
-  (setq org-modern-table nil)
+  ;; Use org-modern's built-in table rendering. Make table foreground bright
+  ;; enough to be visible on Catppuccin Mocha (org-modern derives the
+  ;; horizontal border color from `org-table').
+  (setq org-modern-table t)
+  (setq org-modern-table-vertical 1)
+  (setq org-modern-table-horizontal 0.2)
   (set-face-attribute 'org-table nil :foreground "#89b4fa")
-  (add-hook 'org-mode-hook #'org-modern-mode)
-
-  ;; Pretty Unicode box-drawing for org tables (works in any terminal)
-  (defun +org-pretty-table-h ()
-    "Replace ASCII table borders with Unicode box-drawing characters."
-    (font-lock-add-keywords nil
-      `((,(rx bol (* blank) "|" (group (+ (any "-" "+" "|"))) "|" (* blank) eol)
-         (0 (prog1 nil
-               (save-excursion
-                 (let ((end (match-end 0)))
-                   (goto-char (match-beginning 0))
-                   (skip-chars-forward " \t")
-                   (while (< (point) end)
-                     (pcase (char-after)
-                       (?| (compose-region (point) (1+ (point)) ?┼))
-                       (?+ (compose-region (point) (1+ (point)) ?┼))
-                       (?- (compose-region (point) (1+ (point)) ?─)))
-                     (forward-char))))))))
-    (font-lock-add-keywords nil
-      `((,(rx bol (* blank) "|")
-         (0 (prog1 nil
-               (unless (save-excursion
-                         (beginning-of-line)
-                         (looking-at-p (rx (* blank) "|" (any "-" "+"))))
-                 (save-excursion
-                   (let ((end (line-end-position)))
-                     (goto-char (line-beginning-position))
-                     (while (search-forward "|" end t)
-                       (compose-region (1- (point)) (point) ?│))))))))))
-    (font-lock-flush))
-  (add-hook 'org-mode-hook #'+org-pretty-table-h))
+  (add-hook 'org-mode-hook #'org-modern-mode))
 
 ;; ============================================================
 ;; Magit — central to reviewing AI-generated diffs
