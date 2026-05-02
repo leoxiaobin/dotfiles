@@ -160,6 +160,10 @@ Reuses an existing buffer if one exists for this project+name."
   (setq org-log-done 'time)
   (setq org-startup-folded 'content)
   (setq org-ellipsis " ▾")
+  ;; Fold stars: default level 3+ uses ⯈/⯆ which many terminal fonts lack.
+  ;; Use only common triangle glyphs (▶▷▸▹▾ are in BlexMono Nerd Font).
+  (setq org-modern-fold-stars
+        '(("▶" . "▼") ("▷" . "▽") ("▸" . "▾") ("▹" . "▿") ("▪" . "▫")))
   ;; Use org-modern's built-in table rendering. Make table foreground bright
   ;; enough to be visible on Catppuccin Mocha (org-modern derives the
   ;; horizontal border color from `org-table').

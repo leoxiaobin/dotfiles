@@ -279,6 +279,8 @@ Known long-running steps:
   - `doom sync --force --rebuild`
   - `PAGER=cat doom doctor`
 - Test with `zsh -n ~/.zshrc` (syntax check) before committing
-- After Doom changes: `doom sync --force --rebuild`
+- After Doom changes: `doom sync --force --rebuild`, then restart the daemon:
+  `emacsclient -e '(kill-emacs)' && emacs --daemon`
+  (The running daemon won't pick up newly installed packages until restarted.)
 - After tmux changes: `C-q r` to reload
 - Keep platform-specific logic behind `IS_WSL` / `IS_MACOS` checks in .zshrc
