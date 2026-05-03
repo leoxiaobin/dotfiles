@@ -26,8 +26,8 @@
 ;; Fonts — BlexMono Nerd Font (IBM Plex Mono patched with Nerd Font glyphs)
 ;; ============================================================
 ;; GUI Emacs: set primary + symbol fonts directly
-(setq doom-font (font-spec :family "BlexMono Nerd Font Mono" :size 14)
-      doom-variable-pitch-font (font-spec :family "BlexMono Nerd Font" :size 14)
+(setq doom-font (font-spec :family "BlexMono Nerd Font Mono" :size 16)
+      doom-variable-pitch-font (font-spec :family "BlexMono Nerd Font" :size 16)
       doom-symbol-font (font-spec :family "Symbols Nerd Font Mono"))
 ;; Terminal Emacs: set your terminal emulator's font to
 ;; "BlexMono Nerd Font Mono" for icons to work.
@@ -164,12 +164,12 @@ Reuses an existing buffer if one exists for this project+name."
   ;; Use only common triangle glyphs (▶▷▸▹▾ are in BlexMono Nerd Font).
   (setq org-modern-fold-stars
         '(("▶" . "▼") ("▷" . "▽") ("▸" . "▾") ("▹" . "▿") ("▪" . "▫")))
-  ;; Use org-modern's built-in table rendering. Make table foreground bright
-  ;; enough to be visible on Catppuccin Mocha (org-modern derives the
-  ;; horizontal border color from `org-table').
-  (setq org-modern-table t)
-  (setq org-modern-table-vertical 1)
-  (setq org-modern-table-horizontal 0.2)
+  ;; Table rendering: pixel borders only work in GUI; disable in terminal.
+  (if (display-graphic-p)
+      (setq org-modern-table t
+            org-modern-table-vertical 1
+            org-modern-table-horizontal 0.2)
+    (setq org-modern-table nil))
   (set-face-attribute 'org-table nil :foreground "#89b4fa")
   (add-hook 'org-mode-hook #'org-modern-mode))
 

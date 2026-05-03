@@ -87,7 +87,7 @@
        org               ; organize your plain life in plain text
        (python +lsp +tree-sitter) ; beautiful is better than ugly
        sh                ; she sells {ba,z,fi}sh shells on the C xor
-       yaml              ; JSON, but readable
+       (yaml +lsp)        ; JSON, but readable
 
        :email
 
