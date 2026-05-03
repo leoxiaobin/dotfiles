@@ -174,6 +174,9 @@ fi
 if (( $+commands[fdfind] )); then alias fd=fdfind; fi
 [[ -d "$HOME/.local/share/bob/nvim-bin" ]] && export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
 
+# SASL plugin path for mbsync XOAUTH2 (system libsasl2 needs to find Homebrew plugins)
+[[ -d /opt/homebrew/lib/sasl2 ]] && export SASL_PATH=/opt/homebrew/lib/sasl2
+
 # Zoxide — smarter cd (replaces autojump)
 (( $+commands[zoxide] )) && eval "$(zoxide init zsh)"
 

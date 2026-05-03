@@ -256,6 +256,59 @@ Reuses an existing buffer if one exists for this project+name."
   (setq flycheck-check-syntax-automatically '(save idle-change mode-enabled)))
 
 ;; ============================================================
+;; mu4e — Gmail client via mbsync + OAuth2
+;; ============================================================
+(after! mu4e
+  (setq mu4e-maildir "~/Mail"
+        mu4e-get-mail-command "SASL_PATH=/opt/homebrew/lib/sasl2 mbsync -a"
+        mu4e-update-interval 300  ; auto-sync every 5 minutes
+        mu4e-index-update-in-background t)
+
+  ;; Gmail folder mapping
+  (setq mu4e-sent-folder   "/gmail/[Gmail]/Sent Mail"
+        mu4e-drafts-folder "/gmail/[Gmail]/Drafts"
+        mu4e-trash-folder  "/gmail/[Gmail]/Trash"
+        mu4e-refile-folder "/gmail/[Gmail]/All Mail")
+
+  ;; Don't save to Sent — Gmail does this server-side
+  (setq mu4e-sent-messages-behavior 'delete)
+
+  ;; Send mail via msmtp
+  (setq sendmail-program "msmtp"
+        send-mail-function #'smtpmail-send-it
+        message-sendmail-f-is-evil t
+        message-sendmail-extra-arguments '("--read-envelope-from")
+        message-send-mail-function #'message-send-mail-with-sendmail)
+
+  ;; Identity
+  (setq mu4e-compose-signature "Bin Xiao")
+
+  ;; Headers columns (override Doom's default which includes :account-stripe
+  ;; that requires multi-account context config)
+  (setq mu4e-headers-fields
+        '((:human-date . 12) (:flags . 6) (:from-or-to . 25) (:subject)))
+
+  ;; Show inline images in HTML emails (GUI Emacs only)
+  (when (display-graphic-p)
+    (setq gnus-inhibit-images nil
+          gnus-blocked-images nil
+          mm-text-html-renderer 'shr))
+
+  ;; Open links in eww (Emacs built-in browser)
+  (setq browse-url-browser-function #'eww-browse-url)
+
+  ;; Bookmarks for quick access
+  (setq mu4e-bookmarks
+        '((:name "Unread"    :query "flag:unread AND NOT flag:trashed" :key ?u)
+          (:name "Today"     :query "date:today..now" :key ?t)
+          (:name "This week" :query "date:7d..now" :key ?w)
+          (:name "Flagged"   :query "flag:flagged" :key ?f))))
+
+;; Open mu4e with SPC o m
+(map! :leader
+      :desc "Email (mu4e)" "o m" #'mu4e)
+
+;; ============================================================
 ;; OPTIONAL: Future AI packages (all disabled)
 ;; Uncomment only if you want API-based AI inside Emacs.
 ;; These require API keys — see each package's docs first.
