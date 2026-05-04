@@ -27,7 +27,7 @@ cd ~/dotfiles
 sudo apt install stow   # Debian/Ubuntu
 brew install stow        # macOS
 
-# Symlink everything and create compatibility links
+# Apply managed dotfiles
 ./sync.sh
 
 # Create local overrides (for secrets)
@@ -36,7 +36,8 @@ cp templates/gitconfig.local.example ~/.gitconfig.local
 # Edit these ↑ with your machine-specific settings
 ```
 
-See [CLAUDE.md](CLAUDE.md) for full setup instructions including tool installation.
+Detailed coding-agent instructions live in [AGENTS.md](AGENTS.md). This README
+stays focused on human setup, project overview, and daily workflow.
 
 Ghostty reads `~/.config/ghostty/config.ghostty` from the `ghostty` stow package.
 Keep machine-specific overrides in `~/.config/ghostty/config`; Ghostty loads that
@@ -171,7 +172,9 @@ doom sync
 ├── starship/.config/starship.toml
 ├── templates/           # example local override files and snippets
 ├── sync.sh              # re-stow packages after git pull
-├── CLAUDE.md            # AI agent bootstrap guide
+├── AGENTS.md            # canonical coding-agent instructions
+├── CLAUDE.md            # Claude Code pointer to AGENTS.md
+├── .github/copilot-instructions.md # Copilot native repo instructions
 └── README.md            # this file
 ```
 

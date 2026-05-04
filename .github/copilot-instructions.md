@@ -1,5 +1,10 @@
 # Copilot instructions
 
+The canonical coding-agent instructions live in `AGENTS.md`. Claude Code reads
+the root `CLAUDE.md` compatibility file, Codex reads `AGENTS.md` directly, and
+this file remains the native GitHub Copilot instruction surface for concise
+repository conventions.
+
 This is a GNU Stow-managed dotfiles repository for a terminal-centric development environment. Top-level package directories mirror `$HOME`, and `sync.sh` is the supported entry point for applying them.
 
 ## Commands
