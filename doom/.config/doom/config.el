@@ -23,6 +23,35 @@
     (server-start)))
 
 ;; ============================================================
+;; Clipboard — macOS system clipboard from terminal Emacs
+;; ============================================================
+(defun my/macos-pbcopy (text &optional _push)
+  "Copy TEXT to the macOS clipboard via pbcopy."
+  (with-temp-buffer
+    (insert text)
+    (call-process-region (point-min) (point-max) "pbcopy" nil nil nil)))
+
+(defun my/macos-pbpaste ()
+  "Return text from the macOS clipboard via pbpaste."
+  (let ((text (shell-command-to-string "pbpaste")))
+    (unless (string= text "")
+      text)))
+
+(when (and (eq system-type 'darwin)
+           (executable-find "pbcopy")
+           (executable-find "pbpaste"))
+  (when (fboundp 'global-clipetty-mode)
+    (global-clipetty-mode -1))
+  (setq select-enable-clipboard t
+        save-interprogram-paste-before-kill t
+        interprogram-cut-function #'my/macos-pbcopy
+        interprogram-paste-function #'my/macos-pbpaste)
+  (with-eval-after-load 'clipetty
+    (global-clipetty-mode -1)
+    (setq interprogram-cut-function #'my/macos-pbcopy
+          interprogram-paste-function #'my/macos-pbpaste)))
+
+;; ============================================================
 ;; Fonts — BlexMono Nerd Font (IBM Plex Mono patched with Nerd Font glyphs)
 ;; ============================================================
 ;; GUI Emacs: set primary + symbol fonts directly
