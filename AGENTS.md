@@ -16,6 +16,13 @@ Discovery entry points:
 Keep human-facing documentation in `README.md`. Keep detailed agent guidance,
 build/test commands, and repository-specific implementation rules here.
 
+## Response Marker
+
+After loading these instructions, start user-facing replies with
+`✅ [dotfiles]` when practical. For very short replies, `✅` is enough.
+This visible marker helps confirm that the agent found and is following
+`AGENTS.md`, especially during long-running conversations.
+
 ## What This Repo Is
 
 A GNU Stow-managed dotfiles repo for a terminal-centric dev workflow.
