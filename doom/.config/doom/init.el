@@ -81,6 +81,7 @@
        (tty +osc)        ; improve the terminal Emacs experience
 
        :lang
+       data              ; config/data formats like CSV and XML
        emacs-lisp        ; drown in parentheses
        json              ; At least it ain't XML
        markdown          ; writing docs for people to ignore

@@ -285,6 +285,23 @@ Reuses an existing buffer if one exists for this project+name."
   (setq flycheck-check-syntax-automatically '(save idle-change mode-enabled)))
 
 ;; ============================================================
+;; CSV/TSV - aligned table viewing
+;; ============================================================
+(defun my/csv-view-setup ()
+  "Make CSV and TSV buffers easier to scan."
+  (setq-local truncate-lines t)
+  (when (< (buffer-size) (* 5 1024 1024))
+    (csv-align-mode 1)))
+
+(after! csv-mode
+  (setq csv-separators '("," "\t" ";")
+        csv-align-style 'auto
+        csv-align-padding 2
+        csv-align-max-width 60)
+  (add-to-list 'auto-mode-alist '("\\.tsv\\'" . csv-mode))
+  (add-hook 'csv-mode-hook #'my/csv-view-setup))
+
+;; ============================================================
 ;; mu4e — Gmail client via mbsync + OAuth2
 ;; ============================================================
 (after! mu4e
