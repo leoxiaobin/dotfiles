@@ -74,6 +74,7 @@
        lookup              ; navigate your code and its documentation
        lsp               ; M-x vscode
        magit             ; a git porcelain for Emacs
+       pdf               ; PDF viewer with search and annotations
        tree-sitter       ; syntax and parsing, sitting in a tree...
 
        :os
