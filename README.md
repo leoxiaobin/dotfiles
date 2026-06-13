@@ -12,6 +12,7 @@ Terminal-centric development environment managed with [GNU Stow](https://www.gnu
 | `doom`       | Doom Emacs: LSP, vterm, org capture, magit, AI helpers |
 | `nvim`       | LazyVim: catppuccin, org-mode, OSC 52 clipboard       |
 | `ghostty`    | Ghostty terminal: catppuccin, BlexMono Nerd Font Mono 16pt |
+| `lsd`        | `lsd` listing colors tuned for light and dark terminals |
 | `fontconfig` | Font fallback: BlexMono Nerd Font Mono                |
 | `starship`   | Starship prompt config                                |
 

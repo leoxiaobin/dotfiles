@@ -8,6 +8,7 @@ packages=(
   doom
   nvim
   ghostty
+  lsd
   fontconfig
   starship
 )

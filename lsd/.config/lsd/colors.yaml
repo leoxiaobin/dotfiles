@@ -1,0 +1,16 @@
+user: blue
+group: magenta
+
+permission:
+  write: dark_yellow
+
+size:
+  none: dark_grey
+  small: blue
+  medium: dark_yellow
+  large: red
+
+date:
+  hour-old: green
+  day-old: cyan
+  older: cyan

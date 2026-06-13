@@ -46,6 +46,7 @@ dotfiles/
   nvim/.config/nvim/stylua.toml       → ~/.config/nvim/stylua.toml
   nvim/.config/nvim/lua/              → ~/.config/nvim/lua/
   ghostty/.config/ghostty/config.ghostty → ~/.config/ghostty/config.ghostty
+  lsd/.config/lsd/{config,colors}.yaml → ~/.config/lsd/
   fontconfig/.config/fontconfig/      → ~/.config/fontconfig/
   starship/.config/starship.toml      → ~/.config/starship.toml
   templates/                          → example local override files
