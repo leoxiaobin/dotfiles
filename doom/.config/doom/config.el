@@ -9,7 +9,7 @@
 ;; ============================================================
 ;; Core settings
 ;; ============================================================
-(setq doom-theme 'catppuccin)
+(setq doom-theme 'doom-solarized-light)
 (setq display-line-numbers-type t)
 (setq org-directory "~/org/")
 (setq global-auto-revert-non-file-buffers t)
