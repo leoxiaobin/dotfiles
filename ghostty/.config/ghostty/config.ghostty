@@ -1,5 +1,5 @@
 # Shared Ghostty baseline for this dotfiles repo.
-theme = light:Violet Light,dark:Catppuccin Mocha
+theme = light:iTerm2 Solarized Light,dark:Catppuccin Mocha
 window-theme = system
 font-family = BlexMono Nerd Font Mono
 font-size = 16
