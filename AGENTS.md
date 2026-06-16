@@ -218,7 +218,7 @@ Known long-running steps:
   stop it, make sure no orphaned `git fetch` children are still running, then use
   `doom sync --force --rebuild`.
 - macOS+Ghostty: if a tty `emacsclient -t` frame (the `e` alias) renders
-  Catppuccin with a blue background while plain `emacs` (GUI) looks correct,
+  terminal themes with incorrect backgrounds while plain `emacs` (GUI) looks correct,
   the cause is Ghostty exporting `TERMINFO=/Applications/Ghostty.app/...`
   whose terminfo db only contains `xterm-ghostty`. Inside tmux this breaks
   ncurses lookup for `tmux-256color`. The zshrc now unsets that TERMINFO on
@@ -256,7 +256,7 @@ Known long-running steps:
 
 - **No API keys in configs.** Secrets go in `~/.zshrc.local` / `~/.gitconfig.local`.
 - **Terminal-first AI workflow.** Claude Code, Codex, and Copilot CLI run in tmux/vterm; editor AI extras are optional and account-authenticated.
-- **Catppuccin Mocha** theme everywhere (Emacs, Neovim, tmux, terminal).
+- **MAI warm-paper** theme everywhere (Windows Terminal/Ghostty, tmux, Emacs, Neovim, git delta, lsd, fzf, Starship).
 - **BlexMono Nerd Font Mono 16pt** in terminals; **BlexMono Nerd Font Mono** in Emacs/fontconfig.
 - **OSC 52** clipboard (works over SSH, tmux, WSL).
 - **Keyboard-first.** Minimal mouse usage.
@@ -265,7 +265,7 @@ Known long-running steps:
 
 ### tmux (prefix: C-q)
 - `C-q v/b` — split vertical/horizontal
-- `C-q h/j/k/l` — navigate panes; active pane gets a bright `ACTIVE` border label
+- `C-q h/j/k/l` — navigate panes; active pane gets an MAI ochre `ACTIVE` border label
 - `C-q z` — zoom pane (status shows `[N] 󰊓` when zoomed)
 - `C-q C-s` — save session (resurrect)
 - `C-q C-r` — restore session (resurrect)

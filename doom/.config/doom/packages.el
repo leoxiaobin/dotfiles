@@ -1,11 +1,6 @@
 ;; -*- no-byte-compile: t; -*-
 ;;; $DOOMDIR/packages.el
 
-;; ============================================================
-;; Theme
-;; ============================================================
-(package! catppuccin-theme)
-
 ;; Magit ships git-commit.el, but recent straight recipe resolution can ask for
 ;; git-commit as a standalone package while building Magit dependencies.
 (package! git-commit

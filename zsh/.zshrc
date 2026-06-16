@@ -164,6 +164,7 @@ function y() {
 }
 
 # fzf shell integration (keybindings + completion)
+export FZF_DEFAULT_OPTS="--color=fg:#1F1412,bg:#FBF0DC,hl:#946A3A,fg+:#1F1412,bg+:#D8C8A8,hl+:#946A3A,info:#51453E,prompt:#946A3A,pointer:#946A3A,marker:#435B31,spinner:#946A3A,header:#51453E,border:#D8C8A8 ${FZF_DEFAULT_OPTS:-}"
 if [[ -f /opt/homebrew/opt/fzf/shell/key-bindings.zsh ]]; then
   source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
   source /opt/homebrew/opt/fzf/shell/completion.zsh
@@ -280,7 +281,7 @@ fi
 # Ghostty exports TERMINFO pointing at its bundled directory, which only
 # contains the `xterm-ghostty` entry. Inside tmux (TERM=tmux-256color),
 # emacsclient -t cannot find a usable terminfo entry there and renders
-# Catppuccin with a blue background. Unset it so ncurses falls back to the
+# terminal themes with incorrect backgrounds. Unset it so ncurses falls back to the
 # system terminfo database. Doom also caches env vars at sync time, so this
 # keeps `doom env` regenerations clean.
 if [[ "$IS_MACOS" == "true" && -n "$TERMINFO" && "$TERMINFO" == /Applications/Ghostty.app/* ]]; then

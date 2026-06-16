@@ -1,5 +1,26 @@
 # Shared Ghostty baseline for this dotfiles repo.
-theme = light:iTerm2 Solarized Light,dark:Catppuccin Mocha
+# MAI warm-paper palette, shared with Windows Terminal, tmux, Neovim, and Doom.
+background = FBF0DC
+foreground = 1F1412
+cursor-color = 1F1412
+selection-background = D8C8A8
+selection-foreground = 1F1412
+palette = 0=140C0A
+palette = 1=74312B
+palette = 2=435B31
+palette = 3=744D27
+palette = 4=284867
+palette = 5=604159
+palette = 6=3D625D
+palette = 7=3D332E
+palette = 8=51453E
+palette = 9=954239
+palette = 10=587642
+palette = 11=946A3A
+palette = 12=365F88
+palette = 13=7B5873
+palette = 14=507B74
+palette = 15=FEF9ED
 window-theme = system
 font-family = BlexMono Nerd Font Mono
 font-size = 16

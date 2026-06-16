@@ -12,8 +12,19 @@
 	navigate = true
 	side-by-side = true
 	line-numbers = true
-	syntax-theme = Catppuccin Mocha
-	dark = true
+	syntax-theme = GitHub
+	dark = false
+	zero-style = syntax
+	minus-style = syntax "#E8CFC7"
+	plus-style = syntax "#E5E8C8"
+	minus-emph-style = syntax "#D8A9A0"
+	plus-emph-style = syntax "#D5DEAD"
+	line-numbers-left-style = "#8D7F70"
+	line-numbers-right-style = "#8D7F70"
+	line-numbers-minus-style = "#74312B"
+	line-numbers-plus-style = "#435B31"
+	file-style = bold "#1F1412"
+	hunk-header-style = file line-number syntax "#EDE1C7"
 	hyperlinks = true
 [diff]
 	algorithm = histogram

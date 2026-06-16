@@ -8,10 +8,10 @@ Terminal-centric development environment managed with [GNU Stow](https://www.gnu
 |--------------|-------------------------------------------------------|
 | `zsh`        | Shell: oh-my-zsh, starship prompt, aliases, AI CLI helpers |
 | `git`        | Git: aliases, delta pager, histogram diff, rerere     |
-| `tmux`       | Tmux: C-q prefix, catppuccin, git status, resurrect   |
+| `tmux`       | Tmux: C-q prefix, MAI warm-paper status, git status, resurrect |
 | `doom`       | Doom Emacs: LSP, vterm, org capture, magit, AI helpers |
-| `nvim`       | LazyVim: catppuccin, org-mode, OSC 52 clipboard       |
-| `ghostty`    | Ghostty terminal: catppuccin, BlexMono Nerd Font Mono 16pt |
+| `nvim`       | LazyVim: MAI warm-paper theme, org-mode, OSC 52 clipboard |
+| `ghostty`    | Ghostty terminal: MAI warm-paper palette, BlexMono Nerd Font Mono 16pt |
 | `lsd`        | `lsd` listing colors tuned for light and dark terminals |
 | `fontconfig` | Font fallback: BlexMono Nerd Font Mono                |
 | `starship`   | Starship prompt config                                |
@@ -56,7 +56,7 @@ If `github-leoxiaobin` is not configured yet, copy the example from
 
 - **Editors for editing, terminals for AI.** Claude Code / Codex / Copilot CLI primarily run in tmux/vterm.
 - **No API keys in config.** Secrets stay in `~/.zshrc.local` and `~/.gitconfig.local` (not tracked).
-- **One theme, one font family.** Catppuccin Mocha everywhere; terminals/editors use BlexMono Nerd Font Mono 16pt where possible.
+- **One theme, one font family.** MAI warm-paper colors everywhere; terminals/editors use BlexMono Nerd Font Mono 16pt where possible.
 - **Cross-platform.** Works on Linux, WSL, and macOS with conditional aliases.
 - **Keyboard-first.** Optimized for terminal + tmux workflows.
 

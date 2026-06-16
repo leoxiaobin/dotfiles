@@ -9,7 +9,8 @@
 ;; ============================================================
 ;; Core settings
 ;; ============================================================
-(setq doom-theme 'doom-solarized-light)
+(add-to-list 'custom-theme-load-path (expand-file-name "themes" doom-user-dir))
+(setq doom-theme 'mai)
 (setq display-line-numbers-type t)
 (setq org-directory "~/org/")
 (setq global-auto-revert-non-file-buffers t)
@@ -199,7 +200,7 @@ Reuses an existing buffer if one exists for this project+name."
             org-modern-table-vertical 1
             org-modern-table-horizontal 0.2)
     (setq org-modern-table nil))
-  (set-face-attribute 'org-table nil :foreground "#89b4fa")
+  (set-face-attribute 'org-table nil :foreground "#284867")
   (add-hook 'org-mode-hook #'org-modern-mode))
 
 ;; ============================================================
@@ -212,14 +213,14 @@ Reuses an existing buffer if one exists for this project+name."
   (add-hook 'markdown-mode-hook #'visual-line-mode)
   ;; Mixed-pitch: variable-pitch for prose, fixed-pitch for code/tables
   (add-hook 'markdown-mode-hook #'mixed-pitch-mode)
-  ;; Distinct heading colors (Catppuccin Mocha palette)
+  ;; Distinct heading colors (MAI warm-paper palette)
   (custom-set-faces!
-    '(markdown-header-face-1 :weight bold :foreground "#cba6f7")
-    '(markdown-header-face-2 :weight bold :foreground "#89b4fa")
-    '(markdown-header-face-3 :weight bold :foreground "#a6e3a1")
-    '(markdown-header-face-4 :weight bold :foreground "#f9e2af")
-    '(markdown-header-face-5 :weight bold :foreground "#f5c2e7")
-    '(markdown-header-face-6 :weight bold :foreground "#94e2d5")))
+    '(markdown-header-face-1 :weight bold :foreground "#1F1412")
+    '(markdown-header-face-2 :weight bold :foreground "#284867")
+    '(markdown-header-face-3 :weight bold :foreground "#435B31")
+    '(markdown-header-face-4 :weight bold :foreground "#946A3A")
+    '(markdown-header-face-5 :weight bold :foreground "#604159")
+    '(markdown-header-face-6 :weight bold :foreground "#3D625D")))
 
 ;; Mixed-pitch — keep code in monospace, prose in variable-pitch
 (after! mixed-pitch

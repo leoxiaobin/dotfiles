@@ -31,13 +31,13 @@ Each top-level directory is a Stow package: `zsh`, `git`, `tmux`, `doom`, `nvim`
 
 `zsh/.zshrc` is the shell entry point. It sets cross-platform defaults, loads Oh My Zsh when present, initializes starship and zoxide opportunistically, lazy-loads nvm, provides tmux/yazi helpers, and exposes the `ai <tool>` launcher that starts AI CLIs at the current git root.
 
-`tmux/.tmux.conf` is the user-facing tmux config and loads TPM plugins, Catppuccin, resurrect/continuum, post-plugin pane-border overrides, and the custom git branch status module. The git module is split between `tmux/.tmux/custom/git_branch.conf` and `tmux/.tmux/custom/git_status.sh`; layout helpers live in `tmux/.tmux/scripts/`.
+`tmux/.tmux.conf` is the user-facing tmux config and loads TPM plugins, resurrect/continuum, post-plugin MAI warm-paper overrides, and a custom git status segment via `tmux/.tmux/custom/git_status.sh`; layout helpers live in `tmux/.tmux/scripts/`.
 
 Doom Emacs config is split by Doom convention: `doom/.config/doom/init.el` declares modules, `config.el` contains behavior/keybindings, and `packages.el` declares extra packages. The Doom config is terminal-AI oriented: vterm helpers open Claude, Codex, Copilot, or a generic AI terminal at the project root.
 
 Neovim uses LazyVim. `nvim/.config/nvim/init.lua` boots `lua/config/lazy.lua`; LazyVim extras are tracked in `lazyvim.json`; local plugin overrides live under `lua/plugins/`; core options/keymaps/autocmds live under `lua/config/`. The enabled `copilot-native` extra requires Neovim `>= 0.12`.
 
-Doom Emacs and Neovim share the `~/org/` workflow for notes, prompts, agent instructions, and experiment logs. Catppuccin Mocha, BlexMono Nerd Font Mono, and OSC 52 clipboard behavior are intentionally shared across terminal/editor configs.
+Doom Emacs and Neovim share the `~/org/` workflow for notes, prompts, agent instructions, and experiment logs. MAI warm-paper colors, BlexMono Nerd Font Mono, and OSC 52 clipboard behavior are intentionally shared across terminal/editor configs.
 
 ## Conventions
 
@@ -49,6 +49,6 @@ Keep platform-specific zsh behavior behind the existing `IS_WSL` and `IS_MACOS` 
 
 For Doom changes, update the appropriate Doom file and run `doom sync --force --rebuild`. For LazyVim changes, keep custom plugin specs in `lua/plugins/` and core LazyVim configuration in `lua/config/`.
 
-For tmux changes, keep TPM initialization before post-plugin overrides, and keep the custom git branch module loaded after Catppuccin so theme variables exist.
+For tmux changes, keep TPM initialization before post-plugin MAI overrides, and keep the inline `git_status.sh` status segment after plugin initialization.
 
 The repo intentionally favors terminal/vterm/tmux AI workflows over checked-in API-key based editor integrations. Do not add API keys or account-specific identity settings to shared config files.

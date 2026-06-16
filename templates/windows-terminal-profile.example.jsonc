@@ -1,13 +1,39 @@
-// Windows Terminal equivalent of Ghostty's BlexMono Nerd Font Mono 16pt.
+// Windows Terminal equivalent of the shared MAI warm-paper terminal style.
 // Install BlexMono Nerd Font Mono first:
 // https://github.com/ryanoasis/nerd-fonts/releases/latest/download/IBMPlexMono.zip
 {
   "profiles": {
     "defaults": {
+      "colorScheme": "Microsoft AI Warm Paper",
       "font": {
         "face": "BlexMono Nerd Font Mono",
         "size": 16
       }
     }
-  }
+  },
+  "schemes": [
+    {
+      "name": "Microsoft AI Warm Paper",
+      "background": "#FBF0DC",
+      "foreground": "#1F1412",
+      "cursorColor": "#1F1412",
+      "selectionBackground": "#D8C8A8",
+      "black": "#140C0A",
+      "red": "#74312B",
+      "green": "#435B31",
+      "yellow": "#744D27",
+      "blue": "#284867",
+      "purple": "#604159",
+      "cyan": "#3D625D",
+      "white": "#3D332E",
+      "brightBlack": "#51453E",
+      "brightRed": "#954239",
+      "brightGreen": "#587642",
+      "brightYellow": "#946A3A",
+      "brightBlue": "#365F88",
+      "brightPurple": "#7B5873",
+      "brightCyan": "#507B74",
+      "brightWhite": "#FEF9ED"
+    }
+  ]
 }
