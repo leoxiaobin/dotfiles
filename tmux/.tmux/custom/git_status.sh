@@ -8,4 +8,4 @@ status=$(git status --porcelain 2>/dev/null) || exit
 staged=$(printf '%s\n' "$status" | grep -c '^[MADRC]')
 dirty=$(printf '%s\n' "$status" | grep -c '^.[MADRCU?]')
 [ "$staged" -gt 0 ] && printf ' +%s' "$staged"
-[ "$dirty" -gt 0 ] && printf ' ✎%s' "$dirty"
+[ "$dirty" -gt 0 ] && printf ' ✎ %s' "$dirty"

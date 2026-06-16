@@ -195,6 +195,7 @@ alias la='lsd -a'
 alias lla='lsd -la'
 alias lt='lsd --tree'
 if (( $+commands[batcat] )); then alias cat='batcat'; elif (( $+commands[bat] )); then alias cat='bat'; fi
+alias lg='lazygit'
 
 # Tmux
 new_tmux () {
