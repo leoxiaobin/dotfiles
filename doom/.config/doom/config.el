@@ -10,7 +10,7 @@
 ;; Core settings
 ;; ============================================================
 (add-to-list 'custom-theme-load-path (expand-file-name "themes" doom-user-dir))
-(setq doom-theme 'mai)
+(setq doom-theme 'su)
 (setq display-line-numbers-type t)
 (setq org-directory "~/org/")
 (setq global-auto-revert-non-file-buffers t)

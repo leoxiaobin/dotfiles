@@ -1,44 +1,46 @@
 "$schema" = 'https://starship.rs/config-schema.json'
-palette = "mai"
+palette = "su"
 
-[palettes.mai]
-mai_bg = "#FBF0DC"
-mai_ink = "#1F1412"
-mai_muted = "#51453E"
-mai_accent = "#946A3A"
-mai_red = "#74312B"
-mai_green = "#435B31"
-mai_yellow = "#744D27"
-mai_blue = "#284867"
-mai_purple = "#604159"
-mai_cyan = "#3D625D"
+[palettes.su]
+# 素 (Su) · 传统色调色板
+su_bg = "#f3eee1"       # 宣纸
+su_ink = "#38342c"      # 墨
+su_muted = "#97907f"    # 墨痕
+su_accent = "#9c6a26"   # 缃色（function/调用）
+su_red = "#b3433a"      # 朱砂（error）
+su_green = "#5d7a39"    # 竹青（string/内容）
+su_yellow = "#9a5730"   # 赭石（number）
+su_blue = "#356a8d"     # 青花（keyword）
+su_purple = "#66518c"   # 黛紫（builtin）
+su_cyan = "#3a7b71"     # 天青（type）
+su_field = "#97485f"    # 胭脂（field）
 
 [aws]
 symbol = " "
-style = "bold fg:mai_yellow"
+style = "bold fg:su_yellow"
 
 [buf]
 symbol = " "
 
 [bun]
 symbol = " "
-style = "bold fg:mai_yellow"
+style = "bold fg:su_yellow"
 
 [c]
 symbol = " "
-style = "bold fg:mai_blue"
+style = "bold fg:su_blue"
 
 [cpp]
 symbol = " "
-style = "bold fg:mai_blue"
+style = "bold fg:su_blue"
 
 [cmake]
 symbol = " "
-style = "bold fg:mai_blue"
+style = "bold fg:su_blue"
 
 [conda]
 symbol = " "
-style = "bold fg:mai_green"
+style = "bold fg:su_green"
 
 [crystal]
 symbol = " "
@@ -51,12 +53,12 @@ symbol = " "
 
 [directory]
 read_only = " 󰌾"
-style = "bold fg:mai_blue"
-read_only_style = "bold fg:mai_red"
+style = "bold fg:su_blue"
+read_only_style = "bold fg:su_red"
 
 [docker_context]
 symbol = " "
-style = "bold fg:mai_blue"
+style = "bold fg:su_blue"
 
 [elixir]
 symbol = " "
@@ -78,18 +80,18 @@ symbol = " "
 
 [git_branch]
 symbol = " "
-style = "bold fg:mai_accent"
+style = "bold fg:su_accent"
 
 [git_commit]
 tag_symbol = '  '
-style = "bold fg:mai_accent"
+style = "bold fg:su_accent"
 
 [git_status]
-style = "bold fg:mai_yellow"
+style = "bold fg:su_yellow"
 
 [golang]
 symbol = " "
-style = "bold fg:mai_cyan"
+style = "bold fg:su_cyan"
 
 [gradle]
 symbol = " "
@@ -108,11 +110,11 @@ symbol = " "
 
 [hostname]
 ssh_symbol = " "
-style = "bold fg:mai_green"
+style = "bold fg:su_green"
 
 [java]
 symbol = " "
-style = "bold fg:mai_red"
+style = "bold fg:su_red"
 
 [julia]
 symbol = " "
@@ -122,7 +124,7 @@ symbol = " "
 
 [lua]
 symbol = " "
-style = "bold fg:mai_blue"
+style = "bold fg:su_blue"
 
 [memory_usage]
 symbol = "󰍛 "
@@ -138,7 +140,7 @@ symbol = " "
 
 [nodejs]
 symbol = " "
-style = "bold fg:mai_green"
+style = "bold fg:su_green"
 
 [ocaml]
 symbol = " "
@@ -196,7 +198,7 @@ Zorin = " "
 
 [package]
 symbol = "󰏗 "
-style = "bold fg:mai_yellow"
+style = "bold fg:su_yellow"
 
 [perl]
 symbol = " "
@@ -212,7 +214,7 @@ symbol = "󰏗 "
 
 [python]
 symbol = " "
-style = "bold fg:mai_yellow"
+style = "bold fg:su_yellow"
 
 [rlang]
 symbol = "󰟔 "
@@ -222,14 +224,14 @@ symbol = " "
 
 [rust]
 symbol = "󱘗 "
-style = "bold fg:mai_red"
+style = "bold fg:su_red"
 
 [scala]
 symbol = " "
 
 [status]
 symbol = " "
-style = "bold fg:mai_red"
+style = "bold fg:su_red"
 
 [swift]
 symbol = " "
@@ -239,11 +241,11 @@ symbol = " "
 
 [zig]
 symbol = " "
-style = "bold fg:mai_yellow"
+style = "bold fg:su_yellow"
 
 [character]
-success_symbol = "[❯](bold fg:mai_accent)"
-error_symbol = "[❯](bold fg:mai_red)"
+success_symbol = "[❯](bold fg:su_accent)"
+error_symbol = "[❯](bold fg:su_red)"
 
 [cmd_duration]
-style = "bold fg:mai_muted"
+style = "bold fg:su_muted"

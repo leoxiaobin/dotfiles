@@ -1,0 +1,230 @@
+;;; su-theme.el --- 素 (Su) · 中国风浅色开发主题 -*- lexical-binding: t; no-byte-compile: t; -*-
+
+(require 'doom-themes)
+
+;;
+;;; 变量
+
+(defgroup su-theme nil
+  "Options for the 素 (Su) theme."
+  :group 'doom-themes)
+
+(defcustom su-theme-padded-modeline doom-themes-padded-modeline
+  "If non-nil, adds a 4px padding to the mode-line."
+  :group 'su-theme
+  :type '(choice integer boolean))
+
+;;
+;;; 主题定义
+
+(def-doom-theme su
+  "素 (Su) —— 中国风浅色开发主题
+宣纸底、水墨字、传统色。高级感来自克制。"
+
+  ;; 规范调色板
+  ((bg         '("#f3eee1")) ;; 宣纸
+   (fg         '("#38342c")) ;; 墨
+   (bg-alt     '("#e9e1cf")) ;; 面板
+   (fg-alt     '("#6c6557")) ;; 次前景
+   (base0      '("#e3dac3")) ;; 当前行
+   (base1      '("#d6cbae")) ;; 选区
+   (base2      '("#ddd4bf")) ;; 边框
+   (base3      '("#c9c0ab"))
+   (base4      '("#97907f")) ;; 墨痕（注释）
+   (base5      '("#6c6557"))
+   (base6      '("#5a5447"))
+   (base7      '("#38342c"))
+   (base8      '("#1f1a16"))
+
+   ;; 强调色（传统色）
+   (qinghua    '("#356a8d")) ;; 青花（keyword）
+   (tianqing   '("#3a7b71")) ;; 天青（type）
+   (zhuqing    '("#5d7a39")) ;; 竹青（string）
+   (xiang      '("#9c6a26")) ;; 缃色（function）
+   (zheshi     '("#9a5730")) ;; 赭石（number）
+   (zhusha     '("#b3433a")) ;; 朱砂（error）
+   (daizi      '("#66518c")) ;; 黛紫（builtin）
+   (yanzhi     '("#97485f")) ;; 胭脂（field）
+
+   ;; Doom 语义映射
+   (grey       base4)
+   (red        zhusha)
+   (orange     xiang)
+   (green      zhuqing)
+   (teal       tianqing)
+   (yellow     zheshi)
+   (blue       qinghua)
+   (dark-blue  qinghua)
+   (magenta    daizi)
+   (violet     yanzhi)
+   (cyan       tianqing)
+   (dark-cyan  tianqing)
+
+   ;; 其他语义颜色
+   (bg-blue    base0)
+   (bg-magenta base0)
+   (modeline-fg     fg)
+   (modeline-fg-alt fg-alt)
+   (modeline-bg     bg-alt)
+   (modeline-bg-alt bg-alt)
+   (modeline-bg-inactive   bg-alt)
+   (modeline-bg-inactive-alt bg-alt))
+
+  ;;;; 基础 faces
+  (((font-lock-comment-face &override) :slant 'italic :foreground base4)
+   ((font-lock-doc-face &override) :slant 'italic :foreground base4)
+   ((font-lock-keyword-face &override) :foreground qinghua)
+   ((font-lock-constant-face &override) :foreground zheshi)
+   ((font-lock-builtin-face &override) :foreground daizi)
+   ((font-lock-function-name-face &override) :foreground xiang)
+   ((font-lock-variable-name-face &override) :foreground fg)
+   ((font-lock-string-face &override) :foreground zhuqing)
+   ((font-lock-type-face &override) :foreground tianqing)
+   ((font-lock-warning-face &override) :foreground xiang)
+
+   ;;;; 行号
+   ((line-number &override) :foreground fg-alt)
+   ((line-number-current-line &override) :foreground fg :background base0)
+
+   ;;;; 模式栏
+   (mode-line
+    :background modeline-bg :foreground modeline-fg
+    :box (if su-theme-padded-modeline `(:line-width 4 :color ,modeline-bg)))
+   (mode-line-inactive
+    :background modeline-bg-inactive :foreground modeline-fg-alt
+    :box (if su-theme-padded-modeline `(:line-width 4 :color ,modeline-bg-inactive)))
+   (mode-line-emphasis :foreground qinghua)
+
+   ;;;; 光标与选区
+   (cursor :background zhusha)
+   (region :background base1)
+   (hl-line :background base0)
+
+   ;;;; 搜索
+   (lazy-highlight :background base1 :foreground fg :weight 'normal)
+   (isearch :background xiang :foreground bg :weight 'bold)
+
+   ;;;; 边框与分隔
+   (vertical-border :foreground base2)
+   (window-divider :foreground base2)
+   (window-divider-first-pixel :foreground base2)
+   (window-divider-last-pixel :foreground base2)
+
+   ;;;; 诊断
+   ((error &override) :foreground zhusha)
+   ((warning &override) :foreground xiang)
+   ((success &override) :foreground zhuqing)
+   ((info &override) :foreground tianqing)
+
+   ;;;; tree-sitter
+   (tree-sitter-hl-face:function.call :foreground xiang)
+   (tree-sitter-hl-face:function.builtin :foreground daizi)
+   (tree-sitter-hl-face:function.macro :foreground daizi)
+   (tree-sitter-hl-face:property :foreground yanzhi)
+   (tree-sitter-hl-face:variable.parameter :foreground fg)
+   (tree-sitter-hl-face:type :foreground tianqing)
+   (tree-sitter-hl-face:type.builtin :foreground daizi)
+   (tree-sitter-hl-face:keyword :foreground qinghua)
+   (tree-sitter-hl-face:string :foreground zhuqing)
+   (tree-sitter-hl-face:number :foreground zheshi)
+   (tree-sitter-hl-face:constant.builtin :foreground daizi)
+
+   ;;;; solaire-mode
+   (solaire-mode-line-face
+    :inherit 'mode-line
+    :background modeline-bg)
+   (solaire-mode-line-inactive-face
+    :inherit 'mode-line-inactive
+    :background modeline-bg-inactive)
+   (solaire-default-face :background bg)
+   (solaire-hl-line-face :background base0)
+
+   ;;;; doom-modeline
+   (doom-modeline-bar :background qinghua)
+   (doom-modeline-buffer-file :foreground fg)
+   (doom-modeline-buffer-modified :foreground xiang :weight 'bold)
+   (doom-modeline-error :foreground zhusha)
+   (doom-modeline-warning :foreground xiang)
+   (doom-modeline-info :foreground tianqing)
+
+   ;;;; org-mode
+   ((org-block &override) :background bg-alt)
+   ((org-block-begin-line &override) :foreground base4 :slant 'italic)
+   ((org-block-end-line &override) :foreground base4 :slant 'italic)
+   (org-level-1 :foreground qinghua :weight 'bold :height 1.2)
+   (org-level-2 :foreground tianqing :weight 'bold :height 1.1)
+   (org-level-3 :foreground zhuqing :weight 'bold)
+   (org-level-4 :foreground xiang :weight 'bold)
+   (org-level-5 :foreground yanzhi)
+   (org-level-6 :foreground daizi)
+   (org-level-7 :foreground zheshi)
+   (org-level-8 :foreground fg-alt)
+   (org-todo :foreground zhusha :weight 'bold)
+   (org-done :foreground zhuqing :weight 'bold)
+   (org-headline-done :foreground base4 :strike-through t)
+   (org-date :foreground tianqing :underline t)
+   (org-link :foreground qinghua :underline t)
+   (org-code :foreground xiang :background bg-alt)
+   (org-verbatim :foreground zhuqing :background bg-alt)
+
+   ;;;; magit
+   (magit-section-heading :foreground qinghua :weight 'bold)
+   (magit-branch-local :foreground tianqing)
+   (magit-branch-remote :foreground xiang)
+   (magit-diff-added :foreground zhuqing :background bg-alt)
+   (magit-diff-removed :foreground zhusha :background bg-alt)
+   (magit-diff-context :foreground fg-alt)
+   (magit-diff-file-heading :foreground fg :weight 'bold)
+   (magit-diff-hunk-heading :foreground base4 :background bg-alt)
+   (magit-diff-hunk-heading-highlight :foreground fg :background base0)
+   (magit-hash :foreground base4)
+   (magit-tag :foreground yanzhi)
+
+   ;;;; company / corfu
+   (company-tooltip :background bg-alt :foreground fg)
+   (company-tooltip-selection :background base0 :foreground fg)
+   (company-tooltip-common :foreground qinghua :weight 'bold)
+   (company-scrollbar-bg :background base0)
+   (company-scrollbar-fg :background base5)
+
+   ;;;; ivy / vertico
+   (ivy-current-match :background base0 :foreground fg)
+   (ivy-minibuffer-match-face-1 :foreground qinghua)
+   (ivy-minibuffer-match-face-2 :foreground tianqing :weight 'bold)
+   (vertico-current :background base0 :foreground fg)
+
+   ;;;; treemacs
+   (treemacs-root-face :foreground qinghua :weight 'bold)
+   (treemacs-git-modified-face :foreground xiang)
+   (treemacs-git-added-face :foreground zhuqing)
+   (treemacs-git-conflict-face :foreground zhusha)
+   (treemacs-directory-face :foreground tianqing)
+   (treemacs-file-face :foreground fg)
+
+   ;;;; which-key
+   (which-key-key-face :foreground qinghua)
+   (which-key-separator-face :foreground base4)
+   (which-key-group-description-face :foreground tianqing)
+   (which-key-command-description-face :foreground fg)
+
+   ;;;; lsp
+   (lsp-face-highlight-read :background base1 :foreground fg)
+   (lsp-face-highlight-write :background base1 :foreground fg :weight 'bold)
+   (lsp-face-highlight-textual :background base1 :foreground fg)
+
+   ;;;; markdown
+   (markdown-header-face-1 :foreground qinghua :weight 'bold :height 1.2)
+   (markdown-header-face-2 :foreground tianqing :weight 'bold :height 1.1)
+   (markdown-header-face-3 :foreground zhuqing :weight 'bold)
+   (markdown-code-face :foreground xiang :background bg-alt)
+   (markdown-inline-code-face :foreground xiang :background bg-alt)
+   (markdown-link-face :foreground qinghua :underline t)
+   (markdown-url-face :foreground tianqing :underline t))
+
+  ;;;; 额外变量
+  ((custom-theme-set-variables
+    'su
+    `(ansi-color-names-vector
+      [,bg ,zhusha ,zhuqing ,xiang ,qinghua ,daizi ,tianqing ,fg]))))
+
+;;; su-theme.el ends here

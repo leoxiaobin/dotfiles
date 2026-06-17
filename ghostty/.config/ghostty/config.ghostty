@@ -1,26 +1,27 @@
 # Shared Ghostty baseline for this dotfiles repo.
-# MAI warm-paper palette, shared with Windows Terminal, tmux, Neovim, and Doom.
-background = FBF0DC
-foreground = 1F1412
-cursor-color = 1F1412
-selection-background = D8C8A8
-selection-foreground = 1F1412
-palette = 0=140C0A
-palette = 1=74312B
-palette = 2=435B31
-palette = 3=744D27
-palette = 4=284867
-palette = 5=604159
-palette = 6=3D625D
-palette = 7=3D332E
-palette = 8=51453E
-palette = 9=954239
-palette = 10=587642
-palette = 11=946A3A
-palette = 12=365F88
-palette = 13=7B5873
-palette = 14=507B74
-palette = 15=FEF9ED
+# 素 (Su) · 中国风浅色开发主题 —— 宣纸底、水墨字、传统色
+background = F3EEE1
+foreground = 38342C
+cursor-color = B3433A
+selection-background = D6CBAE
+selection-foreground = 38342C
+# 16色 ANSI（素调色板）
+palette = 0=5A5447
+palette = 1=B3433A
+palette = 2=5D7A39
+palette = 3=9C6A26
+palette = 4=356A8D
+palette = 5=66518C
+palette = 6=3A7B71
+palette = 7=C9C0AB
+palette = 8=97907F
+palette = 9=C2554B
+palette = 10=6D8A47
+palette = 11=AB7830
+palette = 12=43789C
+palette = 13=765F9C
+palette = 14=498A80
+palette = 15=38342C
 window-theme = system
 font-family = BlexMono Nerd Font Mono
 font-size = 16

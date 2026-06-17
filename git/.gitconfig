@@ -15,16 +15,17 @@
 	syntax-theme = GitHub
 	dark = false
 	zero-style = syntax
-	minus-style = syntax "#E8CFC7"
-	plus-style = syntax "#E5E8C8"
-	minus-emph-style = syntax "#D8A9A0"
-	plus-emph-style = syntax "#D5DEAD"
-	line-numbers-left-style = "#8D7F70"
-	line-numbers-right-style = "#8D7F70"
-	line-numbers-minus-style = "#74312B"
-	line-numbers-plus-style = "#435B31"
-	file-style = bold "#1F1412"
-	hunk-header-style = file line-number syntax "#EDE1C7"
+	# 素 (Su) 主题 —— 宣纸底差异色彩
+	minus-style = syntax "#f0e4d1"      # 删除行淡背景
+	plus-style = syntax "#e8edd6"       # 添加行淡背景
+	minus-emph-style = syntax "#e1d1b8" # 删除强调
+	plus-emph-style = syntax "#dce5c5"  # 添加强调
+	line-numbers-left-style = "#97907f" # 墨痕
+	line-numbers-right-style = "#97907f"
+	line-numbers-minus-style = "#b3433a" # 朱砂（删除）
+	line-numbers-plus-style = "#5d7a39"  # 竹青（添加）
+	file-style = bold "#38342c"         # 墨（文件名）
+	hunk-header-style = file line-number syntax "#e9e1cf"
 	hyperlinks = true
 [diff]
 	algorithm = histogram

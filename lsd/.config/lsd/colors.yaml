@@ -1,28 +1,32 @@
-user: dark_yellow
-group: dark_green
+# 素 (Su) · lsd 色彩映射
+# 浅色背景下，使用 ANSI dark_* 系列（对应调色板 0-7）
+# 强调色来自传统色：青花、天青、竹青、缃色、赭石、朱砂、黛紫、胭脂
+
+user: dark_cyan        # 天青（类型/重要标识）
+group: dark_green      # 竹青（内容/数据）
 
 permission:
-  read: dark_green
-  write: dark_yellow
-  exec: dark_red
-  exec-sticky: dark_magenta
-  no-access: dark_grey
+  read: dark_green     # 竹青（读取=内容）
+  write: dark_yellow   # 缃色（写入=行为）
+  exec: dark_red       # 朱砂（执行=特殊权限）
+  exec-sticky: dark_magenta  # 黛紫（粘滞=更特殊）
+  no-access: dark_white      # 墨痕（无权限=淡化）
 
 size:
-  none: dark_grey
-  small: dark_cyan
-  medium: dark_yellow
-  large: dark_red
+  none: dark_white     # 墨痕
+  small: dark_green    # 竹青
+  medium: dark_yellow  # 缃色
+  large: dark_red      # 赭石
 
 date:
-  hour-old: dark_green
-  day-old: dark_yellow
-  older: dark_cyan
+  hour-old: dark_green    # 竹青（新鲜）
+  day-old: dark_yellow    # 缃色（近期）
+  older: dark_cyan        # 天青（久远）
 
 inode:
-  valid: dark_cyan
-  invalid: dark_grey
+  valid: dark_blue     # 青花（结构）
+  invalid: dark_white  # 墨痕
 
 links:
-  valid: dark_yellow
-  invalid: dark_grey
+  valid: dark_yellow   # 缃色（链接=调用）
+  invalid: dark_white  # 墨痕
