@@ -1,13 +1,13 @@
 # 素 (Su) · lsd 色彩映射
-# 浅色背景下，使用 ANSI dark_* 系列（对应调色板 0-7）
-# 强调色来自传统色：青花、天青、竹青、缃色、赭石、朱砂、黛紫、胭脂
+# 浅色背景优化：避免缃色/赭石在大片文字中难读
+# 改用深色系（墨、青花、竹青）作主色，暖色只做点缀
 
-user: dark_cyan        # 天青（类型/重要标识）
+user: default          # 墨色（前景默认色，最清晰）
 group: dark_green      # 竹青（内容/数据）
 
 permission:
   read: dark_green     # 竹青（读取=内容）
-  write: dark_yellow   # 缃色（写入=行为）
+  write: dark_red      # 赭石改朱砂（写入=重要）
   exec: dark_red       # 朱砂（执行=特殊权限）
   exec-sticky: dark_magenta  # 黛紫（粘滞=更特殊）
   no-access: dark_white      # 墨痕（无权限=淡化）
@@ -15,12 +15,12 @@ permission:
 size:
   none: dark_white     # 墨痕
   small: dark_green    # 竹青
-  medium: dark_yellow  # 缃色
-  large: dark_red      # 赭石
+  medium: default      # 墨色（中等文件，高对比）
+  large: dark_blue     # 青花（大文件醒目但不刺眼）
 
 date:
   hour-old: dark_green    # 竹青（新鲜）
-  day-old: dark_yellow    # 缃色（近期）
+  day-old: dark_blue      # 青花改缃色（近期，更清晰）
   older: dark_cyan        # 天青（久远）
 
 inode:
@@ -28,5 +28,5 @@ inode:
   invalid: dark_white  # 墨痕
 
 links:
-  valid: dark_yellow   # 缃色（链接=调用）
+  valid: dark_cyan     # 天青改缃色（链接，清晰可读）
   invalid: dark_white  # 墨痕
