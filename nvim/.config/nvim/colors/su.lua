@@ -14,12 +14,14 @@ local colors = {
   -- 中性色
   bg = "#f3eee1", -- 宣纸
   bg_soft = "#e9e1cf",
+  bg_code = "#eee6d5",
   bg_hl = "#e3dac3", -- 当前行
   sel = "#d6cbae", -- 选区
   border = "#ddd4bf",
   fg = "#38342c", -- 墨
   fg_dim = "#6c6557",
-  comment = "#97907f", -- 墨痕
+  comment = "#756f61", -- 墨痕（注释；比界面弱文本更清晰）
+  comment_dim = "#97907f",
 
   -- 强调色（传统色）
   qinghua = "#356a8d", -- 青花（keyword）
@@ -149,6 +151,22 @@ hi("@tag", { fg = colors.tianqing })
 hi("@tag.attribute", { fg = colors.yanzhi })
 hi("@tag.delimiter", { fg = colors.fg_dim })
 hi("@comment", { fg = colors.comment, style = "italic" })
+hi("@comment.documentation", { fg = colors.comment, style = "italic" })
+
+-- Markdown / rendered code blocks
+hi("markdownCode", { fg = colors.fg, bg = colors.bg_code })
+hi("markdownCodeBlock", { fg = colors.fg, bg = colors.bg_code })
+hi("markdownCodeDelimiter", { fg = colors.comment, bg = colors.bg_code })
+hi("@markup.raw", { fg = colors.fg, bg = colors.bg_code })
+hi("@markup.raw.block", { fg = colors.fg, bg = colors.bg_code })
+hi("@markup.raw.delimiter", { fg = colors.comment, bg = colors.bg_code })
+hi("@markup.link", { fg = colors.qinghua })
+hi("@markup.heading", { fg = colors.qinghua, style = "bold" })
+hi("RenderMarkdownCode", { fg = colors.fg, bg = colors.bg_code })
+hi("RenderMarkdownCodeInline", { fg = colors.fg, bg = colors.bg_code })
+hi("RenderMarkdownCodeBorder", { fg = colors.border, bg = colors.bg_code })
+hi("RenderMarkdownCodeFallback", { fg = colors.fg, bg = colors.bg_code })
+hi("RenderMarkdownCodeInfo", { fg = colors.comment, bg = colors.bg_code })
 
 -- LSP 语义
 hi("@lsp.type.class", { fg = colors.tianqing })

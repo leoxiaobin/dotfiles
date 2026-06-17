@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MAI vs Su Theme Preview</title>
+  <style>
+    :root {
+      --page-bg: #e9e1cf;
+      --page-fg: #38342c;
+      --shadow: rgba(31, 20, 18, 0.16);
+      --radius: 18px;
+      --font-ui: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-mono: "BlexMono Nerd Font Mono", "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--page-bg);
+      color: var(--page-fg);
+      font-family: var(--font-ui);
+      line-height: 1.55;
+    }
+
+    main {
+      width: min(1440px, calc(100vw - 40px));
+      margin: 0 auto;
+      padding: 36px 0 52px;
+    }
+
+    header {
+      margin-bottom: 28px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+      font-size: clamp(28px, 4vw, 46px);
+      letter-spacing: -0.04em;
+    }
+
+    .subtitle {
+      max-width: 840px;
+      color: #6c6557;
+      font-size: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .theme {
+      --bg: #fbf0dc;
+      --bg-soft: #fef9ed;
+      --bg-panel: #f7ecd9;
+      --bg-muted: #ede1c7;
+      --selection: #d8c8a8;
+      --fg: #1f1412;
+      --fg-soft: #3d332e;
+      --muted: #51453e;
+      --comment: #8d7f70;
+      --accent: #946a3a;
+      --red: #74312b;
+      --green: #435b31;
+      --yellow: #744d27;
+      --blue: #284867;
+      --purple: #604159;
+      --cyan: #3d625d;
+      --field: #7b5873;
+      background: var(--bg);
+      color: var(--fg);
+      border: 1px solid color-mix(in srgb, var(--fg), transparent 82%);
+      border-radius: var(--radius);
+      box-shadow: 0 18px 50px var(--shadow);
+      overflow: hidden;
+    }
+
+    .theme.su {
+      --bg: #f3eee1;
+      --bg-soft: #e9e1cf;
+      --bg-panel: #e3dac3;
+      --bg-muted: #ddd4bf;
+      --selection: #d6cbae;
+      --fg: #38342c;
+      --fg-soft: #6c6557;
+      --muted: #97907f;
+      --comment: #97907f;
+      --accent: #9c6a26;
+      --red: #b3433a;
+      --green: #5d7a39;
+      --yellow: #9a5730;
+      --blue: #356a8d;
+      --purple: #66518c;
+      --cyan: #3a7b71;
+      --field: #97485f;
+    }
+
+    .theme-header {
+      padding: 24px 24px 20px;
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--blue), transparent 82%), transparent 42%),
+        var(--bg-soft);
+      border-bottom: 1px solid color-mix(in srgb, var(--fg), transparent 86%);
+    }
+
+    .theme-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: start;
+      margin-bottom: 8px;
+    }
+
+    .theme-title h2 {
+      margin-bottom: 0;
+      font-size: 28px;
+      letter-spacing: -0.035em;
+    }
+
+    .tag {
+      display: inline-flex;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--blue);
+      color: var(--bg);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .theme-header p {
+      margin-bottom: 0;
+      color: var(--fg-soft);
+    }
+
+    .section {
+      padding: 20px 24px 24px;
+      border-bottom: 1px solid color-mix(in srgb, var(--fg), transparent 88%);
+    }
+
+    .section:last-child {
+      border-bottom: 0;
+    }
+
+    .section h3 {
+      margin-bottom: 12px;
+      color: var(--fg);
+      font-size: 15px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .palette {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .swatch {
+      min-height: 76px;
+      padding: 9px;
+      border-radius: 12px;
+      background: var(--color);
+      color: var(--text, var(--bg));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fg), transparent 86%);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .swatch strong {
+      display: block;
+      margin-bottom: 14px;
+      font-family: var(--font-ui);
+      font-size: 12px;
+    }
+
+    .code-card,
+    .terminal-card,
+    .diff-card {
+      border-radius: 14px;
+      background: var(--bg-soft);
+      border: 1px solid color-mix(in srgb, var(--fg), transparent 84%);
+      overflow: hidden;
+    }
+
+    .chrome {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      height: 34px;
+      padding: 0 12px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid color-mix(in srgb, var(--fg), transparent 86%);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--red);
+    }
+
+    .dot:nth-child(2) {
+      background: var(--yellow);
+    }
+
+    .dot:nth-child(3) {
+      background: var(--green);
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow: auto;
+      color: var(--fg);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.65;
+      tab-size: 2;
+    }
+
+    .comment { color: var(--comment); font-style: italic; }
+    .keyword { color: var(--blue); font-weight: 700; }
+    .type { color: var(--cyan); font-weight: 700; }
+    .string { color: var(--green); }
+    .function { color: var(--accent); font-weight: 700; }
+    .number { color: var(--yellow); }
+    .builtin { color: var(--purple); font-weight: 700; }
+    .field { color: var(--field); }
+    .error { color: var(--red); font-weight: 800; }
+    .dim { color: var(--muted); }
+
+    .terminal {
+      background: var(--bg);
+    }
+
+    .prompt {
+      color: var(--blue);
+      font-weight: 800;
+    }
+
+    .path {
+      color: var(--cyan);
+      font-weight: 700;
+    }
+
+    .file {
+      color: var(--fg);
+    }
+
+    .dir {
+      color: var(--blue);
+      font-weight: 800;
+    }
+
+    .size {
+      color: var(--fg);
+    }
+
+    .date {
+      color: var(--cyan);
+    }
+
+    .tmux {
+      display: flex;
+      overflow: hidden;
+      border-radius: 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background: var(--selection);
+      color: var(--fg);
+    }
+
+    .tmux-left,
+    .tmux-right {
+      padding: 7px 10px;
+      color: var(--bg);
+      background: var(--blue);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .tmux-mid {
+      flex: 1;
+      padding: 7px 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ansi {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .ansi span {
+      min-height: 38px;
+      border-radius: 9px;
+      background: var(--color);
+      color: var(--label, var(--bg));
+      display: grid;
+      place-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fg), transparent 84%);
+    }
+
+    .notes {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 22px;
+    }
+
+    @media (max-width: 900px) {
+      .notes {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .note {
+      padding: 18px 20px;
+      border-radius: var(--radius);
+      background: #f3eee1;
+      border: 1px solid #ddd4bf;
+    }
+
+    .note h3 {
+      margin-bottom: 8px;
+    }
+
+    .note ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>MAI vs Su Theme Preview</h1>
+      <p class="subtitle">
+        Side-by-side preview of the previous MAI warm-paper theme and the current
+        Su Chinese light theme across palettes, code, terminal output, tmux, and ANSI colors.
+      </p>
+    </header>
+
+    <div class="grid">
+      <article class="theme mai">
+        <div class="theme-header">
+          <div class="theme-title">
+            <h2>MAI</h2>
+            <span class="tag">previous</span>
+          </div>
+          <p>Warm-paper, dark-ink palette inspired by microsoft.ai. Creamier, punchier, and more conventional in editor semantics.</p>
+        </div>
+
+        <section class="section">
+          <h3>Core palette</h3>
+          <div class="palette">
+            <div class="swatch" style="--color:#fbf0dc;--text:#1f1412"><strong>bg</strong>#FBF0DC</div>
+            <div class="swatch" style="--color:#1f1412"><strong>fg</strong>#1F1412</div>
+            <div class="swatch" style="--color:#946a3a"><strong>accent</strong>#946A3A</div>
+            <div class="swatch" style="--color:#284867"><strong>blue</strong>#284867</div>
+            <div class="swatch" style="--color:#604159"><strong>purple</strong>#604159</div>
+            <div class="swatch" style="--color:#435b31"><strong>green</strong>#435B31</div>
+            <div class="swatch" style="--color:#744d27"><strong>yellow</strong>#744D27</div>
+            <div class="swatch" style="--color:#74312b"><strong>red</strong>#74312B</div>
+            <div class="swatch" style="--color:#3d625d"><strong>cyan</strong>#3D625D</div>
+            <div class="swatch" style="--color:#8d7f70"><strong>subtle</strong>#8D7F70</div>
+          </div>
+        </section>
+
+        <section class="section">
+          <h3>Code preview</h3>
+          <div class="code-card">
+            <div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+            <pre><span class="comment">// MAI: conventional syntax roles</span>
+<span class="keyword">type</span> <span class="type">Theme</span> = {
+  <span class="field">name</span>: <span class="type">string</span>;
+  <span class="field">contrast</span>: <span class="type">number</span>;
+};
+
+<span class="keyword">function</span> <span class="function">renderPreview</span>(theme: <span class="type">Theme</span>) {
+  <span class="keyword">const</span> palette = <span class="builtin">Object</span>.<span class="function">keys</span>(theme);
+  <span class="keyword">return</span> <span class="string">"warm paper"</span> + palette.<span class="field">length</span> + <span class="number">1</span>;
+}</pre>
+          </div>
+        </section>
+
+        <section class="section">
+          <h3>Terminal preview</h3>
+          <div class="terminal-card terminal">
+            <pre><span class="prompt">❯</span> <span class="path">~/dotfiles</span> ll
+drwxr-xr-x <span class="dim">leoxiaobin</span> staff <span class="size"> 96 B</span> <span class="date">Jun 16 21:52</span> <span class="dir">doom</span>
+-rw-r--r-- <span class="dim">leoxiaobin</span> staff <span class="size">13 KB</span> <span class="date">Jun 16 10:34</span> <span class="file">AGENTS.md</span>
+<span class="prompt">❯</span> git status
+<span class="string">On branch main</span>
+<span class="dim">nothing to commit, working tree clean</span></pre>
+          </div>
+        </section>
+
+        <section class="section">
+          <h3>tmux/status feel</h3>
+          <div class="tmux">
+            <div class="tmux-left"> dotfiles </div>
+            <div class="tmux-mid"> 1:zsh  2:nvim  3:emacs </div>
+            <div class="tmux-right"> 2026-06-16 21:52 </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <h3>ANSI palette</h3>
+          <div class="ansi">
+            <span style="--color:#140c0a">0</span>
+            <span style="--color:#74312b">1</span>
+            <span style="--color:#435b31">2</span>
+            <span style="--color:#744d27">3</span>
+            <span style="--color:#284867">4</span>
+            <span style="--color:#604159">5</span>
+            <span style="--color:#3d625d">6</span>
+            <span style="--color:#3d332e">7</span>
+            <span style="--color:#51453e">8</span>
+            <span style="--color:#954239">9</span>
+            <span style="--color:#587642">10</span>
+            <span style="--color:#946a3a">11</span>
+            <span style="--color:#365f88">12</span>
+            <span style="--color:#7b5873">13</span>
+            <span style="--color:#507b74">14</span>
+            <span style="--color:#fef9ed;--label:#1f1412">15</span>
+          </div>
+        </section>
+      </article>
+
+      <article class="theme su">
+        <div class="theme-header">
+          <div class="theme-title">
+            <h2>Su / 素</h2>
+            <span class="tag">current</span>
+          </div>
+          <p>Chinese light theme: rice paper background, ink foreground, and restrained traditional colors mapped by code semantics.</p>
+        </div>
+
+        <section class="section">
+          <h3>Core palette</h3>
+          <div class="palette">
+            <div class="swatch" style="--color:#f3eee1;--text:#38342c"><strong>宣纸 bg</strong>#F3EEE1</div>
+            <div class="swatch" style="--color:#38342c"><strong>墨 fg</strong>#38342C</div>
+            <div class="swatch" style="--color:#9c6a26"><strong>缃色</strong>#9C6A26</div>
+            <div class="swatch" style="--color:#356a8d"><strong>青花</strong>#356A8D</div>
+            <div class="swatch" style="--color:#66518c"><strong>黛紫</strong>#66518C</div>
+            <div class="swatch" style="--color:#5d7a39"><strong>竹青</strong>#5D7A39</div>
+            <div class="swatch" style="--color:#9a5730"><strong>赭石</strong>#9A5730</div>
+            <div class="swatch" style="--color:#b3433a"><strong>朱砂</strong>#B3433A</div>
+            <div class="swatch" style="--color:#3a7b71"><strong>天青</strong>#3A7B71</div>
+            <div class="swatch" style="--color:#97907f"><strong>墨痕</strong>#97907F</div>
+          </div>
+        </section>
+
+        <section class="section">
+          <h3>Code preview</h3>
+          <div class="code-card">
+            <div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+            <pre><span class="comment">// Su: color follows semantic structure</span>
+<span class="keyword">type</span> <span class="type">Theme</span> = {
+  <span class="field">name</span>: <span class="type">string</span>;
+  <span class="field">contrast</span>: <span class="type">number</span>;
+};
+
+<span class="keyword">function</span> <span class="function">renderPreview</span>(theme: <span class="type">Theme</span>) {
+  <span class="keyword">const</span> palette = <span class="builtin">Object</span>.<span class="function">keys</span>(theme);
+  <span class="keyword">return</span> <span class="string">"rice paper"</span> + palette.<span class="field">length</span> + <span class="number">1</span>;
+}</pre>
+          </div>
+        </section>
+
+        <section class="section">
+          <h3>Terminal preview</h3>
+          <div class="terminal-card terminal">
+            <pre><span class="prompt">❯</span> <span class="path">~/dotfiles</span> ll
+drwxr-xr-x <span class="file">leoxiaobin</span> staff <span class="size"> 96 B</span> <span class="date">Jun 16 21:52</span> <span class="dir">doom</span>
+-rw-r--r-- <span class="file">leoxiaobin</span> staff <span class="size">13 KB</span> <span class="date">Jun 16 10:34</span> <span class="file">AGENTS.md</span>
+<span class="prompt">❯</span> git status
+<span class="string">On branch main</span>
+<span class="dim">nothing to commit, working tree clean</span></pre>
+          </div>
+        </section>
+
+        <section class="section">
+          <h3>tmux/status feel</h3>
+          <div class="tmux">
+            <div class="tmux-left"> dotfiles </div>
+            <div class="tmux-mid"> 1:zsh  2:nvim  3:emacs </div>
+            <div class="tmux-right"> 2026-06-16 21:52 </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <h3>ANSI palette</h3>
+          <div class="ansi">
+            <span style="--color:#5a5447">0</span>
+            <span style="--color:#b3433a">1</span>
+            <span style="--color:#5d7a39">2</span>
+            <span style="--color:#9c6a26">3</span>
+            <span style="--color:#356a8d">4</span>
+            <span style="--color:#66518c">5</span>
+            <span style="--color:#3a7b71">6</span>
+            <span style="--color:#c9c0ab;--label:#38342c">7</span>
+            <span style="--color:#97907f">8</span>
+            <span style="--color:#c2554b">9</span>
+            <span style="--color:#6d8a47">10</span>
+            <span style="--color:#ab7830">11</span>
+            <span style="--color:#43789c">12</span>
+            <span style="--color:#765f9c">13</span>
+            <span style="--color:#498a80">14</span>
+            <span style="--color:#38342c">15</span>
+          </div>
+        </section>
+      </article>
+    </div>
+
+    <section class="notes">
+      <div class="note">
+        <h3>Key difference</h3>
+        <ul>
+          <li>MAI is creamier, darker, and more conventional.</li>
+          <li>Su is softer, more semantic, and uses traditional Chinese color roles.</li>
+          <li>Su reserves cinnabar red for errors and keeps frequent CLI text in ink/cool colors.</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>How to view</h3>
+        <ul>
+          <li>Open this file directly in a browser: <code>open theme-preview.html</code></li>
+          <li>Use a browser with BlexMono Nerd Font Mono installed for the closest preview.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
