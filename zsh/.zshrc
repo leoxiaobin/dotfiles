@@ -13,8 +13,7 @@ export PATH="$HOME/.local/bin:$PATH"
 # Enable 24-bit true color for terminal apps (Emacs, Neovim, etc.)
 export COLORTERM=truecolor
 
-# Timezone
-export TZ="America/Los_Angeles"
+# Timezone removed - use system timezone from /etc/localtime
 
 # Path to your Oh My Zsh installation.
 export ZSH="$HOME/.oh-my-zsh"

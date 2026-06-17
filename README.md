@@ -4,17 +4,17 @@ Terminal-centric development environment managed with [GNU Stow](https://www.gnu
 
 ## What's Inside
 
-| Package      | What it configures                                    |
-|--------------|-------------------------------------------------------|
-| `zsh`        | Shell: oh-my-zsh, starship prompt, aliases, AI CLI helpers |
-| `git`        | Git: aliases, delta pager, histogram diff, rerere     |
-| `tmux`       | Tmux: C-q prefix, MAI warm-paper status, git status, resurrect |
-| `doom`       | Doom Emacs: LSP, vterm, org capture, magit, AI helpers |
-| `nvim`       | LazyVim: MAI warm-paper theme, org-mode, OSC 52 clipboard |
+| Package      | What it configures                                                     |
+|--------------|------------------------------------------------------------------------|
+| `zsh`        | Shell: oh-my-zsh, starship prompt, aliases, AI CLI helpers             |
+| `git`        | Git: aliases, delta pager, histogram diff, rerere                      |
+| `tmux`       | Tmux: C-q prefix, MAI warm-paper status, git status, resurrect         |
+| `doom`       | Doom Emacs: LSP, vterm, org capture, magit, AI helpers                 |
+| `nvim`       | LazyVim: MAI warm-paper theme, org-mode, OSC 52 clipboard              |
 | `ghostty`    | Ghostty terminal: MAI warm-paper palette, BlexMono Nerd Font Mono 16pt |
-| `lsd`        | `lsd` listing colors tuned for light and dark terminals |
-| `fontconfig` | Font fallback: BlexMono Nerd Font Mono                |
-| `starship`   | Starship prompt config                                |
+| `lsd`        | `lsd` listing colors tuned for light and dark terminals                |
+| `fontconfig` | Font fallback: BlexMono Nerd Font Mono                                 |
+| `starship`   | Starship prompt config                                                 |
 
 ## Quick Start
 
@@ -94,14 +94,14 @@ In Doom Emacs: `SPC g g` for Magit.
 
 ### Tmux
 
-| Key              | Action                              |
-|------------------|-------------------------------------|
-| `C-q v` / `C-q b` | Split vertical / horizontal       |
-| `C-q h/j/k/l`   | Navigate panes (vim-style)          |
-| `C-q z`          | Zoom/unzoom pane                    |
-| `C-q c`          | New window                          |
-| `C-q C-s`        | Save session                        |
-| `C-q C-r`        | Restore session                     |
+| Key               | Action                      |
+|-------------------|-----------------------------|
+| `C-q v` / `C-q b` | Split vertical / horizontal |
+| `C-q h/j/k/l`     | Navigate panes (vim-style)  |
+| `C-q z`           | Zoom/unzoom pane            |
+| `C-q c`           | New window                  |
+| `C-q C-s`         | Save session                |
+| `C-q C-r`         | Restore session             |
 
 Status bar shows: directory | windows `[pane-count]` | git branch | session | time.
 Pane borders show each pane number/command, and the active pane gets a bright
@@ -111,13 +111,13 @@ Pane borders show each pane number/command, and the active pane gets a bright
 
 Shared `~/org/` directory accessible from both Doom Emacs and LazyVim:
 
-| File                       | Purpose                |
-|----------------------------|------------------------|
-| `~/org/inbox.org`          | Quick capture          |
-| `~/org/coding-prompts.org` | AI prompts             |
-| `~/org/agent-instructions.org` | Agent system prompts |
-| `~/org/research.org`       | Research notes         |
-| `~/org/workflow.org`       | This setup's documentation |
+| File                           | Purpose                    |
+|--------------------------------|----------------------------|
+| `~/org/inbox.org`              | Quick capture              |
+| `~/org/coding-prompts.org`     | AI prompts                 |
+| `~/org/agent-instructions.org` | Agent system prompts       |
+| `~/org/research.org`           | Research notes             |
+| `~/org/workflow.org`           | This setup's documentation |
 
 Doom capture: `SPC X` then select template.
 
