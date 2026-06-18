@@ -213,14 +213,14 @@ Reuses an existing buffer if one exists for this project+name."
   (add-hook 'markdown-mode-hook #'visual-line-mode)
   ;; Mixed-pitch: variable-pitch for prose, fixed-pitch for code/tables
   (add-hook 'markdown-mode-hook #'mixed-pitch-mode)
-  ;; Distinct heading colors (MAI warm-paper palette)
+  ;; Distinct heading colors (Su palette)
   (custom-set-faces!
-    '(markdown-header-face-1 :weight bold :foreground "#1F1412")
-    '(markdown-header-face-2 :weight bold :foreground "#284867")
-    '(markdown-header-face-3 :weight bold :foreground "#435B31")
-    '(markdown-header-face-4 :weight bold :foreground "#946A3A")
-    '(markdown-header-face-5 :weight bold :foreground "#604159")
-    '(markdown-header-face-6 :weight bold :foreground "#3D625D")))
+    '(markdown-header-face-1 :weight bold :foreground "#38342C")
+    '(markdown-header-face-2 :weight bold :foreground "#356A8D")
+    '(markdown-header-face-3 :weight bold :foreground "#5D7A39")
+    '(markdown-header-face-4 :weight bold :foreground "#9C6A26")
+    '(markdown-header-face-5 :weight bold :foreground "#66518C")
+    '(markdown-header-face-6 :weight bold :foreground "#3A7B71")))
 
 ;; Mixed-pitch — keep code in monospace, prose in variable-pitch
 (after! mixed-pitch

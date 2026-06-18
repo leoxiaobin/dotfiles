@@ -33,6 +33,10 @@
   - 16 色 ANSI 调色板
   - 宣纸背景、墨色前景、朱砂光标
   - 重启 Ghostty 或 `Cmd+Shift+,` 重载配置
+- **Windows Terminal**: `templates/windows-terminal-profile.example.jsonc`
+  - 16 色 ANSI 调色板基于 Ghostty，并针对浅色背景可读性加深
+  - 宣纸背景、墨色前景、朱砂光标
+  - 将示例中的 `profiles.defaults` 与 `schemes` 合并到 Windows Terminal 设置
 
 ### Shell & 命令行工具
 - **Starship** 提示符: `starship/.config/starship.toml`

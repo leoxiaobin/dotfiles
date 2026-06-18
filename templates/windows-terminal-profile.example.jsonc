@@ -1,10 +1,11 @@
-// Windows Terminal equivalent of the shared MAI warm-paper terminal style.
+// Windows Terminal equivalent of the shared Su terminal style.
 // Install BlexMono Nerd Font Mono first:
 // https://github.com/ryanoasis/nerd-fonts/releases/latest/download/IBMPlexMono.zip
 {
   "profiles": {
     "defaults": {
-      "colorScheme": "Microsoft AI Warm Paper",
+      "adjustIndistinguishableColors": "always",
+      "colorScheme": "Su",
       "font": {
         "face": "BlexMono Nerd Font Mono",
         "size": 16
@@ -13,27 +14,27 @@
   },
   "schemes": [
     {
-      "name": "Microsoft AI Warm Paper",
-      "background": "#FBF0DC",
-      "foreground": "#1F1412",
-      "cursorColor": "#1F1412",
-      "selectionBackground": "#D8C8A8",
-      "black": "#140C0A",
-      "red": "#74312B",
-      "green": "#435B31",
-      "yellow": "#744D27",
-      "blue": "#284867",
-      "purple": "#604159",
-      "cyan": "#3D625D",
-      "white": "#3D332E",
-      "brightBlack": "#51453E",
-      "brightRed": "#954239",
-      "brightGreen": "#587642",
-      "brightYellow": "#946A3A",
-      "brightBlue": "#365F88",
-      "brightPurple": "#7B5873",
-      "brightCyan": "#507B74",
-      "brightWhite": "#FEF9ED"
+      "name": "Su",
+      "background": "#F3EEE1",
+      "foreground": "#38342C",
+      "cursorColor": "#B3433A",
+      "selectionBackground": "#D6CBAE",
+      "black": "#5A5447",
+      "red": "#B3433A",
+      "green": "#5D7A39",
+      "yellow": "#7A4A18",
+      "blue": "#356A8D",
+      "purple": "#66518C",
+      "cyan": "#3A7B71",
+      "white": "#38342C",
+      "brightBlack": "#6C6557",
+      "brightRed": "#C2554B",
+      "brightGreen": "#6D8A47",
+      "brightYellow": "#8A531C",
+      "brightBlue": "#43789C",
+      "brightPurple": "#765F9C",
+      "brightCyan": "#498A80",
+      "brightWhite": "#38342C"
     }
   ]
 }

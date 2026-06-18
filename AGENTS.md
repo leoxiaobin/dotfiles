@@ -256,7 +256,7 @@ Known long-running steps:
 
 - **No API keys in configs.** Secrets go in `~/.zshrc.local` / `~/.gitconfig.local`.
 - **Terminal-first AI workflow.** Claude Code, Codex, and Copilot CLI run in tmux/vterm; editor AI extras are optional and account-authenticated.
-- **MAI warm-paper** theme everywhere (Windows Terminal/Ghostty, tmux, Emacs, Neovim, git delta, lsd, fzf, Starship).
+- **Su** theme everywhere (Windows Terminal/Ghostty, tmux, Emacs, Neovim, git delta, lsd, fzf, Starship).
 - **BlexMono Nerd Font Mono 16pt** in terminals; **BlexMono Nerd Font Mono** in Emacs/fontconfig.
 - **OSC 52** clipboard (works over SSH, tmux, WSL).
 - **Keyboard-first.** Minimal mouse usage.
