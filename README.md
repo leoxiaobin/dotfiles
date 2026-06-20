@@ -15,6 +15,7 @@ Terminal-centric development environment managed with [GNU Stow](https://www.gnu
 | `lsd`        | `lsd` listing colors tuned for light and dark terminals                |
 | `fontconfig` | Font fallback: BlexMono Nerd Font Mono                                 |
 | `starship`   | Starship prompt config                                                 |
+| `scripts`    | Helper scripts, including macOS Su system appearance setup             |
 
 ## Quick Start
 
@@ -30,6 +31,9 @@ brew install stow        # macOS
 
 # Apply managed dotfiles
 ./sync.sh
+
+# Optional: align macOS system appearance with the Su theme
+scripts/apply-su-macos.sh
 
 # Create local overrides (for secrets)
 cp templates/zshrc.local.example ~/.zshrc.local
@@ -171,6 +175,7 @@ doom sync
 ├── fontconfig/.config/fontconfig/fonts.conf
 ├── starship/.config/starship.toml
 ├── templates/           # example local override files and snippets
+├── scripts/             # helper scripts, not managed by Stow
 ├── sync.sh              # re-stow packages after git pull
 ├── AGENTS.md            # canonical coding-agent instructions
 ├── CLAUDE.md            # Claude Code pointer to AGENTS.md

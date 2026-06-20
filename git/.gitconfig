@@ -20,10 +20,10 @@
 	plus-style = syntax "#e8edd6"       # 添加行淡背景
 	minus-emph-style = syntax "#e1d1b8" # 删除强调
 	plus-emph-style = syntax "#dce5c5"  # 添加强调
-	line-numbers-left-style = "#97907f" # 墨痕
-	line-numbers-right-style = "#97907f"
-	line-numbers-minus-style = "#b3433a" # 朱砂（删除）
-	line-numbers-plus-style = "#5d7a39"  # 竹青（添加）
+	line-numbers-left-style = "#5f584c" # 墨痕
+	line-numbers-right-style = "#5f584c"
+	line-numbers-minus-style = "#8c1234" # 朱砂（删除）
+	line-numbers-plus-style = "#3f6428"  # 竹青（添加）
 	file-style = bold "#38342c"         # 墨（文件名）
 	hunk-header-style = file line-number syntax "#e9e1cf"
 	hyperlinks = true

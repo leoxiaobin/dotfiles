@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Su Theme Contrast Comparison</title>
+  <style>
+    :root {
+      --page-bg: #e9e1cf;
+      --page-fg: #38342c;
+      --paper: #f3eee1;
+      --panel: #e3dac3;
+      --border: #ddd4bf;
+      --ink-soft: #5f584c;
+      --radius: 18px;
+      --shadow: 0 18px 46px rgba(56, 52, 44, 0.14);
+      --font-ui: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-mono: "BlexMono Nerd Font Mono", "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--page-bg);
+      color: var(--page-fg);
+      font-family: var(--font-ui);
+      line-height: 1.55;
+    }
+
+    main {
+      width: min(1480px, calc(100vw - 40px));
+      margin: 0 auto;
+      padding: 36px 0 56px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+      font-size: clamp(28px, 4vw, 48px);
+      letter-spacing: -0.045em;
+    }
+
+    h2 {
+      margin-bottom: 12px;
+      font-size: 22px;
+      letter-spacing: -0.025em;
+    }
+
+    h3 {
+      margin-bottom: 10px;
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      max-width: 900px;
+      margin-bottom: 28px;
+      color: var(--ink-soft);
+      font-size: 16px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .summary-card,
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .summary-card {
+      padding: 18px;
+    }
+
+    .summary-card strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #295f8a;
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .summary-card span {
+      color: var(--ink-soft);
+      font-size: 13px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 20px 22px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-header p {
+      margin-bottom: 0;
+      color: var(--ink-soft);
+      font-size: 14px;
+    }
+
+    .section {
+      padding: 20px 22px 22px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section:last-child {
+      border-bottom: 0;
+    }
+
+    .palette {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .swatch {
+      min-height: 86px;
+      padding: 10px;
+      border-radius: 14px;
+      background: var(--color);
+      color: var(--text, #f3eee1);
+      box-shadow: inset 0 0 0 1px rgba(56, 52, 44, 0.14);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .swatch strong {
+      display: block;
+      margin-bottom: 14px;
+      font-family: var(--font-ui);
+      font-size: 12px;
+    }
+
+    .code-card {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--paper);
+    }
+
+    .chrome {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      height: 34px;
+      padding: 0 12px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--red);
+    }
+
+    .dot:nth-child(2) {
+      background: var(--yellow);
+    }
+
+    .dot:nth-child(3) {
+      background: var(--green);
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow: auto;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.65;
+      tab-size: 2;
+    }
+
+    .old,
+    .new {
+      --bg: #f3eee1;
+      --bg-soft: #e9e1cf;
+      --bg-code: #eee6d5;
+      --bg-hl: #e3dac3;
+      --fg: #38342c;
+      --dim: #6c6557;
+      --comment: #97907f;
+      --keyword: #356a8d;
+      --type: #3a7b71;
+      --string: #5d7a39;
+      --function: #9c6a26;
+      --number: #9a5730;
+      --error: #b3433a;
+      --builtin: #66518c;
+      --field: #97485f;
+      --green: var(--string);
+      --yellow: var(--function);
+      --red: var(--error);
+    }
+
+    .new {
+      --dim: #5f584c;
+      --comment: #5f584c;
+      --keyword: #295f8a;
+      --type: #236b5c;
+      --string: #3f6428;
+      --function: #6a5d12;
+      --number: #8f3c22;
+      --error: #8c1234;
+      --builtin: #5a4685;
+      --field: #84394f;
+    }
+
+    .code-card pre {
+      background: var(--bg-code);
+      color: var(--fg);
+    }
+
+    .comment { color: var(--comment); font-style: italic; }
+    .keyword { color: var(--keyword); font-weight: 700; }
+    .type { color: var(--type); font-weight: 700; }
+    .string { color: var(--string); }
+    .function { color: var(--function); font-weight: 700; }
+    .number { color: var(--number); }
+    .error { color: var(--error); font-weight: 800; }
+    .builtin { color: var(--builtin); font-weight: 700; }
+    .field { color: var(--field); }
+    .dim { color: var(--dim); }
+
+    .contrast-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .contrast-table th,
+    .contrast-table td {
+      padding: 8px 9px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .contrast-table th {
+      color: var(--ink-soft);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .ratio {
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    .pass {
+      color: #3f6428;
+    }
+
+    .fail {
+      color: #8c1234;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .chip::before {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--chip);
+      content: "";
+      box-shadow: inset 0 0 0 1px rgba(56, 52, 44, 0.2);
+    }
+
+    .wide {
+      margin-top: 20px;
+    }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .matrix-card {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #f3eee1;
+    }
+
+    .matrix-card strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #295f8a;
+    }
+
+    .matrix-card span {
+      display: block;
+      color: var(--ink-soft);
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    @media (max-width: 1000px) {
+      .grid,
+      .summary {
+        grid-template-columns: 1fr;
+      }
+
+      .palette,
+      .matrix {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>素 / Su Theme Contrast Comparison</h1>
+      <p class="subtitle">
+        对比 Su 原始调色板与当前 WCAG AA 调整版：保持宣纸、水墨、传统色的气质，同时让正文、
+        注释、语法色在常见背景上达到可访问对比度。
+      </p>
+    </header>
+
+    <section class="summary">
+      <div class="summary-card">
+        <strong>4.5:1+</strong>
+        <span>当前正文/语法色在 bg、bg_soft、bg_code、bg_hl 上全部满足 WCAG AA 正文标准。</span>
+      </div>
+      <div class="summary-card">
+        <strong>3:1+</strong>
+        <span>大字号文本阈值自然满足，因为所有测试组合都已超过 4.5:1。</span>
+      </div>
+      <div class="summary-card">
+        <strong>8 色</strong>
+        <span>仍保留青花、天青、竹青、缃色、赭石、朱砂、黛紫、胭脂的语义体系。</span>
+      </div>
+      <div class="summary-card">
+        <strong>0</strong>
+        <span>关键语法色没有 RGB 距离小于 45 的近距离混淆色对。</span>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="panel old">
+        <div class="panel-header">
+          <h2>Before: original Su</h2>
+          <p>更轻、更柔，但部分注释与暖色语法在浅背景上低于 4.5:1。</p>
+        </div>
+        <div class="section">
+          <h3>Palette</h3>
+          <div class="palette" id="old-palette"></div>
+        </div>
+        <div class="section">
+          <h3>Code block preview</h3>
+          <div class="code-card">
+            <div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+            <pre><span class="comment">// comments could fade too much in code blocks</span>
+<span class="keyword">type</span> <span class="type">Theme</span> = {
+  <span class="field">name</span>: <span class="type">string</span>;
+  <span class="field">contrast</span>: <span class="type">number</span>;
+};
+
+<span class="keyword">function</span> <span class="function">checkContrast</span>(theme: <span class="type">Theme</span>) {
+  <span class="keyword">const</span> ratio = <span class="builtin">Math</span>.<span class="function">max</span>(theme.<span class="field">contrast</span>, <span class="number">4.5</span>);
+  <span class="keyword">return</span> ratio &lt; <span class="number">4.5</span> ? <span class="error">"fail"</span> : <span class="string">"pass"</span>;
+}</pre>
+          </div>
+        </div>
+        <div class="section">
+          <h3>Contrast audit</h3>
+          <table class="contrast-table" id="old-table"></table>
+        </div>
+      </article>
+
+      <article class="panel new">
+        <div class="panel-header">
+          <h2>After: WCAG AA Su</h2>
+          <p>整体“下沉”一档：传统色相不变，文本对比度与语法辨识度更稳。</p>
+        </div>
+        <div class="section">
+          <h3>Palette</h3>
+          <div class="palette" id="new-palette"></div>
+        </div>
+        <div class="section">
+          <h3>Code block preview</h3>
+          <div class="code-card">
+            <div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+            <pre><span class="comment">// comments remain subdued, but readable</span>
+<span class="keyword">type</span> <span class="type">Theme</span> = {
+  <span class="field">name</span>: <span class="type">string</span>;
+  <span class="field">contrast</span>: <span class="type">number</span>;
+};
+
+<span class="keyword">function</span> <span class="function">checkContrast</span>(theme: <span class="type">Theme</span>) {
+  <span class="keyword">const</span> ratio = <span class="builtin">Math</span>.<span class="function">max</span>(theme.<span class="field">contrast</span>, <span class="number">4.5</span>);
+  <span class="keyword">return</span> ratio &lt; <span class="number">4.5</span> ? <span class="error">"fail"</span> : <span class="string">"pass"</span>;
+}</pre>
+          </div>
+        </div>
+        <div class="section">
+          <h3>Contrast audit</h3>
+          <table class="contrast-table" id="new-table"></table>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel wide">
+      <div class="panel-header">
+        <h2>What changed</h2>
+        <p>这些颜色已同步到 Neovim、Doom Emacs、Ghostty、tmux、Starship、Git Delta、Windows Terminal 示例、文档和预览页。</p>
+      </div>
+      <div class="section">
+        <div class="matrix" id="change-matrix"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const backgrounds = {
+      bg: "#f3eee1",
+      bg_soft: "#e9e1cf",
+      bg_code: "#eee6d5",
+      bg_hl: "#e3dac3",
+    };
+
+    const oldPalette = {
+      comment: ["墨痕 / comment", "#97907f"],
+      keyword: ["青花 / keyword", "#356a8d"],
+      type: ["天青 / type", "#3a7b71"],
+      string: ["竹青 / string", "#5d7a39"],
+      function: ["缃色 / function", "#9c6a26"],
+      number: ["赭石 / number", "#9a5730"],
+      error: ["朱砂 / error", "#b3433a"],
+      builtin: ["黛紫 / builtin", "#66518c"],
+      field: ["胭脂 / field", "#97485f"],
+    };
+
+    const newPalette = {
+      comment: ["墨痕 / comment", "#5f584c"],
+      keyword: ["青花 / keyword", "#295f8a"],
+      type: ["天青 / type", "#236b5c"],
+      string: ["竹青 / string", "#3f6428"],
+      function: ["缃色 / function", "#6a5d12"],
+      number: ["赭石 / number", "#8f3c22"],
+      error: ["朱砂 / error", "#8c1234"],
+      builtin: ["黛紫 / builtin", "#5a4685"],
+      field: ["胭脂 / field", "#84394f"],
+    };
+
+    function hexToRgb(hex) {
+      const raw = hex.replace("#", "");
+      return [0, 2, 4].map((i) => parseInt(raw.slice(i, i + 2), 16) / 255);
+    }
+
+    function linear(channel) {
+      return channel <= 0.04045 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+    }
+
+    function luminance(hex) {
+      const [r, g, b] = hexToRgb(hex).map(linear);
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
+
+    function contrast(fg, bg) {
+      const a = luminance(fg);
+      const b = luminance(bg);
+      return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    }
+
+    function textColor(bg) {
+      return contrast("#38342c", bg) >= 4.5 ? "#38342c" : "#f3eee1";
+    }
+
+    function renderPalette(id, palette) {
+      const root = document.getElementById(id);
+      root.innerHTML = Object.entries(palette).map(([key, [label, color]]) => `
+        <div class="swatch" style="--color:${color};--text:${textColor(color)}">
+          <strong>${label}</strong>
+          ${color.toUpperCase()}<br>${key}
+        </div>
+      `).join("");
+    }
+
+    function renderTable(id, palette) {
+      const root = document.getElementById(id);
+      const rows = Object.entries(palette).map(([key, [label, color]]) => {
+        const minRatio = Math.min(...Object.values(backgrounds).map((bg) => contrast(color, bg)));
+        const cls = minRatio >= 4.5 ? "pass" : "fail";
+        const status = minRatio >= 4.5 ? "AA" : "Fail";
+        return `
+          <tr>
+            <td><span class="chip" style="--chip:${color}">${label}</span></td>
+            <td class="ratio ${cls}">${minRatio.toFixed(2)}:1</td>
+            <td class="${cls}">${status}</td>
+          </tr>
+        `;
+      }).join("");
+
+      root.innerHTML = `
+        <thead>
+          <tr>
+            <th>Role</th>
+            <th>Worst ratio</th>
+            <th>Normal text</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      `;
+    }
+
+    function renderChanges() {
+      const root = document.getElementById("change-matrix");
+      root.innerHTML = Object.keys(newPalette).map((key) => {
+        const [label, before] = oldPalette[key];
+        const after = newPalette[key][1];
+        const beforeMin = Math.min(...Object.values(backgrounds).map((bg) => contrast(before, bg)));
+        const afterMin = Math.min(...Object.values(backgrounds).map((bg) => contrast(after, bg)));
+        return `
+          <div class="matrix-card">
+            <strong>${label}</strong>
+            <span>before ${before.toUpperCase()} · ${beforeMin.toFixed(2)}:1</span>
+            <span>after&nbsp; ${after.toUpperCase()} · ${afterMin.toFixed(2)}:1</span>
+          </div>
+        `;
+      }).join("");
+    }
+
+    renderPalette("old-palette", oldPalette);
+    renderPalette("new-palette", newPalette);
+    renderTable("old-table", oldPalette);
+    renderTable("new-table", newPalette);
+    renderChanges();
+  </script>
+</body>
+</html>

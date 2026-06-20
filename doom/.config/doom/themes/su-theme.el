@@ -25,26 +25,26 @@
   ((bg         '("#f3eee1")) ;; 宣纸
    (fg         '("#38342c")) ;; 墨
    (bg-alt     '("#e9e1cf")) ;; 面板
-   (fg-alt     '("#6c6557")) ;; 次前景
+   (fg-alt     '("#5f584c")) ;; 次前景
    (base0      '("#e3dac3")) ;; 当前行
    (base1      '("#d6cbae")) ;; 选区
    (base2      '("#ddd4bf")) ;; 边框
-   (base3      '("#c9c0ab"))
-   (base4      '("#97907f")) ;; 墨痕（注释）
-   (base5      '("#6c6557"))
+   (base3      '("#5f584c"))
+   (base4      '("#5f584c")) ;; 墨痕（注释）
+   (base5      '("#5f584c"))
    (base6      '("#5a5447"))
    (base7      '("#38342c"))
    (base8      '("#1f1a16"))
 
    ;; 强调色（传统色）
-   (qinghua    '("#356a8d")) ;; 青花（keyword）
-   (tianqing   '("#3a7b71")) ;; 天青（type）
-   (zhuqing    '("#5d7a39")) ;; 竹青（string）
-   (xiang      '("#9c6a26")) ;; 缃色（function）
-   (zheshi     '("#9a5730")) ;; 赭石（number）
-   (zhusha     '("#b3433a")) ;; 朱砂（error）
-   (daizi      '("#66518c")) ;; 黛紫（builtin）
-   (yanzhi     '("#97485f")) ;; 胭脂（field）
+   (qinghua    '("#295f8a")) ;; 青花（keyword）
+   (tianqing   '("#236b5c")) ;; 天青（type）
+   (zhuqing    '("#3f6428")) ;; 竹青（string）
+   (xiang      '("#6a5d12")) ;; 缃色（function）
+   (zheshi     '("#8f3c22")) ;; 赭石（number）
+   (zhusha     '("#8c1234")) ;; 朱砂（error）
+   (daizi      '("#5a4685")) ;; 黛紫（builtin）
+   (yanzhi     '("#84394f")) ;; 胭脂（field）
 
    ;; Doom 语义映射
    (grey       base4)

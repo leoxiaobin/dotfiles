@@ -19,19 +19,19 @@ local colors = {
   sel = "#d6cbae", -- 选区
   border = "#ddd4bf",
   fg = "#38342c", -- 墨
-  fg_dim = "#6c6557",
-  comment = "#756f61", -- 墨痕（注释；比界面弱文本更清晰）
-  comment_dim = "#97907f",
+  fg_dim = "#5f584c",
+  comment = "#5f584c", -- 墨痕（注释；AA 对比，仍弱于正文）
+  comment_dim = "#5f584c",
 
   -- 强调色（传统色）
-  qinghua = "#356a8d", -- 青花（keyword）
-  tianqing = "#3a7b71", -- 天青（type）
-  zhuqing = "#5d7a39", -- 竹青（string）
-  xiang = "#9c6a26", -- 缃色（function）
-  zheshi = "#9a5730", -- 赭石（number）
-  zhusha = "#b3433a", -- 朱砂（error）
-  daizi = "#66518c", -- 黛紫（builtin）
-  yanzhi = "#97485f", -- 胭脂（field）
+  qinghua = "#295f8a", -- 青花（keyword）
+  tianqing = "#236b5c", -- 天青（type）
+  zhuqing = "#3f6428", -- 竹青（string）
+  xiang = "#6a5d12", -- 缃色（function）
+  zheshi = "#8f3c22", -- 赭石（number）
+  zhusha = "#8c1234", -- 朱砂（error）
+  daizi = "#5a4685", -- 黛紫（builtin）
+  yanzhi = "#84394f", -- 胭脂（field）
 }
 
 local function hi(group, opts)

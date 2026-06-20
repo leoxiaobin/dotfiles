@@ -50,6 +50,7 @@ dotfiles/
   fontconfig/.config/fontconfig/      → ~/.config/fontconfig/
   starship/.config/starship.toml      → ~/.config/starship.toml
   templates/                          → example local override files
+  scripts/apply-su-macos.sh           → apply Su-aligned macOS appearance defaults
   sync.sh                             → re-stow packages after git pull
 ```
 
