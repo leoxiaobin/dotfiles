@@ -287,3 +287,15 @@ fi
 if [[ "$IS_MACOS" == "true" && -n "$TERMINFO" && "$TERMINFO" == /Applications/Ghostty.app/* ]]; then
   unset TERMINFO
 fi
+
+# Anthropic native — just `claude`, no overrides
+# GLM
+ccg() {
+  ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic" \
+  ANTHROPIC_AUTH_TOKEN="$ZAI_API_KEY" \
+  ANTHROPIC_DEFAULT_SONNET_MODEL="glm-5.2[1m]" \
+  ANTHROPIC_DEFAULT_OPUS_MODEL="glm-5.2[1m]" \
+  CLAUDE_CODE_AUTO_COMPACT_WINDOW="1000000" \
+  API_TIMEOUT_MS="3000000" \
+  claude "$@"
+}
