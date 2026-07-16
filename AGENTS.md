@@ -101,6 +101,7 @@ brew install --cask ghostty
 # - ripgrep (grep)         : apt install ripgrep / brew install ripgrep
 # - delta (git pager)      : download from https://github.com/dandavison/delta/releases
 # - yazi (file manager)    : cargo install yazi-fm / brew install yazi
+# - w3m (Yazi HTML preview): apt install w3m / brew install w3m
 # - lazygit                : go install github.com/jesseduffield/lazygit@latest / brew install lazygit
 # - nvm (node manager)     : curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/HEAD/install.sh | bash
 # - direnv (project envs)  : apt install direnv / brew install direnv
@@ -202,6 +203,9 @@ PAGER=cat doom doctor
 
 # LazyVim bootstrap (lazy.nvim auto-installs on first Neovim launch)
 nvim --headless "+Lazy! sync" +qa
+
+# Yazi HTML text previewer (requires w3m)
+ya pkg add yazi-rs/plugins:piper
 
 # Fonts: install terminal/editor fonts
 if [[ "$(uname)" == "Darwin" ]]; then

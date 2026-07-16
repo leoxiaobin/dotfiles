@@ -37,6 +37,8 @@ Doom Emacs config is split by Doom convention: `doom/.config/doom/init.el` decla
 
 Neovim uses LazyVim. `nvim/.config/nvim/init.lua` boots `lua/config/lazy.lua`; LazyVim extras are tracked in `lazyvim.json`; local plugin overrides live under `lua/plugins/`; core options/keymaps/autocmds live under `lua/config/`. The enabled `copilot-native` extra requires Neovim `>= 0.12`.
 
+Yazi HTML previews require both `w3m` (`apt install w3m` or `brew install w3m`) and the piper plugin (`ya pkg add yazi-rs/plugins:piper`). Install both after syncing the `yazi` package.
+
 Doom Emacs and Neovim share the `~/org/` workflow for notes, prompts, agent instructions, and experiment logs. Su colors, BlexMono Nerd Font Mono, and OSC 52 clipboard behavior are intentionally shared across terminal/editor configs.
 
 ## Conventions
