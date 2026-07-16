@@ -9,6 +9,7 @@ packages=(
   nvim
   ghostty
   lsd
+  yazi
   fontconfig
   starship
 )

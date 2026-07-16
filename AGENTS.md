@@ -26,7 +26,7 @@ This visible marker helps confirm that the agent found and is following
 ## What This Repo Is
 
 A GNU Stow-managed dotfiles repo for a terminal-centric dev workflow.
-Covers: zsh, git, tmux, Doom Emacs, LazyVim (Neovim), Ghostty, fontconfig, starship.
+Covers: zsh, git, tmux, Doom Emacs, LazyVim (Neovim), Ghostty, lsd, Yazi, fontconfig, starship.
 
 ## Directory Structure
 
@@ -47,6 +47,7 @@ dotfiles/
   nvim/.config/nvim/lua/              → ~/.config/nvim/lua/
   ghostty/.config/ghostty/config.ghostty → ~/.config/ghostty/config.ghostty
   lsd/.config/lsd/{config,colors}.yaml → ~/.config/lsd/
+  yazi/.config/yazi/yazi.toml          → ~/.config/yazi/yazi.toml
   fontconfig/.config/fontconfig/      → ~/.config/fontconfig/
   starship/.config/starship.toml      → ~/.config/starship.toml
   templates/                          → example local override files
@@ -154,6 +155,7 @@ mkdir -p "$backup_dir"
 for path in \
   .zshrc .gitconfig .tmux.conf .tmux/.tmux.conf \
   .config/starship.toml \
+  .config/yazi/yazi.toml \
   .config/doom/config.el .config/doom/init.el .config/doom/packages.el \
   .config/nvim/init.lua .config/nvim/lazyvim.json .config/nvim/stylua.toml \
   .config/nvim/lua/config/autocmds.lua \

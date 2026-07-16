@@ -1,0 +1,10 @@
+[opener]
+chrome = [
+  { run = 'open -a "Google Chrome" %s', orphan = true, desc = "Open in Chrome", for = "macos" },
+]
+
+[open]
+prepend_rules = [
+  { url = "*.html", use = "chrome" },
+  { url = "*.htm", use = "chrome" },
+]

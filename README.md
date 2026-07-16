@@ -13,6 +13,7 @@ Terminal-centric development environment managed with [GNU Stow](https://www.gnu
 | `nvim`       | LazyVim: Su theme, org-mode, OSC 52 clipboard                          |
 | `ghostty`    | Ghostty terminal: Su palette, BlexMono Nerd Font Mono 16pt             |
 | `lsd`        | `lsd` listing colors tuned for light and dark terminals                |
+| `yazi`       | Yazi file openers, including HTML files in Google Chrome               |
 | `fontconfig` | Font fallback: BlexMono Nerd Font Mono                                 |
 | `starship`   | Starship prompt config                                                 |
 | `scripts`    | Helper scripts, including macOS Su system appearance setup             |
@@ -172,6 +173,7 @@ doom sync
 │       ├── config/      # LazyVim core config
 │       └── plugins/     # plugin specs
 ├── ghostty/.config/ghostty/config.ghostty
+├── yazi/.config/yazi/yazi.toml
 ├── fontconfig/.config/fontconfig/fonts.conf
 ├── starship/.config/starship.toml
 ├── templates/           # example local override files and snippets
