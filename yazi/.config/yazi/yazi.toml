@@ -8,3 +8,13 @@ prepend_rules = [
   { url = "*.html", use = "chrome" },
   { url = "*.htm", use = "chrome" },
 ]
+
+# Render HTML to text in the preview pane via w3m (piper.yazi plugin).
+# Install the plugin with: ya pkg add yazi-rs/plugins:piper
+[[plugin.prepend_previewers]]
+url = "*.html"
+run = 'piper -- w3m -dump -cols $w -o display_image=false "$1"'
+
+[[plugin.prepend_previewers]]
+url = "*.htm"
+run = 'piper -- w3m -dump -cols $w -o display_image=false "$1"'
