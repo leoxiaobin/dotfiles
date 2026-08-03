@@ -11,10 +11,10 @@ Terminal-centric development environment managed with [GNU Stow](https://www.gnu
 | `tmux`       | Tmux: C-q prefix, Su status, git status, resurrect                     |
 | `doom`       | Doom Emacs: LSP, vterm, org capture, magit, AI helpers                 |
 | `nvim`       | LazyVim: Su theme, org-mode, OSC 52 clipboard                          |
-| `ghostty`    | Ghostty terminal: Su palette, BlexMono Nerd Font Mono 16pt             |
+| `ghostty`    | Ghostty terminal: Su palette, Maple Mono NF CN 16pt                    |
 | `lsd`        | `lsd` listing colors tuned for light and dark terminals                |
 | `yazi`       | Yazi file openers, including HTML files in Google Chrome               |
-| `fontconfig` | Font fallback: BlexMono Nerd Font Mono                                 |
+| `fontconfig` | Font fallback: Maple Mono NF CN                                        |
 | `starship`   | Starship prompt config                                                 |
 | `scripts`    | Helper scripts, including macOS Su system appearance setup             |
 
@@ -49,7 +49,7 @@ Ghostty reads `~/.config/ghostty/config.ghostty` from the `ghostty` stow package
 Keep machine-specific overrides in `~/.config/ghostty/config`; Ghostty loads that
 after `config.ghostty`.
 
-For Windows Terminal/WSL, use the `Su` color scheme and `BlexMono Nerd Font Mono`
+For Windows Terminal/WSL, use the `Su` color scheme and `Maple Mono NF CN`
 at 16pt; see `templates/windows-terminal-profile.example.jsonc`.
 
 If `github-leoxiaobin` is not configured yet, copy the example from
@@ -60,7 +60,7 @@ If `github-leoxiaobin` is not configured yet, copy the example from
 
 - **Editors for editing, terminals for AI.** Claude Code / Codex / Copilot CLI primarily run in tmux/vterm.
 - **No API keys in config.** Secrets stay in `~/.zshrc.local` and `~/.gitconfig.local` (not tracked).
-- **One theme, one font family.** Su colors everywhere; terminals/editors use BlexMono Nerd Font Mono 16pt where possible.
+- **One theme, one font family.** Su colors everywhere; terminals/editors use Maple Mono NF CN 16pt where possible.
 - **Cross-platform.** Works on Linux, WSL, and macOS with conditional aliases.
 - **Keyboard-first.** Optimized for terminal + tmux workflows.
 

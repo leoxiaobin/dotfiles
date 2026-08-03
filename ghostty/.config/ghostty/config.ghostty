@@ -24,12 +24,8 @@ palette = 14=236B5C
 palette = 15=38342C
 window-theme = system
 
-# Font stack:
-# - BlexMono keeps Latin/code/nerd icons aligned in terminal UIs.
-# - Songti SC gives Chinese text a restrained Song/Ming style that matches Su's
-#   scholarly, paper-and-ink direction better than the default sans fallback.
-font-family = BlexMono Nerd Font Mono
-font-family = Songti SC
+# Maple Mono NF CN includes Latin, Chinese, and Nerd Font glyphs.
+font-family = Maple Mono NF CN
 font-size = 16
 
 # Allow programs to read/write system clipboard via OSC 52

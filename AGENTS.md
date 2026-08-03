@@ -209,11 +209,11 @@ ya pkg add yazi-rs/plugins:piper
 
 # Fonts: install terminal/editor fonts
 if [[ "$(uname)" == "Darwin" ]]; then
-  brew install --cask font-blex-mono-nerd-font
+  brew install --cask font-maple-mono-nf-cn
 else
   mkdir -p ~/.local/share/fonts
-  curl -fLo /tmp/IBMPlexMono.zip https://github.com/ryanoasis/nerd-fonts/releases/latest/download/IBMPlexMono.zip
-  unzip -o /tmp/IBMPlexMono.zip -d ~/.local/share/fonts/
+  # Download the NF-CN archive from https://github.com/subframe7536/maple-font/releases
+  # and extract its font files into ~/.local/share/fonts/.
   fc-cache -fv
 fi
 ```
@@ -243,11 +243,11 @@ Known long-running steps:
 
 ## Platform Notes
 
-- **WSL**: Set Windows Terminal font to "BlexMono Nerd Font Mono" at 16pt.
-  It is the Nerd Font-patched IBM Plex Mono family, so tmux/starship icons render correctly.
+- **WSL**: Set Windows Terminal font to "Maple Mono NF CN" at 16pt.
+  It includes Chinese and Nerd Font glyphs, so tmux/starship icons render correctly.
   Clipboard uses OSC 52 (no xclip needed).
-- **macOS**: Ghostty uses BlexMono Nerd Font Mono at 16pt from `ghostty/.config/ghostty/config.ghostty`.
-  For iTerm2/Alacritty/etc., use BlexMono Nerd Font Mono 16pt for consistent icons.
+- **macOS**: Ghostty uses Maple Mono NF CN at 16pt from `ghostty/.config/ghostty/config.ghostty`.
+  For iTerm2/Alacritty/etc., use Maple Mono NF CN 16pt for consistent icons.
   `bat` and `fd` use native names (no alias needed). For better Emacs performance,
   consider `emacs-plus@30 --with-native-comp`.
   Doom doctor may warn about the legacy Symbola fallback font. Homebrew may not
@@ -264,7 +264,7 @@ Known long-running steps:
 - **No API keys in configs.** Secrets go in `~/.zshrc.local` / `~/.gitconfig.local`.
 - **Terminal-first AI workflow.** Claude Code, Codex, and Copilot CLI run in tmux/vterm; editor AI extras are optional and account-authenticated.
 - **Su** theme everywhere (Windows Terminal/Ghostty, tmux, Emacs, Neovim, git delta, lsd, fzf, Starship).
-- **BlexMono Nerd Font Mono 16pt** in terminals; **BlexMono Nerd Font Mono** in Emacs/fontconfig.
+- **Maple Mono NF CN 16pt** in terminals, Emacs, and fontconfig.
 - **OSC 52** clipboard (works over SSH, tmux, WSL).
 - **Keyboard-first.** Minimal mouse usage.
 

@@ -1,13 +1,13 @@
 // Windows Terminal equivalent of the shared Su terminal style.
-// Install BlexMono Nerd Font Mono first:
-// https://github.com/ryanoasis/nerd-fonts/releases/latest/download/IBMPlexMono.zip
+// Install Maple Mono NF CN first:
+// https://github.com/subframe7536/maple-font/releases
 {
   "profiles": {
     "defaults": {
       "adjustIndistinguishableColors": "always",
       "colorScheme": "Su",
       "font": {
-        "face": "BlexMono Nerd Font Mono",
+        "face": "Maple Mono NF CN",
         "size": 16
       }
     }

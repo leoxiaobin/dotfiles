@@ -53,14 +53,14 @@
           interprogram-paste-function #'my/macos-pbpaste)))
 
 ;; ============================================================
-;; Fonts — BlexMono Nerd Font (IBM Plex Mono patched with Nerd Font glyphs)
+;; Fonts — Maple Mono NF CN (Chinese + Nerd Font glyphs)
 ;; ============================================================
 ;; GUI Emacs: set primary + symbol fonts directly
-(setq doom-font (font-spec :family "BlexMono Nerd Font Mono" :size 16)
-      doom-variable-pitch-font (font-spec :family "BlexMono Nerd Font" :size 16)
+(setq doom-font (font-spec :family "Maple Mono NF CN" :size 16)
+      doom-variable-pitch-font (font-spec :family "Maple Mono NF CN" :size 16)
       doom-symbol-font (font-spec :family "Symbols Nerd Font Mono"))
 ;; Terminal Emacs: set your terminal emulator's font to
-;; "BlexMono Nerd Font Mono" for icons to work.
+;; "Maple Mono NF CN" for icons and Chinese glyphs to work.
 
 ;; ============================================================
 ;; Performance
@@ -191,7 +191,7 @@ Reuses an existing buffer if one exists for this project+name."
   (setq org-startup-folded 'content)
   (setq org-ellipsis " ▾")
   ;; Fold stars: default level 3+ uses ⯈/⯆ which many terminal fonts lack.
-  ;; Use only common triangle glyphs (▶▷▸▹▾ are in BlexMono Nerd Font).
+  ;; Use only common triangle glyphs (▶▷▸▹▾ are in Maple Mono NF CN).
   (setq org-modern-fold-stars
         '(("▶" . "▼") ("▷" . "▽") ("▸" . "▾") ("▹" . "▿") ("▪" . "▫")))
   ;; Table rendering: pixel borders only work in GUI; disable in terminal.
