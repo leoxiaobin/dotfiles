@@ -52,6 +52,9 @@ dotfiles/
   starship/.config/starship.toml      → ~/.config/starship.toml
   templates/                          → example local override files
   scripts/apply-su-macos.sh           → apply Su-aligned macOS appearance defaults
+  docker/Dockerfile                   → GPU development image (not a Stow package)
+  docker/build.sh                     → build/push helper for the GPU image
+  docker/verify-gpu.py                → runtime GPU/NCCL verification
   sync.sh                             → re-stow packages after git pull
 ```
 
@@ -258,6 +261,84 @@ Known long-running steps:
   Put machine-specific overrides in `~/.config/ghostty/config`, which Ghostty loads afterward.
 - **Terminal Emacs**: Themes render poorly if `TERM=xterm-color`; `.zshrc` upgrades it
   to `xterm-256color` and exports `COLORTERM=truecolor`.
+
+## GPU Development Image
+
+`docker/` builds a container image of this environment for NVIDIA GPU servers.
+It is **not** a Stow package and `sync.sh` must not manage it.
+
+Composition:
+
+- Base `nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04`, pinned by digest.
+- Miniforge at `/opt/conda` with conda env `dev` (Python 3.12).
+- `torch==2.13.0` + `torchvision==0.28.0` from the `cu126` wheel index.
+- `cmake` and `ninja` via pip so `torch.utils.cpp_extension` can build CUDA
+  extensions. `is_ninja_available()` is asserted at build time.
+- Dotfiles copied to `/opt/dotfiles` and stowed into `/root` for the
+  container-relevant packages only: `zsh git tmux nvim lsd yazi starship`.
+
+Commands:
+
+```bash
+./docker/build.sh                                   # build linux/amd64 locally
+IMAGE_VERSION=pt2.13.0-cu126-v4 ./docker/build.sh --push
+shellcheck docker/build.sh
+python3 -m py_compile docker/verify-gpu.py
+docker run --rm --gpus all --shm-size=8g IMAGE python /opt/dotfiles/docker/verify-gpu.py
+```
+
+Rules and pitfalls:
+
+- The CUDA build of PyTorch is selected by `--index-url`, not by the version
+  string. Plain PyPI `torch` now targets CUDA 13 and needs a much newer driver.
+- `torchaudio` is deliberately absent: its newest `cu126` build is 2.11, so
+  installing it would downgrade `torch` to 2.11.
+- Never assert `torch.cuda.is_available()` in a `RUN` step; BuildKit has no GPU.
+  Build-time checks are limited to imports, versions, and `torch.version.cuda`.
+- `ENV PATH` puts the conda env first so non-interactive platform jobs resolve
+  `python` correctly without sourcing a shell rc. Keep it that way.
+- Conda shell glue lives in `/etc/zsh/zshrc` and `/etc/profile.d/00-conda.sh`,
+  deliberately outside the Stow packages so it cannot collide with host dotfiles.
+- Mount workspaces at `/workspace`. Mounting over `/root` hides the stowed
+  symlinks and breaks the shell setup.
+- NCCL arrives via the `nvidia-nccl-cu12` torch dependency; the image also
+  installs `rdma-core`/`libibverbs1`/`librdmacm1`/`ibverbs-providers` so NCCL can
+  use InfiniBand or RoCE instead of falling back to TCP. Runtime still needs
+  `--shm-size` raised (or `--ipc=host`).
+- Framework repos without releases (oh-my-zsh, zsh-syntax-highlighting, TPM) are
+  pinned by commit ARG. Bump those ARGs deliberately rather than drifting.
+- Treat published tags as immutable: bump `IMAGE_VERSION` instead of re-pushing.
+  `docker/build.sh` fails fast when the target tag already exists remotely;
+  `--force` is the deliberate escape hatch.
+- The cu126 wheels compile `sm_50`-`sm_90` with **no PTX fallback**, so the image
+  does not run on Blackwell (`sm_100`/`sm_120`). Moving to Blackwell means
+  changing `CUDA_BASE` **and** `TORCH_CUDA_INDEX` together; changing only one
+  produces a silently broken image. `verify-gpu.py` checks device capability
+  against `torch.cuda.get_arch_list()` and fails with an explicit message.
+  Compare architectures by `(major, minor)` with the minor-forward rule, never by
+  exact string: `sm_89` (L40S/L4/4090) legitimately runs the `sm_86` kernels, and
+  an exact match would reject working hardware. Arch strings can carry `a`/`f`
+  suffixes (`sm_90a`, `compute_120f`), so they must be parsed, not sliced.
+- `zsh/.zshrc` sets `zstyle ':omz:update' mode auto`, which takes precedence over
+  `DISABLE_AUTO_UPDATE` and cannot be overridden from `/etc/zsh/zshrc` (the
+  zstyle runs before `oh-my-zsh.sh` is sourced). The image therefore deletes
+  `/root/.oh-my-zsh/.git` so the update check bails out and the pinned commit
+  stays pinned. Keep TPM's `.git`; it needs git to manage plugins. The only
+  side effect is that a manual `omz update` inside the container prints git
+  errors; rebuild the image instead of updating in place.
+- Inside the container, `git config --global` writes through the symlink into
+  `/opt/dotfiles/git/.gitconfig` and dirties the repo copy. Use
+  `git config --file ~/.gitconfig.local` instead. Build steps that must set git
+  config use `git config --system`; using `--global` in a `RUN` creates
+  `/root/.gitconfig` and makes the later `stow` step abort.
+- `conda activate` requires an initialised shell, so it fails in a plain
+  non-interactive `bash -c`. `PATH` already points at the env; use `conda run -n dev`
+  when an explicit activation is needed.
+- The image runs as root with `HOME=/root`. If a platform overrides UID or HOME,
+  the dotfiles remain readable at `/opt/dotfiles` and can be re-stowed there.
+- No credentials belong in any layer. `.dockerignore` excludes `.git`, `*.local`,
+  key material, `.env`, `.netrc`, `.npmrc`, and cloud credential directories;
+  runtime config is mounted.
 
 ## Design Principles
 

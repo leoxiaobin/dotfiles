@@ -20,6 +20,9 @@ This is a GNU Stow-managed dotfiles repository for a terminal-centric developmen
 | Reload tmux after syncing          | `tmux source-file ~/.tmux.conf`                                                 |
 | Validate Ghostty config            | `ghostty +validate-config --config-file=ghostty/.config/ghostty/config.ghostty` |
 | Sync LazyVim plugins/config        | `nvim --headless "+Lazy! sync" +qa`                                             |
+| Build the GPU development image    | `./docker/build.sh`                                                             |
+| Build and publish the GPU image    | `IMAGE_VERSION=<tag> ./docker/build.sh --push`                                   |
+| Verify the GPU image on a GPU node | `docker run --rm --gpus all --shm-size=8g <image> python /opt/dotfiles/docker/verify-gpu.py` |
 | Sync Doom Emacs after Doom changes | `doom sync --force --rebuild`                                                   |
 | Check Doom Emacs health            | `PAGER=cat doom doctor`                                                         |
 

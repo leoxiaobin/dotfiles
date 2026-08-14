@@ -1,0 +1,52 @@
+# Keep the build context small and free of secrets.
+.git
+.github
+
+# Local overrides may contain credentials and machine-specific identity.
+*.local
+.zshrc.local
+.gitconfig.local
+**/*.local
+
+# Never ship keys or credential stores.
+.ssh
+**/.ssh
+**/id_rsa*
+**/id_ed25519*
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+.env
+**/.env
+**/.env.*
+.netrc
+**/.netrc
+.npmrc
+**/.npmrc
+.pypirc
+**/.pypirc
+.docker/config.json
+**/.docker/config.json
+.aws
+**/.aws
+.azure
+**/.azure
+.config/gcloud
+**/.config/gcloud
+**/*credentials*.json
+**/*service-account*.json
+
+# Runtime state that must not leak into layers.
+.tmux/plugins/
+**/lazy-lock.json
+
+# Build noise that must not be baked into layers.
+**/__pycache__
+**/*.pyc
+**/*.pyo
+
+# OS noise
+.DS_Store
+**/.DS_Store
+Thumbs.db

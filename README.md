@@ -56,6 +56,82 @@ If `github-leoxiaobin` is not configured yet, copy the example from
 `templates/ssh-config.github.example` into `~/.ssh/config`, then adjust the
 `IdentityFile` path to your personal GitHub key.
 
+## GPU Development Image
+
+`docker/Dockerfile` packages this environment for NVIDIA GPU servers and ML
+platforms that run jobs from a container image.
+
+| Layer      | Contents                                                        |
+|------------|-----------------------------------------------------------------|
+| Base       | `nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04` (digest-pinned)     |
+| Python     | Miniforge at `/opt/conda`, conda env `dev` on Python 3.12        |
+| ML         | `torch 2.13.0+cu126` and `torchvision 0.28.0`, NCCL included     |
+| Build      | `nvcc`, `cmake`, `ninja` for compiling CUDA extensions           |
+| Dotfiles   | `zsh git tmux nvim lsd yazi starship` stowed from `/opt/dotfiles`|
+
+```bash
+# Build locally (always targets linux/amd64, the architecture GPU nodes run)
+./docker/build.sh
+
+# Build and publish a new immutable version tag
+IMAGE_VERSION=pt2.13.0-cu126-v4 ./docker/build.sh --push
+
+# Verify on a GPU node (versions, arch coverage, a kernel, and a NCCL all-reduce)
+docker run --rm --gpus all --shm-size=8g \
+  leoxiao/pytorch-dev:pt2.13.0-cu126-v3 \
+  python /opt/dotfiles/docker/verify-gpu.py
+```
+
+The conda env is on `PATH`, so `python` resolves correctly in non-interactive
+platform jobs without sourcing a shell profile. Create isolated project
+environments with `conda create -n myproject python=3.12` as usual.
+
+### GPU compatibility
+
+The cu126 wheels ship kernels for `sm_50` through `sm_90`, so **Pascal through
+Hopper (P100, V100, T4, A100, L40S, H100/H200) work**. There is no PTX fallback,
+so **Blackwell (B200/GB200, `sm_100`/`sm_120`) will not run this image**. For
+Blackwell, rebuild against CUDA 13.x:
+
+```bash
+IMAGE_VERSION=pt2.13.0-cu130-v1 \
+CUDA_BASE=nvidia/cuda:13.0.3-cudnn-devel-ubuntu24.04 \
+TORCH_CUDA_INDEX=https://download.pytorch.org/whl/cu130 \
+  ./docker/build.sh --push
+```
+
+Ada cards (L40S, L4, RTX 4090) are `sm_89` and run the `sm_86` kernels: CUDA
+cubins are compatible across minor revisions within a major version, but never
+across major versions, which is exactly why Blackwell is excluded.
+`verify-gpu.py` applies that same rule and fails with an explicit message when a
+device is genuinely uncovered, so this never shows up as a confusing runtime crash.
+
+### Notes and gotchas
+
+- Building on Apple Silicon uses Rosetta emulation. Only the build is slower;
+  the published image runs natively on x86_64 GPU nodes. The image is
+  **linux/amd64 only** and will not run on an ARM GPU node such as GB200.
+- Pass `--shm-size=8g` (or `--ipc=host`); the default 64 MB `/dev/shm` breaks
+  NCCL and PyTorch dataloader workers.
+- Mount your code at `/workspace`, not at `/root`. Mounting over `/root` hides
+  the stowed dotfiles.
+- The container runs as `root` with `HOME=/root`. If your platform forces a
+  different UID or `HOME`, the dotfiles are still readable at `/opt/dotfiles`
+  and can be re-stowed with `stow -d /opt/dotfiles -t "$HOME" zsh git tmux nvim`.
+- `cmake` is 4.x. Older CUDA projects that declare
+  `cmake_minimum_required(VERSION <3.5)` fail against it; in that env run
+  `pip install "cmake<4"`.
+- Inside the container use `git config --file ~/.gitconfig.local ...`.
+  `git config --global` writes through the symlink into `/opt/dotfiles` and
+  dirties the repo copy.
+- `conda activate` needs an initialised shell. In a non-interactive
+  `docker exec ... bash -c`, either rely on `PATH` (already correct) or use
+  `conda run -n dev python ...`.
+- The image contains no credentials. Mount `~/.gitconfig.local` and any tokens
+  at runtime.
+- Never re-push an existing version tag; bump `IMAGE_VERSION` instead.
+  `docker/build.sh` refuses to overwrite a tag that already exists remotely.
+
 ## Design Philosophy
 
 - **Editors for editing, terminals for AI.** Claude Code / Codex / Copilot CLI primarily run in tmux/vterm.
@@ -178,6 +254,10 @@ doom sync
 ├── starship/.config/starship.toml
 ├── templates/           # example local override files and snippets
 ├── scripts/             # helper scripts, not managed by Stow
+├── docker/              # GPU development image (not a Stow package)
+│   ├── Dockerfile
+│   ├── build.sh         # build/push helper, pins linux/amd64
+│   └── verify-gpu.py    # runtime GPU/NCCL check
 ├── sync.sh              # re-stow packages after git pull
 ├── AGENTS.md            # canonical coding-agent instructions
 ├── CLAUDE.md            # Claude Code pointer to AGENTS.md
