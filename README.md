@@ -63,48 +63,66 @@ platforms that run jobs from a container image.
 
 | Layer      | Contents                                                        |
 |------------|-----------------------------------------------------------------|
-| Base       | `nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04` (digest-pinned)     |
+| Base       | `nvidia/cuda:<ver>-cudnn-devel-ubuntu24.04` (digest-pinned)      |
 | Python     | Miniforge at `/opt/conda`, conda env `dev` on Python 3.12        |
-| ML         | `torch 2.13.0+cu126` and `torchvision 0.28.0`, NCCL included     |
+| ML         | `torch 2.13.0` and `torchvision 0.28.0`, NCCL included           |
 | Build      | `nvcc`, `cmake`, `ninja` for compiling CUDA extensions           |
 | Dotfiles   | `zsh git tmux nvim lsd yazi starship` stowed from `/opt/dotfiles`|
 
+### Choosing a CUDA variant
+
+**Pick the variant by the GPUs and driver on your cluster, not by "newest".**
+CUDA 13 gained Blackwell but dropped Volta and Pascal.
+
+| Tag                     | CUDA | Kernels        | GPUs                            | Min driver |
+|-------------------------|------|----------------|---------------------------------|------------|
+| `pt2.13.0-cu126-v3`     | 12.6 | `sm_50`-`sm_90`  | P100/V100/T4/A100/L40S/H100     | 525.60.13  |
+| `pt2.13.0-cu130-v1`     | 13.0 | `sm_75`-`sm_120` | T4/A100/L40S/H100 **+ Blackwell** | 580.65.06 |
+| `pt2.13.0-cu132-v1`     | 13.2 | `sm_75`-`sm_120` | same as cu130, newer toolkit    | 580.65.06  |
+
+`:latest` points at the cu126 image because it runs on the widest range of
+drivers. **Pin an explicit tag in cluster jobs** rather than relying on it.
+
+cu130 and cu132 cover the same GPUs; cu132 only ships a newer `nvcc` and CUDA
+libraries. A `cu129` variant (CUDA 12.9: Blackwell while staying on the 12.x
+driver line) is supported but not published: `./docker/build.sh --cuda cu129 --push`.
+
+Check the driver on a node before choosing:
+
+```bash
+nvidia-smi --query-gpu=name,driver_version --format=csv
+```
+
+Ada cards (L40S, L4, RTX 4090) report `sm_89` and run the `sm_86` kernels: CUDA
+cubins are compatible across minor revisions within a major version, but never
+across major versions. That rule is why `sm_89` works everywhere above while a
+`sm_70` V100 cannot run the CUDA 13 image. `verify-gpu.py` applies the same rule
+and fails with an explicit message, so a mismatch never surfaces as a confusing
+runtime crash.
+
+### Building
+
 ```bash
 # Build locally (always targets linux/amd64, the architecture GPU nodes run)
-./docker/build.sh
+./docker/build.sh --cuda cu126
 
-# Build and publish a new immutable version tag
-IMAGE_VERSION=pt2.13.0-cu126-v4 ./docker/build.sh --push
+# Build and publish a new immutable revision
+IMAGE_REVISION=v4 ./docker/build.sh --cuda cu126 --push
 
 # Verify on a GPU node (versions, arch coverage, a kernel, and a NCCL all-reduce)
 docker run --rm --gpus all --shm-size=8g \
-  leoxiao/pytorch-dev:pt2.13.0-cu126-v3 \
+  leoxiao/pytorch-dev:pt2.13.0-cu130-v1 \
   python /opt/dotfiles/docker/verify-gpu.py
 ```
+
+Tags are composed as `pt<torch>-<cuda>-<revision>`. `--cuda` moves the base image
+and the PyTorch wheel index together, which is the only safe way to change CUDA
+version: the wheel index, not the version string, selects the CUDA build. The
+build fails if the two ever disagree.
 
 The conda env is on `PATH`, so `python` resolves correctly in non-interactive
 platform jobs without sourcing a shell profile. Create isolated project
 environments with `conda create -n myproject python=3.12` as usual.
-
-### GPU compatibility
-
-The cu126 wheels ship kernels for `sm_50` through `sm_90`, so **Pascal through
-Hopper (P100, V100, T4, A100, L40S, H100/H200) work**. There is no PTX fallback,
-so **Blackwell (B200/GB200, `sm_100`/`sm_120`) will not run this image**. For
-Blackwell, rebuild against CUDA 13.x:
-
-```bash
-IMAGE_VERSION=pt2.13.0-cu130-v1 \
-CUDA_BASE=nvidia/cuda:13.0.3-cudnn-devel-ubuntu24.04 \
-TORCH_CUDA_INDEX=https://download.pytorch.org/whl/cu130 \
-  ./docker/build.sh --push
-```
-
-Ada cards (L40S, L4, RTX 4090) are `sm_89` and run the `sm_86` kernels: CUDA
-cubins are compatible across minor revisions within a major version, but never
-across major versions, which is exactly why Blackwell is excluded.
-`verify-gpu.py` applies that same rule and fails with an explicit message when a
-device is genuinely uncovered, so this never shows up as a confusing runtime crash.
 
 ### Notes and gotchas
 

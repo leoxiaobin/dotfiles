@@ -269,9 +269,10 @@ It is **not** a Stow package and `sync.sh` must not manage it.
 
 Composition:
 
-- Base `nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04`, pinned by digest.
+- Base `nvidia/cuda:<ver>-cudnn-devel-ubuntu24.04`, pinned by digest and chosen
+  by the CUDA variant (see below).
 - Miniforge at `/opt/conda` with conda env `dev` (Python 3.12).
-- `torch==2.13.0` + `torchvision==0.28.0` from the `cu126` wheel index.
+- `torch==2.13.0` + `torchvision==0.28.0` from the matching `cuNNN` wheel index.
 - `cmake` and `ninja` via pip so `torch.utils.cpp_extension` can build CUDA
   extensions. `is_ninja_available()` is asserted at build time.
 - Dotfiles copied to `/opt/dotfiles` and stowed into `/root` for the
@@ -280,12 +281,32 @@ Composition:
 Commands:
 
 ```bash
-./docker/build.sh                                   # build linux/amd64 locally
-IMAGE_VERSION=pt2.13.0-cu126-v4 ./docker/build.sh --push
+./docker/build.sh --cuda cu126                      # build linux/amd64 locally
+IMAGE_REVISION=v4 ./docker/build.sh --cuda cu126 --push
+./docker/build.sh --cuda cu130 --push               # CUDA 13 / Blackwell image
 shellcheck docker/build.sh
 python3 -m py_compile docker/verify-gpu.py
 docker run --rm --gpus all --shm-size=8g IMAGE python /opt/dotfiles/docker/verify-gpu.py
 ```
+
+CUDA variants:
+
+- Supported variants live in one place: `base_for_variant()` in
+  `docker/build.sh`, which pairs each `cuNNN` with a digest-pinned base image.
+  `--cuda` sets **both** the base and the wheel index; never set one alone.
+- Tags are composed as `pt<torch>-<cuda>-<revision>`, e.g. `pt2.13.0-cu130-v1`.
+  `IMAGE_REVISION` bumps the revision; `IMAGE_VERSION` overrides the whole tag.
+- Adding a version means: confirm the wheel index has matching `torch` and
+  `torchvision` for cp312, confirm an `nvidia/cuda:<x.y.z>-cudnn-devel-ubuntu24.04`
+  tag exists, record its **amd64** digest, then add a `base_for_variant()` case.
+- Arch coverage differs per variant and is not monotonic. Verified build output:
+  `cu126` -> `sm_50..sm_90` (no Blackwell); `cu130` and `cu132` -> `sm_75..sm_120`
+  (gain Blackwell, **lose Volta and Pascal**). Never assume a newer CUDA is a
+  superset. Published: `pt2.13.0-cu126-v3`, `pt2.13.0-cu130-v1`,
+  `pt2.13.0-cu132-v1`; `:latest` tracks cu126 for widest driver support. CUDA 12.x needs driver >= 525.60.13, CUDA 13.x needs >= 580.65.06.
+- The torch install layer asserts that `nvcc`'s CUDA major matches
+  `torch.version.cuda`'s major, which catches a base/index mismatch at build time
+  instead of shipping an image where extensions compile against the wrong CUDA.
 
 Rules and pitfalls:
 
@@ -310,11 +331,11 @@ Rules and pitfalls:
 - Treat published tags as immutable: bump `IMAGE_VERSION` instead of re-pushing.
   `docker/build.sh` fails fast when the target tag already exists remotely;
   `--force` is the deliberate escape hatch.
-- The cu126 wheels compile `sm_50`-`sm_90` with **no PTX fallback**, so the image
-  does not run on Blackwell (`sm_100`/`sm_120`). Moving to Blackwell means
-  changing `CUDA_BASE` **and** `TORCH_CUDA_INDEX` together; changing only one
-  produces a silently broken image. `verify-gpu.py` checks device capability
-  against `torch.cuda.get_arch_list()` and fails with an explicit message.
+- Every variant compiles cubins with **no PTX fallback**, so an uncovered
+  architecture cannot be JIT-rescued. Use `--cuda` rather than editing
+  `CUDA_BASE`/`TORCH_CUDA_INDEX` by hand. `verify-gpu.py` checks device
+  capability against `torch.cuda.get_arch_list()` and fails with an explicit
+  message.
   Compare architectures by `(major, minor)` with the minor-forward rule, never by
   exact string: `sm_89` (L40S/L4/4090) legitimately runs the `sm_86` kernels, and
   an exact match would reject working hardware. Arch strings can carry `a`/`f`

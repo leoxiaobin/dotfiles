@@ -11,8 +11,29 @@ repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 
 namespace="${DOCKER_NAMESPACE:-leoxiao}"
 image="${IMAGE_NAME:-pytorch-dev}"
-version="${IMAGE_VERSION:-pt2.13.0-cu126-v3}"
 platform="linux/amd64"
+
+# Supported CUDA variants. The base image and the PyTorch wheel index MUST move
+# together: the wheel index, not the version string, is what selects the CUDA
+# build, so pairing them here removes the main way to produce a broken image.
+# Bases are digest-pinned; refresh with:
+#   docker manifest inspect nvidia/cuda:<tag>
+cuda_variants="cu126 cu129 cu130 cu132"
+
+base_for_variant() {
+  case "$1" in
+    cu126) echo "nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04@sha256:0f8250615943f311785f9ce6379a49520a4b53c124d22b42ba859edf93af3991" ;;
+    cu129) echo "nvidia/cuda:12.9.2-cudnn-devel-ubuntu24.04@sha256:b4db213759eb86d55a7271909bdad891fab300ec5700fb4f4656463b2f51980f" ;;
+    cu130) echo "nvidia/cuda:13.0.3-cudnn-devel-ubuntu24.04@sha256:a85c9f5af049f0ab679c1669ae6fa8393022886739af7361e85bb96878e8cdd4" ;;
+    cu132) echo "nvidia/cuda:13.2.1-cudnn-devel-ubuntu24.04@sha256:d69a8fb0e448d9d11d8561bf19e4e8b14628d7f46c04ab7762ea3d98ec139fa3" ;;
+    *) return 1 ;;
+  esac
+}
+
+cuda="${CUDA_VARIANT:-cu126}"
+torch_version="${TORCH_VERSION:-2.13.0}"
+torchvision_version="${TORCHVISION_VERSION:-0.28.0}"
+revision_tag="${IMAGE_REVISION:-v1}"
 
 push=false
 latest=false
@@ -21,9 +42,12 @@ force=false
 
 usage() {
   cat <<'EOF'
-Usage: docker/build.sh [--push] [--latest] [--no-cache] [--force]
+Usage: docker/build.sh [--cuda VARIANT] [--push] [--latest] [--no-cache] [--force]
 
 Options:
+  --cuda VAR   CUDA variant to build: cu126, cu129, cu130 or cu132.
+               Default cu126. Selects the base image and the wheel index
+               together, which is the only safe way to change CUDA version.
   --push       Push the versioned tag to Docker Hub after a successful build.
   --latest     Also tag and (with --push) publish :latest.
   --no-cache   Build without using the layer cache.
@@ -32,20 +56,38 @@ Options:
                only :latest and leaves the immutable version tag alone.
   -h, --help   Show this help.
 
-Environment overrides:
-  DOCKER_NAMESPACE   Docker Hub namespace (default: leoxiao)
-  IMAGE_NAME         Repository name (default: pytorch-dev)
-  IMAGE_VERSION      Version tag (default: pt2.13.0-cu126-v3)
-  CUDA_BASE          Override the base image (must match TORCH_CUDA_INDEX)
-  TORCH_CUDA_INDEX   Override the PyTorch wheel index (selects the CUDA build)
+Tags are composed as pt<torch>-<cuda>-<revision>, e.g. pt2.13.0-cu130-v1.
 
-Never re-push an existing version tag; bump IMAGE_VERSION instead so a tag
+Environment overrides:
+  DOCKER_NAMESPACE     Docker Hub namespace (default: leoxiao)
+  IMAGE_NAME           Repository name (default: pytorch-dev)
+  CUDA_VARIANT         Same as --cuda (default: cu126)
+  IMAGE_REVISION       Revision suffix (default: v1)
+  IMAGE_VERSION        Full tag, overriding the composed one
+  TORCH_VERSION        PyTorch version (default: 2.13.0)
+  TORCHVISION_VERSION  torchvision version (default: 0.28.0)
+  CUDA_BASE            Override the base image for an unlisted CUDA version
+  TORCH_CUDA_INDEX     Override the wheel index; must match CUDA_BASE
+
+Never re-push an existing version tag; bump IMAGE_REVISION instead so a tag
 always identifies exactly one image.
+
+Examples:
+  docker/build.sh --cuda cu130 --push            # Blackwell-capable image
+  IMAGE_REVISION=v4 docker/build.sh --push       # new revision of cu126
 EOF
 }
 
 while (($#)); do
   case "$1" in
+    --cuda)
+      shift
+      cuda="${1:-}"
+      [[ -n "$cuda" ]] || {
+        echo "error: --cuda needs a value" >&2
+        exit 2
+      }
+      ;;
     --push) push=true ;;
     --latest) latest=true ;;
     --no-cache) no_cache=true ;;
@@ -63,6 +105,19 @@ while (($#)); do
   shift
 done
 
+# Resolve the variant into a base image and a wheel index.
+if [[ -n "${CUDA_BASE:-}" ]]; then
+  cuda_base="$CUDA_BASE"
+elif cuda_base="$(base_for_variant "$cuda")"; then
+  :
+else
+  echo "error: unknown CUDA variant '$cuda'. Supported: $cuda_variants" >&2
+  echo "For an unlisted version set both CUDA_BASE and TORCH_CUDA_INDEX." >&2
+  exit 2
+fi
+torch_index="${TORCH_CUDA_INDEX:-https://download.pytorch.org/whl/${cuda}}"
+
+version="${IMAGE_VERSION:-pt${torch_version}-${cuda}-${revision_tag}}"
 tag="${namespace}/${image}:${version}"
 
 if ! docker info >/dev/null 2>&1; then
@@ -110,18 +165,15 @@ fi
 
 build_args=(build --platform "$platform" -f "$repo_dir/docker/Dockerfile" -t "$tag")
 build_args+=(--build-arg "IMAGE_VERSION=$version" --build-arg "SOURCE_REVISION=$revision")
-# Moving CUDA versions requires changing the base and the wheel index together.
-if [[ -n "${CUDA_BASE:-}" ]]; then
-  build_args+=(--build-arg "CUDA_BASE=$CUDA_BASE")
-fi
-if [[ -n "${TORCH_CUDA_INDEX:-}" ]]; then
-  build_args+=(--build-arg "TORCH_CUDA_INDEX=$TORCH_CUDA_INDEX")
-fi
+build_args+=(--build-arg "CUDA_BASE=$cuda_base" --build-arg "TORCH_CUDA_INDEX=$torch_index")
+build_args+=(--build-arg "TORCH_VERSION=$torch_version" --build-arg "TORCHVISION_VERSION=$torchvision_version")
 $no_cache && build_args+=(--no-cache)
 $latest && build_args+=(-t "${namespace}/${image}:latest")
 build_args+=("$repo_dir")
 
 echo "Building $tag for $platform"
+echo "  base  : $cuda_base"
+echo "  wheels: $torch_index (torch $torch_version, torchvision $torchvision_version)"
 docker "${build_args[@]}"
 
 echo

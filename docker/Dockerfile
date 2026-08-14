@@ -100,12 +100,23 @@ RUN curl -fsSL -o /tmp/miniforge.sh \
 
 # --- PyTorch (CUDA build from the pinned wheel index) -------------------------
 # The plain PyPI torch now targets CUDA 13, so the index URL is what actually
-# selects the CUDA build. nvidia-nccl-cu12 arrives as a torch dependency.
+# selects the CUDA build. NCCL arrives as a torch dependency.
+# The last step guards the one combination that silently produces a broken
+# image: a base image and a wheel index built against different CUDA majors,
+# where nvcc and torch disagree and extensions compile but misbehave.
 RUN pip install --no-cache-dir \
       --index-url "${TORCH_CUDA_INDEX}" \
       "torch==${TORCH_VERSION}" \
       "torchvision==${TORCHVISION_VERSION}" \
-  && python -c "import torch, torchvision; print('torch', torch.__version__, '| cuda', torch.version.cuda, '| nccl', torch.cuda.nccl.version()); print('torchvision', torchvision.__version__); assert torch.version.cuda, 'torch was built without CUDA support'"
+  && python -c "import torch, torchvision; print('torch', torch.__version__, '| cuda', torch.version.cuda, '| nccl', torch.cuda.nccl.version()); print('torchvision', torchvision.__version__); assert torch.version.cuda, 'torch was built without CUDA support'" \
+  && nvcc_cuda="$(nvcc --version | sed -n 's/.*release \([0-9][0-9]*\.[0-9][0-9]*\).*/\1/p')" \
+  && torch_cuda="$(python -c 'import torch; print(torch.version.cuda)')" \
+  && echo "nvcc CUDA ${nvcc_cuda} / torch CUDA ${torch_cuda}" \
+  && if [ "${nvcc_cuda%%.*}" != "${torch_cuda%%.*}" ]; then \
+       echo "ERROR: CUDA_BASE provides ${nvcc_cuda} but TORCH_CUDA_INDEX provides ${torch_cuda}." >&2; \
+       echo "These must move together. Use docker/build.sh --cuda <variant>." >&2; \
+       exit 1; \
+     fi
 
 # --- CUDA extension build tooling ---------------------------------------------
 # torch.utils.cpp_extension needs ninja, and most CUDA extensions need cmake.
