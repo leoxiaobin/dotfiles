@@ -42,6 +42,8 @@ Neovim uses LazyVim. `nvim/.config/nvim/init.lua` boots `lua/config/lazy.lua`; L
 
 Yazi HTML previews require both `w3m` (`apt install w3m` or `brew install w3m`) and the piper plugin (`ya pkg add yazi-rs/plugins:piper`). Install both after syncing the `yazi` package.
 
+`docker/` builds the GPU development image and is not a Stow package. Because training platforms mount a shared home and repoint `HOME`, the image assembles a skeleton home at `/opt/home-skel` and `docker/dotfiles-init.sh` mirrors it into whatever `HOME` the container receives, using **absolute** symlinks (stow's relative links only resolve from one directory depth). It is triggered from `/etc/zsh/zshenv`, `/etc/profile.d`, `/etc/bash.bashrc` and the ENTRYPOINT, is idempotent via `.dotfiles-init-stamp`, never overwrites user files, and self-heals dangling or removed payload links because the mounted home outlives the image. `DOTFILES_AUTO_INIT`, `DOTFILES_HOME`, `DOTFILES_FORCE` and `DOTFILES_SKEL` are the per-job escape hatches. See `AGENTS.md` before changing any of this.
+
 Doom Emacs and Neovim share the `~/org/` workflow for notes, prompts, agent instructions, and experiment logs. Su colors, Maple Mono NF CN, and OSC 52 clipboard behavior are intentionally shared across terminal/editor configs.
 
 ## Conventions

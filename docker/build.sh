@@ -33,7 +33,10 @@ base_for_variant() {
 cuda="${CUDA_VARIANT:-cu126}"
 torch_version="${TORCH_VERSION:-2.13.0}"
 torchvision_version="${TORCHVISION_VERSION:-0.28.0}"
-revision_tag="${IMAGE_REVISION:-v1}"
+# All CUDA variants share one revision axis, so a single number identifies the
+# same repo state across cu126/cu130/cu132. cu126 reached v3 before the others
+# existed, which is why v4 is the first shared revision.
+revision_tag="${IMAGE_REVISION:-v4}"
 
 push=false
 latest=false

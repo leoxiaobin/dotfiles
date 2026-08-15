@@ -13,6 +13,45 @@ export PATH="$HOME/.local/bin:$PATH"
 # Enable 24-bit true color for terminal apps (Emacs, Neovim, etc.)
 export COLORTERM=truecolor
 
+# --- Terminal capabilities ----------------------------------------------------
+# This runs before oh-my-zsh, which binds keys from the terminfo entry, so TERM
+# has to be usable by the time it loads.
+
+# Ghostty exports TERMINFO pointing at its bundled directory, which only
+# contains the `xterm-ghostty` entry. Inside tmux (TERM=tmux-256color),
+# emacsclient -t cannot find a usable terminfo entry there and renders terminal
+# themes with incorrect backgrounds. Unset it so ncurses falls back to the system
+# terminfo database. Doom also caches env vars at sync time, so this keeps
+# `doom env` regenerations clean. The path test is macOS-only by construction,
+# which matters here because IS_MACOS is not defined this early.
+if [[ -n "$TERMINFO" && "$TERMINFO" == /Applications/Ghostty.app/* ]]; then
+  # Only drop it when the system database can still describe this terminal.
+  # On a Mac where Ghostty's bundled directory is the only source of the entry,
+  # unsetting would strip every capability from the local session instead.
+  if (( $+commands[infocmp] )) && ( unset TERMINFO; infocmp "$TERM" ) >/dev/null 2>&1; then
+    unset TERMINFO
+  fi
+fi
+
+# Terminal Emacs renders themes poorly when TERM is only xterm-color.
+if [[ "$TERM" == "xterm-color" ]]; then
+  export TERM=xterm-256color
+fi
+
+# Fall back when TERM has no entry in this machine's terminfo database. That is
+# what happens when Ghostty's xterm-ghostty follows an ssh into a host or a
+# container that has never seen it: tput and clear fail, tmux refuses to start,
+# and every arrow/Home/End/Delete binding resolves to an empty capability. The
+# case arm keeps well-known terminals from paying for the infocmp fork.
+case "$TERM" in
+  ''|dumb|linux|xterm|xterm-256color|screen|screen-256color|tmux|tmux-256color) ;;
+  *)
+    if (( $+commands[infocmp] )) && ! infocmp "$TERM" >/dev/null 2>&1; then
+      export TERM=xterm-256color
+    fi
+    ;;
+esac
+
 # Timezone removed - use system timezone from /etc/localtime
 
 # Path to your Oh My Zsh installation.
@@ -272,21 +311,6 @@ ai () {
 export PATH="$HOME/.config/emacs/bin:$PATH"
 alias e='emacsclient -t -a ""'
 alias eg='emacsclient -c -a ""'
-
-# Terminal Emacs renders themes poorly when TERM is only xterm-color.
-if [[ "$TERM" == "xterm-color" ]]; then
-  export TERM=xterm-256color
-fi
-
-# Ghostty exports TERMINFO pointing at its bundled directory, which only
-# contains the `xterm-ghostty` entry. Inside tmux (TERM=tmux-256color),
-# emacsclient -t cannot find a usable terminfo entry there and renders
-# terminal themes with incorrect backgrounds. Unset it so ncurses falls back to the
-# system terminfo database. Doom also caches env vars at sync time, so this
-# keeps `doom env` regenerations clean.
-if [[ "$IS_MACOS" == "true" && -n "$TERMINFO" && "$TERMINFO" == /Applications/Ghostty.app/* ]]; then
-  unset TERMINFO
-fi
 
 # Anthropic native — just `claude`, no overrides
 # GLM

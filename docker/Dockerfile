@@ -29,6 +29,10 @@ ARG LSD_VERSION=v1.2.0
 ARG DELTA_VERSION=0.19.2
 ARG LAZYGIT_VERSION=v0.64.1
 ARG YAZI_VERSION=v26.5.6
+# fzf comes from upstream rather than apt: the base image strips /usr/share/doc,
+# which is where the Debian package hides key-bindings.zsh, so the apt build
+# silently loses Ctrl-R and Ctrl-T. Upstream also supports `fzf --zsh`.
+ARG FZF_VERSION=v0.74.2
 
 # Framework repos have no releases, so pin them by commit.
 ARG OMZ_COMMIT=b54a71977574cfcf659cc2f15a5e6422f17a8da7
@@ -42,7 +46,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     CONDA_DIR=/opt/conda \
     CONDA_ENV=${CONDA_ENV} \
     DOTFILES_DIR=/opt/dotfiles \
-    ZSH=/root/.oh-my-zsh \
+    DOTFILES_SKEL=/opt/home-skel \
+    ZSH=/opt/home-skel/.oh-my-zsh \
     DISABLE_AUTO_UPDATE=true
 
 # The conda env goes on PATH directly so non-interactive jobs (the way an ML
@@ -58,7 +63,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates \
       curl \
       fd-find \
-      fzf \
       git \
       git-lfs \
       gnupg \
@@ -70,6 +74,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       librdmacm1 \
       locales \
       man-db \
+      ncurses-term \
       openssh-client \
       pkg-config \
       procps \
@@ -97,6 +102,22 @@ RUN curl -fsSL -o /tmp/miniforge.sh \
   && "${CONDA_DIR}/bin/conda" config --system --set auto_activate_base false \
   && "${CONDA_DIR}/bin/conda" create -y -n "${CONDA_ENV}" "python=${PYTHON_VERSION}" \
   && "${CONDA_DIR}/bin/conda" clean -afy
+
+# --- Terminal descriptions ----------------------------------------------------
+# Ghostty's TERM is `xterm-ghostty`, which ships in no distro's terminfo yet. On
+# a host without the entry, tput and clear fail, tmux refuses to start, and every
+# arrow/Home/End/Delete key resolves to an empty capability. The entry is
+# installed into two databases on purpose: zsh, tmux and nvim use the system
+# ncurses, while tput/clear/infocmp resolve to conda's ncurses, which reads only
+# its own directory and ignores TERMINFO_DIRS.
+COPY docker/terminfo/xterm-ghostty.src /tmp/xterm-ghostty.src
+RUN set -eux; \
+    /usr/bin/tic -x -o /usr/share/terminfo /tmp/xterm-ghostty.src; \
+    "${CONDA_DIR}/envs/${CONDA_ENV}/bin/tic" -x \
+      -o "${CONDA_DIR}/envs/${CONDA_ENV}/share/terminfo" /tmp/xterm-ghostty.src; \
+    rm -f /tmp/xterm-ghostty.src; \
+    TERM=xterm-ghostty /usr/bin/tput cuu1 >/dev/null; \
+    TERM=xterm-ghostty "${CONDA_DIR}/envs/${CONDA_ENV}/bin/tput" cuu1 >/dev/null
 
 # --- PyTorch (CUDA build from the pinned wheel index) -------------------------
 # The plain PyPI torch now targets CUDA 13, so the index URL is what actually
@@ -158,12 +179,27 @@ RUN set -eux; \
     curl -fsSL "https://github.com/sxyazi/yazi/releases/download/${YAZI_VERSION}/yazi-x86_64-unknown-linux-gnu.zip" -o /tmp/yazi.zip; \
     unzip -q -j /tmp/yazi.zip '*/yazi' '*/ya' -d /usr/local/bin; \
     \
+    curl -fsSL "https://github.com/junegunn/fzf/releases/download/${FZF_VERSION}/fzf-${FZF_VERSION#v}-linux_amd64.tar.gz" -o /tmp/fzf.tar.gz; \
+    tar -xzf /tmp/fzf.tar.gz -C /usr/local/bin fzf; \
+    \
     rm -f /tmp/nvim.tar.gz /tmp/starship.tar.gz /tmp/zoxide.tar.gz /tmp/lsd.tar.gz \
-          /tmp/delta.tar.gz /tmp/lazygit.tar.gz /tmp/yazi.zip; \
+          /tmp/delta.tar.gz /tmp/lazygit.tar.gz /tmp/yazi.zip /tmp/fzf.tar.gz; \
     chmod +x /usr/local/bin/starship /usr/local/bin/zoxide /usr/local/bin/lsd \
-             /usr/local/bin/delta /usr/local/bin/lazygit /usr/local/bin/yazi /usr/local/bin/ya; \
+             /usr/local/bin/delta /usr/local/bin/lazygit /usr/local/bin/yazi /usr/local/bin/ya \
+             /usr/local/bin/fzf; \
     nvim --version | head -1; \
-    starship --version; zoxide --version; lsd --version; delta --version; lazygit --version | head -1; yazi --version
+    starship --version; zoxide --version; lsd --version; delta --version; lazygit --version | head -1; yazi --version; \
+    fzf --version; \
+    fzf --zsh >/dev/null
+
+# --- Skeleton home ------------------------------------------------------------
+# Everything below builds into /opt/home-skel rather than /root. The training
+# platform mounts a shared home directory and points HOME at it, so a layout
+# baked into /root is unreachable at runtime. dotfiles-init mirrors this skeleton
+# into whatever HOME the container is handed. Pointing HOME here for the rest of
+# the build lets the stow, tmux and nvim steps populate it with no special casing.
+ENV HOME=${DOTFILES_SKEL}
+RUN mkdir -p "${DOTFILES_SKEL}"
 
 # --- Shell frameworks (pinned by commit) --------------------------------------
 # .zshrc sets `zstyle ':omz:update' mode auto`, which takes precedence over
@@ -171,15 +207,15 @@ RUN set -eux; \
 # bail out, so the pinned commit stays pinned and interactive shells on a GPU
 # node never block on network at startup. TPM keeps its metadata because it
 # uses git to manage plugins.
-RUN git clone --filter=blob:none https://github.com/ohmyzsh/ohmyzsh.git /root/.oh-my-zsh \
-  && git -C /root/.oh-my-zsh checkout --quiet "${OMZ_COMMIT}" \
+RUN git clone --filter=blob:none https://github.com/ohmyzsh/ohmyzsh.git "${DOTFILES_SKEL}/.oh-my-zsh" \
+  && git -C "${DOTFILES_SKEL}/.oh-my-zsh" checkout --quiet "${OMZ_COMMIT}" \
   && git clone --filter=blob:none https://github.com/zsh-users/zsh-syntax-highlighting.git \
-       /root/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting \
-  && git -C /root/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting checkout --quiet "${ZSH_SYNTAX_COMMIT}" \
-  && rm -rf /root/.oh-my-zsh/.git \
-  && mkdir -p /root/.tmux/plugins \
-  && git clone --filter=blob:none https://github.com/tmux-plugins/tpm.git /root/.tmux/plugins/tpm \
-  && git -C /root/.tmux/plugins/tpm checkout --quiet "${TPM_COMMIT}"
+       "${DOTFILES_SKEL}/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting" \
+  && git -C "${DOTFILES_SKEL}/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting" checkout --quiet "${ZSH_SYNTAX_COMMIT}" \
+  && rm -rf "${DOTFILES_SKEL}/.oh-my-zsh/.git" \
+  && mkdir -p "${DOTFILES_SKEL}/.tmux/plugins" \
+  && git clone --filter=blob:none https://github.com/tmux-plugins/tpm.git "${DOTFILES_SKEL}/.tmux/plugins/tpm" \
+  && git -C "${DOTFILES_SKEL}/.tmux/plugins/tpm" checkout --quiet "${TPM_COMMIT}"
 
 # --- Dotfiles -----------------------------------------------------------------
 # Only container-relevant packages are stowed. ghostty/fontconfig configure host
@@ -188,18 +224,30 @@ COPY . ${DOTFILES_DIR}
 
 RUN rm -rf "${DOTFILES_DIR}/.git" \
   && git config --system --add safe.directory '*' \
-  && stow --dir "${DOTFILES_DIR}" --target /root --no-folding -R \
+  && stow --dir "${DOTFILES_DIR}" --target "${DOTFILES_SKEL}" --no-folding -R \
        zsh git tmux nvim lsd yazi starship \
-  && test -L /root/.zshrc \
-  && test -L /root/.gitconfig \
-  && test -e /root/.tmux.conf \
-  && test -e /root/.config/nvim/init.lua
+  && test -L "${DOTFILES_SKEL}/.zshrc" \
+  && test -L "${DOTFILES_SKEL}/.gitconfig" \
+  && test -e "${DOTFILES_SKEL}/.tmux.conf" \
+  && test -e "${DOTFILES_SKEL}/.config/nvim/init.lua"
+
+# --- Provisioning tooling -----------------------------------------------------
+RUN install -m 0755 "${DOTFILES_DIR}/docker/dotfiles-init.sh" /usr/local/bin/dotfiles-init \
+  && install -m 0755 "${DOTFILES_DIR}/docker/entrypoint.sh" /usr/local/bin/docker-entrypoint.sh \
+  && install -m 0644 "${DOTFILES_DIR}/docker/dotfiles-hook.sh" /etc/dotfiles-hook.sh
 
 # --- Container-specific shell glue --------------------------------------------
 # Kept outside the stow packages so it never collides with the host dotfiles.
+# The provisioning hook is sourced from zshenv (every zsh, and crucially before
+# ~/.zshrc, so the shell that triggers it still picks up the result), profile.d
+# (login shells) and bash.bashrc (interactive bash). Between those and the
+# entrypoint, a platform-mounted HOME is provisioned however the job starts.
 RUN set -eux; \
     mkdir -p /etc/zsh; \
     printf '%s\n' \
+      '. /etc/dotfiles-hook.sh' >> /etc/zsh/zshenv; \
+    printf '%s\n' \
+      '. /etc/dotfiles-hook.sh' \
       'if [ -f /opt/conda/etc/profile.d/conda.sh ]; then' \
       '  . /opt/conda/etc/profile.d/conda.sh' \
       '  conda activate "${CONDA_ENV:-dev}" 2>/dev/null || true' \
@@ -207,50 +255,107 @@ RUN set -eux; \
     printf '%s\n' \
       '# Non-interactive builds and job runners must never hit a compinit prompt.' \
       'export ZSH_DISABLE_COMPFIX=true' \
+      '# A platform that pre-populates the home directory leaves its own files in' \
+      '# place, since provisioning never overwrites them. Say so once per change,' \
+      '# otherwise it looks exactly like the dotfiles failing to apply at all.' \
+      'if [[ -s "${HOME:-/root}/.dotfiles-init-skipped" ]] &&' \
+      '   [[ ! "${HOME:-/root}/.dotfiles-init-notified" -nt "${HOME:-/root}/.dotfiles-init-skipped" ]]; then' \
+      '  print -u2 "dotfiles: kept pre-existing files in $HOME (listed in ~/.dotfiles-init-skipped)."' \
+      '  print -u2 "dotfiles: run dotfiles-init --force to use the image versions; backups go to ~/.dotfiles-backup."' \
+      '  : > "$HOME/.dotfiles-init-notified" 2>/dev/null || true' \
+      'fi' \
       'if [ -f /opt/conda/etc/profile.d/conda.sh ]; then' \
       '  . /opt/conda/etc/profile.d/conda.sh' \
       '  conda activate "${CONDA_ENV:-dev}" 2>/dev/null || true' \
       'fi' > /etc/zsh/zshrc; \
+    printf '%s\n' '. /etc/dotfiles-hook.sh' >> /etc/bash.bashrc; \
     printf '%s\n' \
-      'for _fzf_dir in /usr/share/doc/fzf/examples /usr/share/fzf/shell /usr/share/fzf; do' \
-      '  [ -f "$_fzf_dir/key-bindings.zsh" ] && source "$_fzf_dir/key-bindings.zsh"' \
-      '  [ -f "$_fzf_dir/completion.zsh" ] && source "$_fzf_dir/completion.zsh"' \
-      'done' \
-      'unset _fzf_dir' > /root/.fzf.zsh; \
+      '# Upstream fzf ships its shell integration through `fzf --zsh`. The apt' \
+      '# build hides the same files under /usr/share/doc, which this base image' \
+      '# strips, so Ctrl-R and Ctrl-T silently disappear.' \
+      'if (( $+commands[fzf] )); then' \
+      '  source <(fzf --zsh)' \
+      'fi' > "${DOTFILES_SKEL}/.fzf.zsh"; \
     chsh -s /usr/bin/zsh root
 
 # --- Plugin bootstrap ---------------------------------------------------------
 # Done at build time so the first shell on a GPU node is not blocked on network.
 # This also validates that the tmux config parses.
 RUN set -eux; \
-    tmux -f /root/.tmux.conf new-session -d -s bootstrap; \
-    /root/.tmux/plugins/tpm/bin/install_plugins; \
+    tmux -f "${DOTFILES_SKEL}/.tmux.conf" new-session -d -s bootstrap; \
+    "${DOTFILES_SKEL}/.tmux/plugins/tpm/bin/install_plugins"; \
     tmux list-keys >/dev/null; \
     tmux kill-server 2>/dev/null || true; \
-    test -d /root/.tmux/plugins/tmux-resurrect
+    test -d "${DOTFILES_SKEL}/.tmux/plugins/tmux-resurrect"
 
 RUN set -eux; \
     nvim --headless "+Lazy! sync" +qa 2>&1 | tail -30 || true; \
-    test -d /root/.local/share/nvim/lazy/lazy.nvim; \
-    test -d /root/.local/share/nvim/lazy/LazyVim; \
+    test -d "${DOTFILES_SKEL}/.local/share/nvim/lazy/lazy.nvim"; \
+    test -d "${DOTFILES_SKEL}/.local/share/nvim/lazy/LazyVim"; \
     ya pkg add yazi-rs/plugins:piper || echo "warning: yazi piper plugin unavailable; HTML preview disabled"
 
+# --- Skeleton cleanup and default home ----------------------------------------
+# Build caches and machine-specific state must never be mirrored into a user's
+# home. Everything left is made world-readable so a job running as a non-root
+# uid can still read the skeleton, and the payload directories that tools write
+# into at runtime are made world-writable so such a job can install a treesitter
+# parser or an LSP server. Those writes land in the container's own layer, so
+# they cannot leak between containers. /root is then provisioned from the
+# skeleton so a plain `docker run` behaves exactly like a job that mounts its
+# own home.
+#
+# DOTFILES_VERSION tracks the source revision rather than the image tag so that
+# the same commit built for different CUDA variants produces the same stamp, and
+# a persistent home is not re-provisioned just because the job switched variants.
+# It is declared here, below the pinned framework clones, so that a new commit
+# does not invalidate their cache and force a network fetch on every build.
+ARG SOURCE_REVISION=unknown
+ENV DOTFILES_VERSION=${SOURCE_REVISION}
+RUN set -eux; \
+    rm -rf "${DOTFILES_SKEL}/.cache" "${DOTFILES_SKEL}/.npm" "${DOTFILES_SKEL}/.conda" \
+           "${DOTFILES_SKEL}/.local/state" \
+           "${DOTFILES_SKEL}/.bashrc" "${DOTFILES_SKEL}/.profile" "${DOTFILES_SKEL}/.ssh"; \
+    rm -f "${DOTFILES_SKEL}"/.zcompdump*; \
+    rm -rf /root/.local/state /root/.cache /root/.npm; \
+    chmod -R a+rX "${DOTFILES_SKEL}" "${DOTFILES_DIR}"; \
+    chmod -R a+rwX "${DOTFILES_SKEL}/.local/share/nvim" \
+                   "${DOTFILES_SKEL}/.local/share/yazi" \
+                   "${DOTFILES_SKEL}/.tmux/plugins" 2>/dev/null || true; \
+    HOME=/root dotfiles-init /root; \
+    test -L /root/.zshrc; \
+    test "$(readlink -f /root/.zshrc)" = "${DOTFILES_DIR}/zsh/.zshrc"; \
+    test ! -e /root/.dotfiles-init-skipped
+
+ENV HOME=/root
+
 # --- Final checks -------------------------------------------------------------
-# GPU assertions belong at runtime, not here: BuildKit has no GPU.
+# GPU assertions belong at runtime, not here: BuildKit has no GPU. The probe home
+# is the regression test for the bug this layout exists to fix: a HOME that the
+# image has never seen must still come up fully configured.
 RUN set -eux; \
     zsh -ic 'echo "zsh startup OK"'; \
+    zsh -ic 'test ${+functions[fzf-history-widget]} -eq 1 && echo "fzf keybindings OK"'; \
     git config --get core.pager; \
-    test ! -d /root/.oh-my-zsh/.git; \
+    test ! -d "${DOTFILES_SKEL}/.oh-my-zsh/.git"; \
     command -v cmake; \
     command -v ninja; \
+    TERM=xterm-ghostty tput cuu1 >/dev/null; \
+    TERM=xterm-ghostty tmux -f /dev/null new-session -d -s terminfocheck; \
+    tmux kill-server 2>/dev/null || true; \
     python -c "import torch; print('torch', torch.__version__, torch.version.cuda)"; \
-    python -c "import torch; print('arch list:', torch.cuda.get_arch_list())"
+    python -c "import torch; print('arch list:', torch.cuda.get_arch_list())"; \
+    HOME=/home/probe zsh -ic 'test -n "$ZSH_VERSION" && echo "probe home zsh OK"'; \
+    HOME=/home/probe zsh -ic 'test ${+functions[omz_urlencode]} -eq 1 && echo "probe home oh-my-zsh OK"'; \
+    HOME=/home/probe zsh -ic 'test ${+functions[fzf-history-widget]} -eq 1 && echo "probe home fzf OK"'; \
+    test "$(readlink -f /home/probe/.zshrc)" = "${DOTFILES_DIR}/zsh/.zshrc"; \
+    test -d /home/probe/.oh-my-zsh; \
+    test -f /home/probe/.config/nvim/init.lua; \
+    rm -rf /home/probe
 
 ARG IMAGE_VERSION=dev
-ARG SOURCE_REVISION=unknown
 ARG CUDA_BASE
 LABEL org.opencontainers.image.title="pytorch-dev" \
-      org.opencontainers.image.description="CUDA 12.6 + conda + PyTorch GPU development image with the leoxiaobin/dotfiles terminal setup" \
+      org.opencontainers.image.description="CUDA + conda + PyTorch GPU development image with the leoxiaobin/dotfiles terminal setup" \
       org.opencontainers.image.source="https://github.com/leoxiaobin/dotfiles" \
       org.opencontainers.image.version="${IMAGE_VERSION}" \
       org.opencontainers.image.revision="${SOURCE_REVISION}" \
@@ -258,4 +363,8 @@ LABEL org.opencontainers.image.title="pytorch-dev" \
 
 ENV SHELL=/usr/bin/zsh
 WORKDIR /workspace
+# The entrypoint provisions HOME for jobs that exec a binary directly and never
+# source a shell rc. It ends in `exec "$@"`, so `docker run IMAGE python train.py`
+# keeps working. Set DOTFILES_AUTO_INIT=0 to turn the behaviour off.
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["/usr/bin/zsh"]

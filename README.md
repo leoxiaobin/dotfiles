@@ -76,9 +76,9 @@ CUDA 13 gained Blackwell but dropped Volta and Pascal.
 
 | Tag                     | CUDA | Kernels        | GPUs                            | Min driver |
 |-------------------------|------|----------------|---------------------------------|------------|
-| `pt2.13.0-cu126-v3`     | 12.6 | `sm_50`-`sm_90`  | P100/V100/T4/A100/L40S/H100     | 525.60.13  |
-| `pt2.13.0-cu130-v1`     | 13.0 | `sm_75`-`sm_120` | T4/A100/L40S/H100 **+ Blackwell** | 580.65.06 |
-| `pt2.13.0-cu132-v1`     | 13.2 | `sm_75`-`sm_120` | same as cu130, newer toolkit    | 580.65.06  |
+| `pt2.13.0-cu126-v4`     | 12.6 | `sm_50`-`sm_90`  | P100/V100/T4/A100/L40S/H100     | 525.60.13  |
+| `pt2.13.0-cu130-v4`     | 13.0 | `sm_75`-`sm_120` | T4/A100/L40S/H100 **+ Blackwell** | 580.65.06 |
+| `pt2.13.0-cu132-v4`     | 13.2 | `sm_75`-`sm_120` | same as cu130, newer toolkit    | 580.65.06  |
 
 `:latest` points at the cu126 image because it runs on the widest range of
 drivers. **Pin an explicit tag in cluster jobs** rather than relying on it.
@@ -107,11 +107,11 @@ runtime crash.
 ./docker/build.sh --cuda cu126
 
 # Build and publish a new immutable revision
-IMAGE_REVISION=v4 ./docker/build.sh --cuda cu126 --push
+IMAGE_REVISION=v5 ./docker/build.sh --cuda cu126 --push
 
 # Verify on a GPU node (versions, arch coverage, a kernel, and a NCCL all-reduce)
 docker run --rm --gpus all --shm-size=8g \
-  leoxiao/pytorch-dev:pt2.13.0-cu130-v1 \
+  leoxiao/pytorch-dev:pt2.13.0-cu130-v4 \
   python /opt/dotfiles/docker/verify-gpu.py
 ```
 
@@ -124,6 +124,78 @@ The conda env is on `PATH`, so `python` resolves correctly in non-interactive
 platform jobs without sourcing a shell profile. Create isolated project
 environments with `conda create -n myproject python=3.12` as usual.
 
+### Platform-mounted home directories
+
+Training platforms commonly mount a shared, persistent home directory and point
+`HOME` at it (for example `/home/felix.xiao`). Everything baked into `/root`
+becomes unreachable at that point, so the shell would come up with no
+oh-my-zsh, no prompt and no aliases.
+
+The image handles this itself. It builds a skeleton home at `/opt/home-skel`
+and mirrors it into whatever `HOME` the container is given, on first use:
+
+- Directories become real directories, so your own files sit alongside ours.
+- Files become **absolute** symlinks into `/opt/dotfiles`. Stow's own links are
+  relative and only resolve from one directory depth, which is exactly why a
+  plain `stow --target "$HOME"` does not work here.
+- Bulk payloads (`.oh-my-zsh`, `.tmux/plugins`, `.local/share/nvim`,
+  `.local/share/yazi`) are linked whole, so a network home does not receive tens
+  of thousands of symlinks.
+- Files you already have are never overwritten, and a `.dotfiles-init-stamp`
+  makes repeat starts a no-op. Anything kept is listed in
+  `.dotfiles-init-skipped`, and an interactive shell says so once so a
+  pre-populated home does not look like the dotfiles silently failing.
+- On an image upgrade, links left dangling by the previous revision are
+  repaired and payload links the image no longer ships are dropped. This
+  matters because the mounted home outlives the container.
+- Concurrent starts are safe: one container per rank can race against the same
+  networked home, and only one run provisions it.
+
+Provisioning is triggered from `/etc/zsh/zshenv` (before `~/.zshrc`, so the
+shell that triggers it still benefits), `/etc/profile.d`, `/etc/bash.bashrc`
+and the entrypoint, so it happens however the job starts, including
+`docker run IMAGE python train.py`.
+
+Run it by hand any time:
+
+```bash
+dotfiles-init                 # provision $HOME
+dotfiles-init --force         # replace existing files (backed up to ~/.dotfiles-backup)
+dotfiles-init /home/someone   # provision a specific directory
+```
+
+If your platform accepts per-job environment variables, these are supported:
+
+```json
+"env_vars": {
+  "DOTFILES_AUTO_INIT": "1",
+  "DOTFILES_HOME": "/home/felix.xiao"
+}
+```
+
+| Variable             | Effect                                                      |
+|----------------------|-------------------------------------------------------------|
+| `DOTFILES_AUTO_INIT` | `0` disables automatic provisioning entirely                 |
+| `DOTFILES_HOME`      | Provision this directory instead of `$HOME`                  |
+| `DOTFILES_FORCE`     | `1` replaces existing files, backing them up first           |
+| `DOTFILES_SKEL`      | Read the skeleton from somewhere other than `/opt/home-skel` |
+
+None of these are required; the defaults already work.
+
+### Terminal keys over SSH
+
+The image ships an `xterm-ghostty` terminfo entry, compiled into both the system
+database and conda's (conda's `ncurses` provides its own `tput`/`clear`/`infocmp`
+that read only `/opt/conda/envs/dev/share/terminfo` and ignore `TERMINFO_DIRS`).
+Without it, `TERM=xterm-ghostty` leaves every key capability empty — `Ctrl-U`,
+arrows, Home/End and Delete stop working — `tput` and `clear` fail, and tmux
+refuses to start with `missing or unsuitable terminal`.
+
+On the Ghostty side, `shell-integration-features = ssh-env,ssh-terminfo` makes
+Ghostty install its terminfo on remote hosts over SSH and fall back to
+`xterm-256color` when it cannot. `.zshrc` additionally downgrades an unknown
+`TERM` to `xterm-256color` rather than leaving the shell with no capabilities.
+
 ### Notes and gotchas
 
 - Building on Apple Silicon uses Rosetta emulation. Only the build is slower;
@@ -133,9 +205,12 @@ environments with `conda create -n myproject python=3.12` as usual.
   NCCL and PyTorch dataloader workers.
 - Mount your code at `/workspace`, not at `/root`. Mounting over `/root` hides
   the stowed dotfiles.
-- The container runs as `root` with `HOME=/root`. If your platform forces a
-  different UID or `HOME`, the dotfiles are still readable at `/opt/dotfiles`
-  and can be re-stowed with `stow -d /opt/dotfiles -t "$HOME" zsh git tmux nvim`.
+- The container runs as `root` with `HOME=/root` by default. A different `HOME`
+  is provisioned automatically; see *Platform-mounted home directories* above.
+- Neovim plugins and oh-my-zsh live inside the image and are linked into `$HOME`
+  rather than copied. Runtime changes land in the container's writable layer and
+  are lost when it exits, even when `$HOME` itself is persistent. Rebuild the
+  image to change them.
 - `cmake` is 4.x. Older CUDA projects that declare
   `cmake_minimum_required(VERSION <3.5)` fail against it; in that env run
   `pip install "cmake<4"`.
@@ -275,6 +350,10 @@ doom sync
 ├── docker/              # GPU development image (not a Stow package)
 │   ├── Dockerfile
 │   ├── build.sh         # build/push helper, pins linux/amd64
+│   ├── dotfiles-init.sh # provisions the baked dotfiles into any $HOME
+│   ├── dotfiles-hook.sh # shell-startup trigger for dotfiles-init
+│   ├── entrypoint.sh    # provisions, then execs the command
+│   ├── terminfo/        # xterm-ghostty description compiled into the image
 │   └── verify-gpu.py    # runtime GPU/NCCL check
 ├── sync.sh              # re-stow packages after git pull
 ├── AGENTS.md            # canonical coding-agent instructions

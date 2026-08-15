@@ -54,6 +54,10 @@ dotfiles/
   scripts/apply-su-macos.sh           → apply Su-aligned macOS appearance defaults
   docker/Dockerfile                   → GPU development image (not a Stow package)
   docker/build.sh                     → build/push helper for the GPU image
+  docker/dotfiles-init.sh             → provisions baked dotfiles into any $HOME
+  docker/dotfiles-hook.sh             → shell-startup trigger for dotfiles-init
+  docker/entrypoint.sh                → provisions, then execs the command
+  docker/terminfo/xterm-ghostty.src   → terminfo compiled into the image
   docker/verify-gpu.py                → runtime GPU/NCCL verification
   sync.sh                             → re-stow packages after git pull
 ```
@@ -282,7 +286,7 @@ Commands:
 
 ```bash
 ./docker/build.sh --cuda cu126                      # build linux/amd64 locally
-IMAGE_REVISION=v4 ./docker/build.sh --cuda cu126 --push
+IMAGE_REVISION=v5 ./docker/build.sh --cuda cu126 --push
 ./docker/build.sh --cuda cu130 --push               # CUDA 13 / Blackwell image
 shellcheck docker/build.sh
 python3 -m py_compile docker/verify-gpu.py
@@ -294,7 +298,7 @@ CUDA variants:
 - Supported variants live in one place: `base_for_variant()` in
   `docker/build.sh`, which pairs each `cuNNN` with a digest-pinned base image.
   `--cuda` sets **both** the base and the wheel index; never set one alone.
-- Tags are composed as `pt<torch>-<cuda>-<revision>`, e.g. `pt2.13.0-cu130-v1`.
+- Tags are composed as `pt<torch>-<cuda>-<revision>`, e.g. `pt2.13.0-cu130-v4`.
   `IMAGE_REVISION` bumps the revision; `IMAGE_VERSION` overrides the whole tag.
 - Adding a version means: confirm the wheel index has matching `torch` and
   `torchvision` for cp312, confirm an `nvidia/cuda:<x.y.z>-cudnn-devel-ubuntu24.04`
@@ -302,8 +306,8 @@ CUDA variants:
 - Arch coverage differs per variant and is not monotonic. Verified build output:
   `cu126` -> `sm_50..sm_90` (no Blackwell); `cu130` and `cu132` -> `sm_75..sm_120`
   (gain Blackwell, **lose Volta and Pascal**). Never assume a newer CUDA is a
-  superset. Published: `pt2.13.0-cu126-v3`, `pt2.13.0-cu130-v1`,
-  `pt2.13.0-cu132-v1`; `:latest` tracks cu126 for widest driver support. CUDA 12.x needs driver >= 525.60.13, CUDA 13.x needs >= 580.65.06.
+  superset. Published: `pt2.13.0-cu126-v4`, `pt2.13.0-cu130-v4`,
+  `pt2.13.0-cu132-v4`; `:latest` tracks cu126 for widest driver support. CUDA 12.x needs driver >= 525.60.13, CUDA 13.x needs >= 580.65.06.
 - The torch install layer asserts that `nvcc`'s CUDA major matches
   `torch.version.cuda`'s major, which catches a base/index mismatch at build time
   instead of shipping an image where extensions compile against the wrong CUDA.
@@ -343,8 +347,8 @@ Rules and pitfalls:
 - `zsh/.zshrc` sets `zstyle ':omz:update' mode auto`, which takes precedence over
   `DISABLE_AUTO_UPDATE` and cannot be overridden from `/etc/zsh/zshrc` (the
   zstyle runs before `oh-my-zsh.sh` is sourced). The image therefore deletes
-  `/root/.oh-my-zsh/.git` so the update check bails out and the pinned commit
-  stays pinned. Keep TPM's `.git`; it needs git to manage plugins. The only
+  `${DOTFILES_SKEL}/.oh-my-zsh/.git` so the update check bails out and the pinned
+  commit stays pinned. Keep TPM's `.git`; it needs git to manage plugins. The only
   side effect is that a manual `omz update` inside the container prints git
   errors; rebuild the image instead of updating in place.
 - Inside the container, `git config --global` writes through the symlink into
@@ -355,11 +359,90 @@ Rules and pitfalls:
 - `conda activate` requires an initialised shell, so it fails in a plain
   non-interactive `bash -c`. `PATH` already points at the env; use `conda run -n dev`
   when an explicit activation is needed.
-- The image runs as root with `HOME=/root`. If a platform overrides UID or HOME,
-  the dotfiles remain readable at `/opt/dotfiles` and can be re-stowed there.
+- The image runs as root with `HOME=/root` by default, but must survive a
+  platform that mounts a shared home and repoints `HOME`. See *Mounted HOME
+  provisioning* below before touching anything under `/opt/home-skel`.
 - No credentials belong in any layer. `.dockerignore` excludes `.git`, `*.local`,
   key material, `.env`, `.netrc`, `.npmrc`, and cloud credential directories;
   runtime config is mounted.
+
+Mounted HOME provisioning:
+
+- The bug this exists to fix: the platform mounts a shared home (for example
+  `/home/felix.xiao`) and sets `HOME` to it. Everything baked into `/root` then
+  becomes unreachable and zsh comes up with no oh-my-zsh, prompt or aliases.
+- The build assembles a skeleton home at `/opt/home-skel` (`ENV HOME=${DOTFILES_SKEL}`
+  covers the middle of the build and is reset to `/root` at the end), and
+  `docker/dotfiles-init.sh` mirrors it into whatever `HOME` the container gets.
+- **Links must be absolute.** Stow writes relative links such as
+  `.zshrc -> ../opt/dotfiles/zsh/.zshrc`, which resolve from `/root` but become
+  `/home/opt/...` from `/home/felix.xiao`. Stow has no absolute-link option,
+  which is why provisioning is hand-rolled rather than `stow --target "$HOME"`.
+  Chained links still resolve, because each link resolves against its own
+  directory.
+- Directories are recreated as real directories so users can add their own files.
+  `LINK_WHOLE` (`.oh-my-zsh`, `.tmux/plugins`, `.local/share/nvim`,
+  `.local/share/yazi`) is linked whole; walking those would put tens of thousands
+  of symlinks on a network home. `.local/share/nvim` alone is ~238 MB.
+- The mounted home is **persistent and outlives the image**, so provisioning must
+  self-heal: dangling links are replaced, links into `$PAYLOAD_ROOT` (`/opt`)
+  that the skeleton no longer ships are pruned, links the user made themselves
+  are kept, and real user files are never overwritten without `--force`.
+  Regression-test both directions before changing `link_entry`.
+- Failure policy is deliberately split. A single awkward entry (a user file where
+  the skeleton has a directory, an unwritable path) is recorded in
+  `.dotfiles-init-skipped` and the run continues, so one bad path cannot cost the
+  user every other dotfile. A structural failure such as `find` dying part-way
+  aborts under `set -e` **before** the stamp is written, so the hook retries on
+  the next shell instead of leaving a half-provisioned home marked complete.
+  This is why the walk is materialised into a temp file rather than piped into
+  `while`: a pipeline would hide `find`'s exit status and stamp the home anyway.
+- Concurrency is real: one container per rank starts against the same networked
+  home. The lock is an `mkdir` (the portable atomic primitive over NFS) holding
+  an `owner` token. Only a run that still owns the lock releases it, otherwise a
+  superseded run would delete its successor's lock. Stale locks are stolen on
+  mtime (`find -mmin +2`), never on a fixed wait, so a merely slow run is not cut off.
+- `.dotfiles-init-stamp` holds `SOURCE_REVISION`, not the image tag, so switching
+  CUDA variants at the same revision does not re-provision. `ARG SOURCE_REVISION`
+  is declared **below** the pinned framework clones on purpose: above them, every
+  new commit would invalidate their cache and force a network fetch per build.
+- Payload directories that tools write into at runtime (`.local/share/nvim`,
+  `.local/share/yazi`, `.tmux/plugins`) are `a+rwX`, not just `a+rX`. They are
+  whole-linked into `$HOME`, so a non-root job would otherwise fail to install a
+  treesitter parser or an LSP server. Those writes land in the container's own
+  layer and cannot leak between containers. oh-my-zsh needs no such treatment: it
+  falls back to `$HOME/.cache/oh-my-zsh` when `$ZSH/cache` is read-only.
+- Triggers: `/etc/zsh/zshenv` (all zsh, and before `~/.zshrc`, so the triggering
+  shell benefits), `/etc/profile.d/00-conda.sh` (login), `/etc/bash.bashrc`
+  (interactive bash) and the ENTRYPOINT (direct `docker run IMAGE python ...`).
+  `BASH_ENV` was rejected as too broad. The hot path compares the stamp with the
+  `read` builtin so no process is forked on a normal start. Append to
+  `/etc/zsh/zshenv`; Debian ships one containing PATH bootstrap logic.
+- Failure is never fatal: a half-configured shell beats no shell on a GPU node.
+- Platform escape hatches, settable through per-job `env_vars`:
+  `DOTFILES_AUTO_INIT=0`, `DOTFILES_HOME`, `DOTFILES_FORCE`, `DOTFILES_SKEL`.
+- Adding an ENTRYPOINT changed `docker run IMAGE cmd` semantics; it ends in
+  `exec "$@"` so the command still runs as PID 1.
+- The final build stage provisions `/home/probe` and asserts oh-my-zsh, fzf and
+  the resolved `.zshrc` path. Keep that regression test.
+
+Terminal descriptions:
+
+- `docker/terminfo/xterm-ghostty.src` is compiled with `tic` into **both**
+  `/usr/share/terminfo` and `/opt/conda/envs/dev/share/terminfo`. Conda's ncurses
+  ships its own `tput`, `clear` and `infocmp` that read only the conda database
+  and ignore `TERMINFO_DIRS` (tested). `zsh` and `tmux` are system binaries.
+  Installing into one database only leaves half the tools broken.
+- Without the entry, `TERM=xterm-ghostty` leaves every key capability empty, so
+  `Ctrl-U`, arrows, Home/End and Delete stop working; `tput` and `clear` fail and
+  tmux aborts with `missing or unsuitable terminal`. ZLE itself stays enabled --
+  that was an early wrong hypothesis and the capabilities are the real cause.
+- `tic` prints a benign "older tic versions may treat the description field as an
+  alias" warning and exits 0.
+- fzf is installed from its upstream release, not apt: the base image strips
+  `/usr/share/doc`, where the Debian package hides `key-bindings.zsh`, so the apt
+  build silently loses `Ctrl-R` and `Ctrl-T`. The container `.fzf.zsh` uses
+  `source <(fzf --zsh)`.
 
 ## Design Principles
 
