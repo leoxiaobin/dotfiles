@@ -36,7 +36,7 @@ torchvision_version="${TORCHVISION_VERSION:-0.28.0}"
 # All CUDA variants share one revision axis, so a single number identifies the
 # same repo state across cu126/cu130/cu132. cu126 reached v3 before the others
 # existed, which is why v4 was the first shared revision.
-revision_tag="${IMAGE_REVISION:-v6}"
+revision_tag="${IMAGE_REVISION:-v7}"
 
 push=false
 latest=false
@@ -65,7 +65,7 @@ Environment overrides:
   DOCKER_NAMESPACE     Docker Hub namespace (default: leoxiao)
   IMAGE_NAME           Repository name (default: pytorch-dev)
   CUDA_VARIANT         Same as --cuda (default: cu126)
-  IMAGE_REVISION       Revision suffix (default: v6)
+  IMAGE_REVISION       Revision suffix (default: v7)
   IMAGE_VERSION        Full tag, overriding the composed one
   TORCH_VERSION        PyTorch version (default: 2.13.0)
   TORCHVISION_VERSION  torchvision version (default: 0.28.0)
@@ -77,7 +77,7 @@ always identifies exactly one image.
 
 Examples:
   docker/build.sh --cuda cu130 --push            # Blackwell-capable image
-  IMAGE_REVISION=v7 docker/build.sh --push       # new revision of cu126
+  IMAGE_REVISION=v8 docker/build.sh --push       # new revision of cu126
 EOF
 }
 

@@ -137,11 +137,17 @@ plugins=(git zsh-syntax-highlighting)
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
 
-# Preferred editor for local and remote sessions
-if [[ -n $SSH_CONNECTION ]]; then
+# Preferred editor for local and remote sessions.
+# The oh-my-zsh template picks vim whenever the session is remote, which is
+# wrong on any host that has nvim installed too, and on a host with no vim at
+# all it leaves EDITOR pointing at a missing binary: git and friends then fail
+# with "command not found: vim". Pick whatever is actually installed instead.
+if (( $+commands[nvim] )); then
+  export EDITOR='nvim'
+elif (( $+commands[vim] )); then
   export EDITOR='vim'
 else
-  export EDITOR='nvim'
+  export EDITOR='vi'
 fi
 
 # Compilation flags

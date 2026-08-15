@@ -76,9 +76,9 @@ CUDA 13 gained Blackwell but dropped Volta and Pascal.
 
 | Tag                     | CUDA | Kernels        | GPUs                            | Min driver |
 |-------------------------|------|----------------|---------------------------------|------------|
-| `pt2.13.0-cu126-v6`     | 12.6 | `sm_50`-`sm_90`  | P100/V100/T4/A100/L40S/H100     | 525.60.13  |
-| `pt2.13.0-cu130-v6`     | 13.0 | `sm_75`-`sm_120` | T4/A100/L40S/H100 **+ Blackwell** | 580.65.06 |
-| `pt2.13.0-cu132-v6`     | 13.2 | `sm_75`-`sm_120` | same as cu130, newer toolkit    | 580.65.06  |
+| `pt2.13.0-cu126-v7`     | 12.6 | `sm_50`-`sm_90`  | P100/V100/T4/A100/L40S/H100     | 525.60.13  |
+| `pt2.13.0-cu130-v7`     | 13.0 | `sm_75`-`sm_120` | T4/A100/L40S/H100 **+ Blackwell** | 580.65.06 |
+| `pt2.13.0-cu132-v7`     | 13.2 | `sm_75`-`sm_120` | same as cu130, newer toolkit    | 580.65.06  |
 
 `:latest` points at the cu126 image because it runs on the widest range of
 drivers. **Pin an explicit tag in cluster jobs** rather than relying on it.
@@ -107,14 +107,14 @@ runtime crash.
 ./docker/build.sh --cuda cu126
 
 # Check a built image before publishing it
-./docker/smoke-test.sh leoxiao/pytorch-dev:pt2.13.0-cu126-v6 cu126
+./docker/smoke-test.sh leoxiao/pytorch-dev:pt2.13.0-cu126-v7 cu126
 
 # Build and publish a new immutable revision
-IMAGE_REVISION=v7 ./docker/build.sh --cuda cu126 --push
+IMAGE_REVISION=v8 ./docker/build.sh --cuda cu126 --push
 
 # Verify on a GPU node (versions, arch coverage, a kernel, and a NCCL all-reduce)
 docker run --rm --gpus all --shm-size=8g \
-  leoxiao/pytorch-dev:pt2.13.0-cu130-v6 \
+  leoxiao/pytorch-dev:pt2.13.0-cu130-v7 \
   python /opt/dotfiles/docker/verify-gpu.py
 ```
 

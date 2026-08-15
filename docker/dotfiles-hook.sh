@@ -10,6 +10,36 @@
 # This runs on every shell start, including non-interactive ones inside training
 # scripts, so it stays guarded and silent and can never fail the shell.
 
+# --- PATH repair --------------------------------------------------------------
+# A container inherits Docker's ENV only when the caller does not supply its own
+# environment. sshd builds a fresh one through PAM, and a platform may pass an
+# explicit PATH with the job, so /opt/nvim/bin, /opt/node/bin and the conda env
+# silently vanish even though they are installed. `nvim` then reports "command
+# not found" in an image that ships Neovim, which reads as a broken image.
+#
+# Restored here rather than in the dotfiles, which must stay portable to hosts
+# that have none of these paths. Idempotent, forks nothing, and listed in
+# reverse so the conda env ends up first.
+#
+# Deliberately outside the provisioning guard below: turning the dotfiles off
+# must not leave a job with a PATH that cannot find its own toolchain.
+for _dotfiles_dir in \
+    /opt/node/bin \
+    /opt/nvim/bin \
+    "${CONDA_DIR:-/opt/conda}/condabin" \
+    "${CONDA_DIR:-/opt/conda}/envs/${CONDA_ENV:-dev}/bin"; do
+    # `if` rather than `dir && assign`: the entrypoint sources this under
+    # `set -e`, where a false test as the last command would abort the job.
+    if [ -d "$_dotfiles_dir" ]; then
+        case ":${PATH}:" in
+            *":${_dotfiles_dir}:"*) ;;
+            *) PATH="${_dotfiles_dir}:${PATH}" ;;
+        esac
+    fi
+done
+unset _dotfiles_dir
+export PATH
+
 if [ "${DOTFILES_AUTO_INIT:-1}" = "1" ] && [ -n "${HOME:-}" ]; then
     _dotfiles_stamp="${DOTFILES_HOME:-$HOME}/.dotfiles-init-stamp"
     _dotfiles_seen=""

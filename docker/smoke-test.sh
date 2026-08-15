@@ -130,6 +130,30 @@ check "nccl available" "ok" \
   "$(docker run --rm "$image" python -c \
      'import torch;print("ok" if torch.distributed.is_nccl_available() else "missing")' 2>/dev/null || true)"
 
+# --- The toolchain must survive a caller-supplied environment ----------------
+# Docker's ENV reaches the process only when the caller does not build its own.
+# sshd constructs one through PAM, so an ssh session into the container, or a
+# platform that passes an explicit PATH, loses everything the image put there.
+# Neovim went missing this way in an image that ships it.
+reset_env() {
+  docker run --rm --entrypoint env "$image" -i \
+    PATH=/usr/local/bin:/usr/bin:/bin HOME=/root TERM=xterm \
+    "$@" 2>/dev/null
+}
+
+for tool in nvim node python tmux; do
+  check "$tool survives a reset PATH" "ok" \
+    "$(reset_env /usr/bin/zsh -lc "command -v $tool >/dev/null && echo ok || echo missing" | tail -1 || true)"
+done
+
+# EDITOR must name a binary that exists: git, crontab and friends run it blind.
+# Single quotes are deliberate; $EDITOR is expanded inside the container.
+# shellcheck disable=SC2016
+check "EDITOR resolves over ssh" "ok" \
+  "$(reset_env SSH_CONNECTION='10.0.0.1 22 10.0.0.2 22' /usr/bin/zsh -ic \
+      'command -v $EDITOR >/dev/null && echo ok || echo missing' |
+      grep -E '^(ok|missing)$' | tail -1 || true)"
+
 echo
 echo "smoke test: $pass passed, $fail failed"
 [[ $fail -eq 0 ]]
