@@ -106,8 +106,11 @@ runtime crash.
 # Build locally (always targets linux/amd64, the architecture GPU nodes run)
 ./docker/build.sh --cuda cu126
 
+# Check a built image before publishing it
+./docker/smoke-test.sh leoxiao/pytorch-dev:pt2.13.0-cu126-v6 cu126
+
 # Build and publish a new immutable revision
-IMAGE_REVISION=v6 ./docker/build.sh --cuda cu126 --push
+IMAGE_REVISION=v7 ./docker/build.sh --cuda cu126 --push
 
 # Verify on a GPU node (versions, arch coverage, a kernel, and a NCCL all-reduce)
 docker run --rm --gpus all --shm-size=8g \
@@ -120,9 +123,45 @@ and the PyTorch wheel index together, which is the only safe way to change CUDA
 version: the wheel index, not the version string, selects the CUDA build. The
 build fails if the two ever disagree.
 
+`docker/smoke-test.sh` asserts the things that have actually broken before: the
+dotfiles resolving inside a mounted home, `Ctrl-R`/`Ctrl-U` bound, `tput` under
+`TERM=xterm-ghostty`, tmux starting, no dangling links, and provisioning
+surviving an overridden entrypoint. It needs no GPU; `docker/verify-gpu.py`
+covers what only a GPU node can answer.
+
 The conda env is on `PATH`, so `python` resolves correctly in non-interactive
 platform jobs without sourcing a shell profile. Create isolated project
 environments with `conda create -n myproject python=3.12` as usual.
+
+### Building on GitHub Actions
+
+`.github/workflows/gpu-image.yml` builds and publishes the same image from CI.
+GitHub's runners are amd64, so the build runs natively instead of under the
+Rosetta emulation a local Apple Silicon build needs.
+
+Two repository secrets are required (**Settings → Secrets and variables →
+Actions**):
+
+| Secret               | Value                                                     |
+|----------------------|-----------------------------------------------------------|
+| `DOCKERHUB_USERNAME` | Your Docker Hub username                                   |
+| `DOCKERHUB_TOKEN`    | A Docker Hub **access token** with Read & Write permission |
+
+Create the token at **Docker Hub → Account Settings → Personal access tokens**;
+use a token rather than your password so it can be revoked on its own.
+
+Run it from **Actions → GPU image → Run workflow**, or:
+
+```bash
+gh workflow run gpu-image.yml \
+  -f variants='["cu126","cu130","cu132"]' -f revision=v7 -f push=true
+```
+
+The variants build in parallel, each one building, smoke-testing and only then
+pushing. `:latest` follows cu126. Leaving `push` off gives a build-and-test dry
+run. Expect roughly an hour per variant, and note the workflow deletes the
+runner's preinstalled Android/.NET/Haskell toolchains first, because a stock
+runner does not have enough free disk for a 26GB image.
 
 ### Platform-mounted home directories
 

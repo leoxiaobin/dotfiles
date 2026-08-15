@@ -312,8 +312,31 @@ CUDA variants:
   `torch.version.cuda`'s major, which catches a base/index mismatch at build time
   instead of shipping an image where extensions compile against the wrong CUDA.
 
-Rules and pitfalls:
+CI (`.github/workflows/gpu-image.yml`):
 
+- Manual (`workflow_dispatch`) only. A run is ~1h and ~10GB uploaded per
+  variant, so building on every push would be wasteful; the matrix comes from a
+  JSON-array input via `fromJSON`.
+- Runners are amd64, so CI builds natively while a local Apple Silicon build
+  goes through Rosetta. CI is the faster path for a full three-variant release.
+- **Disk is the binding constraint.** A stock `ubuntu-latest` has ~29GB free and
+  the image is ~26GB. The workflow deletes the preinstalled Android SDK, .NET,
+  GHC, CodeQL and Swift toolchains first. Done inline rather than with a
+  third-party action to keep the supply chain of a dotfiles repo small.
+- Build and push are **two** `docker/build.sh` invocations with the smoke test
+  in between, so nothing is published that failed its checks. The second
+  invocation is a cache hit and costs seconds.
+- The `secrets` context is **not available in a step-level `if`** (it is in
+  `jobs.<id>.env`). The Docker Hub username is lifted to job-level `env` so the
+  login step can skip itself when no credentials are configured; referencing
+  `secrets` directly in the `if` is a workflow-level error.
+- Requires repository secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`
+  (a Docker Hub access token with Read & Write).
+- `docker/smoke-test.sh IMAGE [CUDA]` is the shared gate, runnable locally with
+  no GPU. Add an assertion there whenever a runtime regression is found; that is
+  what turns a one-off fix into a permanent guarantee.
+
+Rules and pitfalls:
 - The CUDA build of PyTorch is selected by `--index-url`, not by the version
   string. Plain PyPI `torch` now targets CUDA 13 and needs a much newer driver.
 - `torchaudio` is deliberately absent: its newest `cu126` build is 2.11, so

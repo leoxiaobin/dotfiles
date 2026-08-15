@@ -1,0 +1,141 @@
+name: GPU image
+
+# Builds the CUDA + conda + PyTorch development image and publishes it to
+# Docker Hub.
+#
+# Manual only. A run takes roughly an hour per variant and pushes ~10GB, so it
+# is not something to trigger on every commit. GitHub's runners are amd64, so
+# unlike a build on an Apple Silicon laptop this needs no emulation.
+
+on:
+  workflow_dispatch:
+    inputs:
+      variants:
+        description: 'CUDA variants to build, as a JSON array'
+        required: true
+        default: '["cu126", "cu130", "cu132"]'
+      revision:
+        description: 'Revision suffix for the tag, e.g. v7'
+        required: true
+        default: 'v7'
+      push:
+        description: 'Push to Docker Hub after the smoke test passes'
+        type: boolean
+        default: false
+      force:
+        description: 'Overwrite the tag if it already exists (normally leave off)'
+        type: boolean
+        default: false
+
+# Two runs pushing the same tag would race, and a cancelled push can leave a
+# partial manifest, so queue instead of cancelling.
+concurrency:
+  group: gpu-image-${{ inputs.revision }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # The build is long but bounded; without a cap a hung pull would burn the
+    # full 6h default.
+    timeout-minutes: 300
+    # The `secrets` context is not available in a step-level `if`, but `env` is,
+    # so the username is lifted here to let the login step skip itself when no
+    # credentials are configured.
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+    strategy:
+      fail-fast: false
+      matrix:
+        cuda: ${{ fromJSON(inputs.variants) }}
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Free disk space
+        # The image is ~26GB and a stock runner has ~29GB free, which is not
+        # enough once intermediate layers are counted. Removing the toolchains
+        # this build never uses roughly doubles the available space. Done inline
+        # rather than with a third-party action to keep the supply chain small.
+        run: |
+          echo "before:"
+          df -h /
+          sudo rm -rf \
+            /usr/share/dotnet \
+            /usr/local/lib/android \
+            /opt/ghc \
+            /usr/local/share/boost \
+            /usr/local/lib/node_modules \
+            /opt/hostedtoolcache/CodeQL \
+            /usr/share/swift \
+            /usr/local/.ghcup || true
+          sudo docker image prune -af || true
+          echo "after:"
+          df -h /
+
+      - name: Log in to Docker Hub
+        # Also useful on a build-only run: an authenticated pull of the CUDA
+        # base image avoids Docker Hub's anonymous rate limit. Skipped when no
+        # credentials are configured so the workflow can be tried out; the build
+        # script then refuses any push itself.
+        if: ${{ env.DOCKERHUB_USERNAME != '' }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Refuse to overwrite a published tag
+        # Fails in seconds rather than after an hour of building. The build
+        # script performs the same check, but only on the pushing invocation.
+        if: ${{ inputs.push && !inputs.force }}
+        env:
+          TAG: leoxiao/pytorch-dev:pt2.13.0-${{ matrix.cuda }}-${{ inputs.revision }}
+        run: |
+          if docker manifest inspect "$TAG" >/dev/null 2>&1; then
+            echo "::error::$TAG already exists. Bump the revision, or re-run with force." 
+            exit 1
+          fi
+          echo "$TAG is free."
+
+      - name: Build
+        env:
+          IMAGE_REVISION: ${{ inputs.revision }}
+        run: docker/build.sh --cuda ${{ matrix.cuda }}
+
+      - name: Smoke test
+        env:
+          IMAGE_REVISION: ${{ inputs.revision }}
+        run: |
+          docker/smoke-test.sh \
+            "leoxiao/pytorch-dev:pt2.13.0-${{ matrix.cuda }}-${{ inputs.revision }}" \
+            "${{ matrix.cuda }}"
+
+      - name: Push
+        # A second invocation rather than --push on the first: the smoke test
+        # has to pass before anything is published. Every layer is cached, so
+        # this re-runs the build in seconds and then uploads.
+        if: ${{ inputs.push }}
+        env:
+          IMAGE_REVISION: ${{ inputs.revision }}
+        run: |
+          args=(--cuda "${{ matrix.cuda }}" --push)
+          # :latest tracks cu126, which supports the widest range of drivers.
+          if [ "${{ matrix.cuda }}" = "cu126" ]; then
+            args+=(--latest)
+          fi
+          if [ "${{ inputs.force }}" = "true" ]; then
+            args+=(--force)
+          fi
+          docker/build.sh "${args[@]}"
+
+      - name: Report
+        if: always()
+        run: |
+          {
+            echo "### ${{ matrix.cuda }} ${{ inputs.revision }}"
+            echo
+            echo "- tag: \`leoxiao/pytorch-dev:pt2.13.0-${{ matrix.cuda }}-${{ inputs.revision }}\`"
+            echo "- pushed: ${{ inputs.push }}"
+            echo "- result: ${{ job.status }}"
+          } >> "$GITHUB_STEP_SUMMARY"
