@@ -33,7 +33,16 @@ check() {
 # home directory but not /tmp.
 mkdir -p "${HOME}/.cache"
 work="$(mktemp -d "${HOME}/.cache/dotfiles-smoke.XXXXXX")"
-cleanup() { rm -rf "$work"; }
+cleanup() {
+  # Everything the container wrote into the mounted home belongs to root, and on
+  # Linux the bind mount preserves that, so an unprivileged CI user cannot
+  # remove it. Hand ownership back from inside a container first. Both commands
+  # are guarded: a cleanup failure must not mask the test result, and under
+  # `set -e` a failing command in an EXIT trap would do exactly that.
+  docker run --rm -v "$work:/work" --entrypoint chown "$image" \
+    -R "$(id -u):$(id -g)" /work >/dev/null 2>&1 || true
+  rm -rf "$work" 2>/dev/null || true
+}
 trap cleanup EXIT
 
 run_in_home() {
