@@ -314,15 +314,16 @@ CUDA variants:
 
 CI (`.github/workflows/gpu-image.yml`):
 
-- Manual (`workflow_dispatch`) only. A run is ~1h and ~10GB uploaded per
-  variant, so building on every push would be wasteful; the matrix comes from a
-  JSON-array input via `fromJSON`.
+- Manual (`workflow_dispatch`) only. A run pushes ~10GB per variant, so building
+  on every commit would be wasteful; the matrix comes from a JSON-array input
+  via `fromJSON`.
 - Runners are amd64, so CI builds natively while a local Apple Silicon build
-  goes through Rosetta. CI is the faster path for a full three-variant release.
-- **Disk is the binding constraint.** A stock `ubuntu-latest` has ~29GB free and
-  the image is ~26GB. The workflow deletes the preinstalled Android SDK, .NET,
-  GHC, CodeQL and Swift toolchains first. Done inline rather than with a
-  third-party action to keep the supply chain of a dotfiles repo small.
+  goes through Rosetta. Measured: **6 minutes** in CI against roughly an hour
+  locally. CI is the faster path for a release.
+- Disk is not actually tight: `ubuntu-latest` measured 87GB free, and the
+  cleanup step raises that to 114GB in ~90s. Kept as insurance rather than
+  necessity, and written inline to keep the supply chain of a dotfiles repo
+  small.
 - Build and push are **two** `docker/build.sh` invocations with the smoke test
   in between, so nothing is published that failed its checks. The second
   invocation is a cache hit and costs seconds.

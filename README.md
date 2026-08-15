@@ -159,9 +159,12 @@ gh workflow run gpu-image.yml \
 
 The variants build in parallel, each one building, smoke-testing and only then
 pushing. `:latest` follows cu126. Leaving `push` off gives a build-and-test dry
-run. Expect roughly an hour per variant, and note the workflow deletes the
-runner's preinstalled Android/.NET/Haskell toolchains first, because a stock
-runner does not have enough free disk for a 26GB image.
+run.
+
+A measured cu126 run took **6 minutes** end to end, against roughly an hour for
+the same build on an Apple Silicon laptop, where every instruction goes through
+Rosetta. CI is the faster way to cut a release; the local script stays for
+iterating on the Dockerfile.
 
 ### Platform-mounted home directories
 
