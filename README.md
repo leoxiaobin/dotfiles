@@ -76,9 +76,9 @@ CUDA 13 gained Blackwell but dropped Volta and Pascal.
 
 | Tag                     | CUDA | Kernels        | GPUs                            | Min driver |
 |-------------------------|------|----------------|---------------------------------|------------|
-| `pt2.13.0-cu126-v5`     | 12.6 | `sm_50`-`sm_90`  | P100/V100/T4/A100/L40S/H100     | 525.60.13  |
-| `pt2.13.0-cu130-v5`     | 13.0 | `sm_75`-`sm_120` | T4/A100/L40S/H100 **+ Blackwell** | 580.65.06 |
-| `pt2.13.0-cu132-v5`     | 13.2 | `sm_75`-`sm_120` | same as cu130, newer toolkit    | 580.65.06  |
+| `pt2.13.0-cu126-v6`     | 12.6 | `sm_50`-`sm_90`  | P100/V100/T4/A100/L40S/H100     | 525.60.13  |
+| `pt2.13.0-cu130-v6`     | 13.0 | `sm_75`-`sm_120` | T4/A100/L40S/H100 **+ Blackwell** | 580.65.06 |
+| `pt2.13.0-cu132-v6`     | 13.2 | `sm_75`-`sm_120` | same as cu130, newer toolkit    | 580.65.06  |
 
 `:latest` points at the cu126 image because it runs on the widest range of
 drivers. **Pin an explicit tag in cluster jobs** rather than relying on it.
@@ -111,7 +111,7 @@ IMAGE_REVISION=v6 ./docker/build.sh --cuda cu126 --push
 
 # Verify on a GPU node (versions, arch coverage, a kernel, and a NCCL all-reduce)
 docker run --rm --gpus all --shm-size=8g \
-  leoxiao/pytorch-dev:pt2.13.0-cu130-v5 \
+  leoxiao/pytorch-dev:pt2.13.0-cu130-v6 \
   python /opt/dotfiles/docker/verify-gpu.py
 ```
 
@@ -156,9 +156,15 @@ and mirrors it into whatever `HOME` the container is given, on first use:
   networked home, and only one run provisions it.
 
 Provisioning is triggered from `/etc/zsh/zshenv` (before `~/.zshrc`, so the
-shell that triggers it still benefits), `/etc/profile.d`, `/etc/bash.bashrc`
-and the entrypoint, so it happens however the job starts, including
+shell that triggers it still benefits), `/etc/profile.d`, `/etc/bash.bashrc`,
+`BASH_ENV` and the entrypoint, so it happens however the job starts, including
 `docker run IMAGE python train.py`.
+
+If your platform replaces the entrypoint *and* starts the job with a plain
+non-interactive `sh -c`, none of those hooks fire — dash has no non-interactive
+hook. This is self-correcting rather than fatal, because the mounted home is
+persistent: run `dotfiles-init` once (or start one shell) and the links stay
+there for every later job. Re-provisioning only matters after an image upgrade.
 
 Run it by hand any time:
 
@@ -167,6 +173,22 @@ dotfiles-init                 # provision $HOME
 dotfiles-init --force         # replace existing files (backed up to ~/.dotfiles-backup)
 dotfiles-init /home/someone   # provision a specific directory
 ```
+
+### One-time setup in a persistent home
+
+Nothing is required to get the dotfiles themselves. These are the things the
+image deliberately does **not** ship, so they are worth creating once in a home
+that survives the container:
+
+```bash
+git config --file ~/.gitconfig.local user.name  "Your Name"
+git config --file ~/.gitconfig.local user.email "you@example.com"
+```
+
+`~/.ssh` is excluded from the skeleton, so keys and `~/.ssh/config` you put
+there are yours and are never touched. Machine-local shell settings and secrets
+go in `~/.zshrc.local`. Use `git config --file ~/.gitconfig.local`, not
+`git config --global`, which writes through the symlink into `/opt/dotfiles`.
 
 If your platform accepts per-job environment variables, these are supported:
 
@@ -184,7 +206,10 @@ If your platform accepts per-job environment variables, these are supported:
 | `DOTFILES_FORCE`     | `1` replaces existing files, backing them up first           |
 | `DOTFILES_SKEL`      | Read the skeleton from somewhere other than `/opt/home-skel` |
 
-None of these are required; the defaults already work.
+None of these are required; the defaults already work. On an older image whose
+entrypoint the platform overrides, adding `"BASH_ENV": "/etc/dotfiles-hook.sh"`
+restores provisioning for non-interactive `bash -c` without a rebuild; from v6
+it is baked in.
 
 ### Terminal keys over SSH
 

@@ -362,6 +362,20 @@ LABEL org.opencontainers.image.title="pytorch-dev" \
       org.opencontainers.image.base.name="${CUDA_BASE}"
 
 ENV SHELL=/usr/bin/zsh
+# A platform that overrides the entrypoint and runs a non-interactive `bash -c`
+# reaches none of the shell hooks: bash reads /etc/bash.bashrc only when
+# interactive, and /etc/profile only for login shells. BASH_ENV is the one hook
+# bash honours in that case, so provisioning survives an entrypoint override.
+#
+# Deliberately declared after every RUN: this Dockerfile sets SHELL to bash, so
+# an earlier declaration would fire the hook during the build itself, where HOME
+# is the skeleton the hook provisions from.
+#
+# Cost on an already-provisioned home is a single builtin read of the stamp, and
+# a plain `sh -c` still gets nothing, since dash has no non-interactive hook at
+# all. That residual gap is covered by the home being persistent: whichever
+# process provisions it first, the links are there for every later job.
+ENV BASH_ENV=/etc/dotfiles-hook.sh
 WORKDIR /workspace
 # The entrypoint provisions HOME for jobs that exec a binary directly and never
 # source a shell rc. It ends in `exec "$@"`, so `docker run IMAGE python train.py`

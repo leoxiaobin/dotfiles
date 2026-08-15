@@ -298,7 +298,7 @@ CUDA variants:
 - Supported variants live in one place: `base_for_variant()` in
   `docker/build.sh`, which pairs each `cuNNN` with a digest-pinned base image.
   `--cuda` sets **both** the base and the wheel index; never set one alone.
-- Tags are composed as `pt<torch>-<cuda>-<revision>`, e.g. `pt2.13.0-cu130-v5`.
+- Tags are composed as `pt<torch>-<cuda>-<revision>`, e.g. `pt2.13.0-cu130-v6`.
   `IMAGE_REVISION` bumps the revision; `IMAGE_VERSION` overrides the whole tag.
 - Adding a version means: confirm the wheel index has matching `torch` and
   `torchvision` for cp312, confirm an `nvidia/cuda:<x.y.z>-cudnn-devel-ubuntu24.04`
@@ -306,8 +306,8 @@ CUDA variants:
 - Arch coverage differs per variant and is not monotonic. Verified build output:
   `cu126` -> `sm_50..sm_90` (no Blackwell); `cu130` and `cu132` -> `sm_75..sm_120`
   (gain Blackwell, **lose Volta and Pascal**). Never assume a newer CUDA is a
-  superset. Published: `pt2.13.0-cu126-v5`, `pt2.13.0-cu130-v5`,
-  `pt2.13.0-cu132-v5`; `:latest` tracks cu126 for widest driver support. CUDA 12.x needs driver >= 525.60.13, CUDA 13.x needs >= 580.65.06.
+  superset. Published: `pt2.13.0-cu126-v6`, `pt2.13.0-cu130-v6`,
+  `pt2.13.0-cu132-v6`; `:latest` tracks cu126 for widest driver support. CUDA 12.x needs driver >= 525.60.13, CUDA 13.x needs >= 580.65.06.
 - The torch install layer asserts that `nvcc`'s CUDA major matches
   `torch.version.cuda`'s major, which catches a base/index mismatch at build time
   instead of shipping an image where extensions compile against the wrong CUDA.
@@ -437,10 +437,20 @@ Mounted HOME provisioning:
   falls back to `$HOME/.cache/oh-my-zsh` when `$ZSH/cache` is read-only.
 - Triggers: `/etc/zsh/zshenv` (all zsh, and before `~/.zshrc`, so the triggering
   shell benefits), `/etc/profile.d/00-conda.sh` (login), `/etc/bash.bashrc`
-  (interactive bash) and the ENTRYPOINT (direct `docker run IMAGE python ...`).
-  `BASH_ENV` was rejected as too broad. The hot path compares the stamp with the
-  `read` builtin so no process is forked on a normal start. Append to
+  (interactive bash), `BASH_ENV` (non-interactive bash) and the ENTRYPOINT
+  (direct `docker run IMAGE python ...`). The hot path compares the stamp with
+  the `read` builtin so no process is forked on a normal start. Append to
   `/etc/zsh/zshenv`; Debian ships one containing PATH bootstrap logic.
+- `BASH_ENV` was rejected as too broad in v5 and added in v6, because testing
+  showed a platform that overrides the ENTRYPOINT *and* runs a non-interactive
+  `bash -c` reaches no hook at all: bash reads `/etc/bash.bashrc` only when
+  interactive and `/etc/profile` only when a login shell. It must be declared
+  **after every RUN**, since this Dockerfile sets `SHELL` to bash and an earlier
+  declaration fires the hook during the build, where `HOME` is the skeleton the
+  hook provisions from. A plain non-interactive `sh -c` still reaches nothing;
+  dash has no equivalent hook. That residual gap is acceptable because the
+  mounted home is persistent, so whichever process provisions it first leaves
+  the links in place for every later job.
 - Failure is never fatal: a half-configured shell beats no shell on a GPU node.
 - Platform escape hatches, settable through per-job `env_vars`:
   `DOTFILES_AUTO_INIT=0`, `DOTFILES_HOME`, `DOTFILES_FORCE`, `DOTFILES_SKEL`.
