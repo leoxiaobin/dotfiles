@@ -14,8 +14,14 @@ if [ "${DOTFILES_AUTO_INIT:-1}" = "1" ] && [ -n "${HOME:-}" ]; then
     _dotfiles_stamp="${DOTFILES_HOME:-$HOME}/.dotfiles-init-stamp"
     _dotfiles_seen=""
     # `read` is a builtin, so the already-provisioned path costs no subprocess.
+    # The redirect is wrapped rather than suffixed with 2>/dev/null because a
+    # failed redirect is reported before the suffixed one takes effect, and the
+    # stamp really can vanish between the test and the open: provisioning clears
+    # it before it starts, so another rank on the same shared home may be doing
+    # exactly that. A brace group redirects the whole block without forking.
     if [ -r "$_dotfiles_stamp" ]; then
-        read -r _dotfiles_seen < "$_dotfiles_stamp" 2>/dev/null || _dotfiles_seen=""
+        { read -r _dotfiles_seen < "$_dotfiles_stamp"; } 2>/dev/null \
+            || _dotfiles_seen=""
     fi
     if [ "$_dotfiles_seen" != "${DOTFILES_VERSION:-dev}" ]; then
         /usr/local/bin/dotfiles-init --quiet >/dev/null 2>&1 || true

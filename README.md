@@ -76,9 +76,9 @@ CUDA 13 gained Blackwell but dropped Volta and Pascal.
 
 | Tag                     | CUDA | Kernels        | GPUs                            | Min driver |
 |-------------------------|------|----------------|---------------------------------|------------|
-| `pt2.13.0-cu126-v4`     | 12.6 | `sm_50`-`sm_90`  | P100/V100/T4/A100/L40S/H100     | 525.60.13  |
-| `pt2.13.0-cu130-v4`     | 13.0 | `sm_75`-`sm_120` | T4/A100/L40S/H100 **+ Blackwell** | 580.65.06 |
-| `pt2.13.0-cu132-v4`     | 13.2 | `sm_75`-`sm_120` | same as cu130, newer toolkit    | 580.65.06  |
+| `pt2.13.0-cu126-v5`     | 12.6 | `sm_50`-`sm_90`  | P100/V100/T4/A100/L40S/H100     | 525.60.13  |
+| `pt2.13.0-cu130-v5`     | 13.0 | `sm_75`-`sm_120` | T4/A100/L40S/H100 **+ Blackwell** | 580.65.06 |
+| `pt2.13.0-cu132-v5`     | 13.2 | `sm_75`-`sm_120` | same as cu130, newer toolkit    | 580.65.06  |
 
 `:latest` points at the cu126 image because it runs on the widest range of
 drivers. **Pin an explicit tag in cluster jobs** rather than relying on it.
@@ -107,11 +107,11 @@ runtime crash.
 ./docker/build.sh --cuda cu126
 
 # Build and publish a new immutable revision
-IMAGE_REVISION=v5 ./docker/build.sh --cuda cu126 --push
+IMAGE_REVISION=v6 ./docker/build.sh --cuda cu126 --push
 
 # Verify on a GPU node (versions, arch coverage, a kernel, and a NCCL all-reduce)
 docker run --rm --gpus all --shm-size=8g \
-  leoxiao/pytorch-dev:pt2.13.0-cu130-v4 \
+  leoxiao/pytorch-dev:pt2.13.0-cu130-v5 \
   python /opt/dotfiles/docker/verify-gpu.py
 ```
 
@@ -147,7 +147,11 @@ and mirrors it into whatever `HOME` the container is given, on first use:
   pre-populated home does not look like the dotfiles silently failing.
 - On an image upgrade, links left dangling by the previous revision are
   repaired and payload links the image no longer ships are dropped. This
-  matters because the mounted home outlives the container.
+  matters because the mounted home outlives the container. Only links pointing
+  into `/opt` are ever reclaimed, so a link of your own that happens to dangle
+  because this container did not mount its target is left alone and reported.
+  `.dotfiles-init-manifest` records what the last run created, which is what
+  lets a later revision clean up after itself.
 - Concurrent starts are safe: one container per rank can race against the same
   networked home, and only one run provisions it.
 

@@ -286,7 +286,7 @@ Commands:
 
 ```bash
 ./docker/build.sh --cuda cu126                      # build linux/amd64 locally
-IMAGE_REVISION=v5 ./docker/build.sh --cuda cu126 --push
+IMAGE_REVISION=v6 ./docker/build.sh --cuda cu126 --push
 ./docker/build.sh --cuda cu130 --push               # CUDA 13 / Blackwell image
 shellcheck docker/build.sh
 python3 -m py_compile docker/verify-gpu.py
@@ -298,7 +298,7 @@ CUDA variants:
 - Supported variants live in one place: `base_for_variant()` in
   `docker/build.sh`, which pairs each `cuNNN` with a digest-pinned base image.
   `--cuda` sets **both** the base and the wheel index; never set one alone.
-- Tags are composed as `pt<torch>-<cuda>-<revision>`, e.g. `pt2.13.0-cu130-v4`.
+- Tags are composed as `pt<torch>-<cuda>-<revision>`, e.g. `pt2.13.0-cu130-v5`.
   `IMAGE_REVISION` bumps the revision; `IMAGE_VERSION` overrides the whole tag.
 - Adding a version means: confirm the wheel index has matching `torch` and
   `torchvision` for cp312, confirm an `nvidia/cuda:<x.y.z>-cudnn-devel-ubuntu24.04`
@@ -306,8 +306,8 @@ CUDA variants:
 - Arch coverage differs per variant and is not monotonic. Verified build output:
   `cu126` -> `sm_50..sm_90` (no Blackwell); `cu130` and `cu132` -> `sm_75..sm_120`
   (gain Blackwell, **lose Volta and Pascal**). Never assume a newer CUDA is a
-  superset. Published: `pt2.13.0-cu126-v4`, `pt2.13.0-cu130-v4`,
-  `pt2.13.0-cu132-v4`; `:latest` tracks cu126 for widest driver support. CUDA 12.x needs driver >= 525.60.13, CUDA 13.x needs >= 580.65.06.
+  superset. Published: `pt2.13.0-cu126-v5`, `pt2.13.0-cu130-v5`,
+  `pt2.13.0-cu132-v5`; `:latest` tracks cu126 for widest driver support. CUDA 12.x needs driver >= 525.60.13, CUDA 13.x needs >= 580.65.06.
 - The torch install layer asserts that `nvcc`'s CUDA major matches
   `torch.version.cuda`'s major, which catches a base/index mismatch at build time
   instead of shipping an image where extensions compile against the wrong CUDA.
@@ -385,9 +385,13 @@ Mounted HOME provisioning:
   `.local/share/yazi`) is linked whole; walking those would put tens of thousands
   of symlinks on a network home. `.local/share/nvim` alone is ~238 MB.
 - The mounted home is **persistent and outlives the image**, so provisioning must
-  self-heal: dangling links are replaced, links into `$PAYLOAD_ROOT` (`/opt`)
-  that the skeleton no longer ships are pruned, links the user made themselves
-  are kept, and real user files are never overwritten without `--force`.
+  self-heal: links into `$PAYLOAD_ROOT` (`/opt`) are ours and get refreshed or,
+  once the skeleton stops shipping them, pruned; links pointing anywhere else are
+  the user's and are kept even when they dangle, because a persistent home may
+  legitimately reference storage this container did not mount. Real user files
+  are never overwritten without `--force`. `.dotfiles-init-manifest` records what
+  the last run created, which is the only way to find a stale link whose whole
+  directory has since disappeared from the skeleton.
   Regression-test both directions before changing `link_entry`.
 - Failure policy is deliberately split. A single awkward entry (a user file where
   the skeleton has a directory, an unwritable path) is recorded in
@@ -398,10 +402,29 @@ Mounted HOME provisioning:
   This is why the walk is materialised into a temp file rather than piped into
   `while`: a pipeline would hide `find`'s exit status and stamp the home anyway.
 - Concurrency is real: one container per rank starts against the same networked
-  home. The lock is an `mkdir` (the portable atomic primitive over NFS) holding
-  an `owner` token. Only a run that still owns the lock releases it, otherwise a
-  superseded run would delete its successor's lock. Stale locks are stolen on
-  mtime (`find -mmin +2`), never on a fixed wait, so a merely slow run is not cut off.
+  home. The lock is a directory that only ever appears or disappears by rename,
+  never half-built: `take_lock` populates a private `.claim.$$` directory with an
+  `owner` token and publishes it with `mv -T`, which fails against a non-empty
+  directory and is therefore the mutual exclusion. Claiming with a bare `mkdir`
+  and writing the token afterwards leaves a window in which a killed run strands
+  a lock nothing can attribute or release; under emulation that window is milli-
+  seconds wide and a kill-timing sweep hits it reliably. `release_lock` renames
+  before deleting for the same reason: an in-place `rm -rf` briefly leaves an
+  empty directory, which is exactly the state another run's rename can replace.
+  Only a run that still owns the lock releases it, otherwise a superseded run
+  would delete its successor's. Stale locks are stolen on mtime
+  (`find -mmin +2`), never on a fixed wait, so a merely slow run is not cut off,
+  and the steal is itself a rename so exactly one of several waiting ranks wins.
+- The signal traps `exit`, and they are armed *before* the lock is taken. A
+  handler that only cleaned up would let the shell resume the script afterwards,
+  carrying on without the lock it just released; arming afterwards would leave
+  everything between acquisition and installation as another leak window.
+  The stamp is removed *before* any mutation, so a run killed midway leaves no
+  marker and the next shell provisions again rather than trusting a home that
+  only got halfway. That in turn means the hook's stamp read must tolerate the
+  file vanishing between the `-r` test and the open, which is why the read sits
+  in a brace group: a trailing `2>/dev/null` is applied after the failed
+  redirect has already been reported, and dash and bash both print it.
 - `.dotfiles-init-stamp` holds `SOURCE_REVISION`, not the image tag, so switching
   CUDA variants at the same revision does not re-provision. `ARG SOURCE_REVISION`
   is declared **below** the pinned framework clones on purpose: above them, every
