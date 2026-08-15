@@ -75,6 +75,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       locales \
       man-db \
       ncurses-term \
+      nvtop \
       openssh-client \
       pkg-config \
       procps \
@@ -146,6 +147,16 @@ RUN pip install --no-cache-dir cmake ninja \
   && cmake --version | head -1 \
   && ninja --version \
   && python -c "from torch.utils.cpp_extension import is_ninja_available; assert is_ninja_available(), 'ninja not visible to torch'; print('torch sees ninja: True')"
+
+# --- GPU monitoring -----------------------------------------------------------
+# nvitop is a Python package, so it goes in the conda env next to torch, where
+# it can also resolve which processes belong to which env. nvtop is a compiled
+# binary and comes from apt above. Neither can be exercised at build time, since
+# BuildKit has no GPU; both only need to import and answer --help here.
+RUN pip install --no-cache-dir nvitop \
+  && python -c "import nvitop; print('nvitop', nvitop.__version__)" \
+  && nvitop --help >/dev/null \
+  && nvtop --version
 
 # --- Node (required by LazyVim LSP tooling and the copilot-native extra) ------
 RUN curl -fsSL "https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.xz" \

@@ -67,6 +67,7 @@ platforms that run jobs from a container image.
 | Python     | Miniforge at `/opt/conda`, conda env `dev` on Python 3.12        |
 | ML         | `torch 2.13.0` and `torchvision 0.28.0`, NCCL included           |
 | Build      | `nvcc`, `cmake`, `ninja` for compiling CUDA extensions           |
+| GPU tools  | `nvidia-smi`, `nvitop`, `nvtop`                                  |
 | Dotfiles   | `zsh git tmux nvim lsd yazi starship` stowed from `/opt/dotfiles`|
 
 ### Choosing a CUDA variant

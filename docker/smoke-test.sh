@@ -146,6 +146,14 @@ for tool in nvim node python tmux; do
     "$(reset_env /usr/bin/zsh -lc "command -v $tool >/dev/null && echo ok || echo missing" | tail -1 || true)"
 done
 
+# GPU monitors. Neither can talk to a driver here, so this only asserts they are
+# installed and runnable; the GPU-side check belongs in verify-gpu.py.
+for tool in nvitop nvtop; do
+  check "$tool installed" "ok" \
+    "$(docker run --rm --entrypoint sh "$image" -c \
+        "command -v $tool >/dev/null && echo ok || echo missing" 2>/dev/null || true)"
+done
+
 # EDITOR must name a binary that exists: git, crontab and friends run it blind.
 # Single quotes are deliberate; $EDITOR is expanded inside the container.
 # shellcheck disable=SC2016
