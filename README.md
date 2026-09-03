@@ -28,14 +28,14 @@ Terminal-centric development environment managed with [GNU Stow](https://www.gnu
 git clone git@github-leoxiaobin:leoxiaobin/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 
-# Install GNU Stow
-sudo apt install stow   # Debian/Ubuntu
-brew install stow        # macOS
+# Install dependencies and apply the platform-specific dotfiles
+./bootstrap.sh
 
-# AeroSpace (macOS only)
-brew install --cask nikitabobko/tap/aerospace
+# Preview without installing or changing links
+./bootstrap.sh --dry-run
 
-# Apply managed dotfiles
+# Apply dotfiles when dependencies are already installed
+./sync.sh --dry-run
 ./sync.sh
 
 # Optional: align macOS system appearance with the Su theme
@@ -46,6 +46,18 @@ cp templates/zshrc.local.example ~/.zshrc.local
 cp templates/gitconfig.local.example ~/.gitconfig.local
 # Edit these ↑ with your machine-specific settings
 ```
+
+`sync.sh` detects macOS, Linux, and WSL. Shared packages are applied on every
+platform; AeroSpace and SketchyBar are applied only on macOS. The Linux
+bootstrap currently supports Debian and Ubuntu, including WSL, and asks before
+using `sudo`. Unsupported distributions fail with an explicit error instead of
+guessing package names.
+
+`Brewfile` is the macOS dependency manifest. `install/linux.sh` contains the
+Debian/Ubuntu dependency list and installs a checksum-verified Neovim `v0.12.5`
+under `~/.local` when the existing version is older than `0.12`. Some
+cross-platform tools that aren't reliably available from apt (including
+Starship, Yazi, and Ghostty) remain explicit post-install requirements on Linux.
 
 Detailed coding-agent instructions live in [AGENTS.md](AGENTS.md). This README
 stays focused on human setup, project overview, and daily workflow.

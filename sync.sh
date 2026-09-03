@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-packages=(
+common_packages=(
   zsh
   git
   tmux
   doom
   nvim
   ghostty
-  aerospace
-  sketchybar
   lsd
   yazi
   fontconfig
@@ -54,17 +52,59 @@ while (($#)); do
 done
 
 repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+os="$(uname -s)"
+platform_name=
+packages=("${common_packages[@]}")
+
+case "$os" in
+  Darwin)
+    platform_name=macOS
+    packages+=(aerospace sketchybar)
+    ;;
+  Linux)
+    if [[ -r /proc/version ]] && grep -qiE 'microsoft|wsl' /proc/version; then
+      platform_name=WSL
+    else
+      platform_name=Linux
+    fi
+    ;;
+  *)
+    echo "error: unsupported operating system: $os" >&2
+    exit 1
+    ;;
+esac
 
 if ! command -v stow >/dev/null 2>&1; then
   echo "error: GNU Stow is required. Install it with brew or your system package manager." >&2
   exit 1
 fi
 
-if $pull; then
-  git -C "$repo_dir" pull --ff-only
+if [[ ! -d "$HOME" || ! -w "$HOME" ]]; then
+  echo "error: HOME is not a writable directory: $HOME" >&2
+  exit 1
 fi
 
-echo "Syncing dotfiles from $repo_dir to $HOME"
+for package in "${packages[@]}"; do
+  if [[ ! -d "$repo_dir/$package" ]]; then
+    echo "error: Stow package directory is missing: $repo_dir/$package" >&2
+    exit 1
+  fi
+done
+
+if $pull; then
+  if [[ ! -d "$repo_dir/.git" ]]; then
+    echo "error: --pull requires a Git checkout: $repo_dir" >&2
+    exit 1
+  fi
+  if $dry_run; then
+    echo "DRY-RUN: git -C $repo_dir pull --ff-only"
+  else
+    git -C "$repo_dir" pull --ff-only
+  fi
+fi
+
+echo "Syncing $platform_name dotfiles from $repo_dir to $HOME"
+printf 'Packages: %s\n' "${packages[*]}"
 
 stow_args=(--dir "$repo_dir" --target "$HOME" --no-folding -R)
 if $dry_run; then
@@ -80,9 +120,9 @@ elif [[ ! -L "$tmux_target" ]]; then
   echo "warning: $tmux_target is not a symlink; tmux may not load the stowed config" >&2
 fi
 
-if [[ -f /proc/version ]] && grep -qiE 'microsoft|wsl' /proc/version; then
+if [[ "$platform_name" == WSL ]]; then
   echo "WSL note: configure Windows Terminal with templates/windows-terminal-profile.example.jsonc"
-elif [[ "$(uname -s)" == "Darwin" ]]; then
+elif [[ "$platform_name" == macOS ]]; then
   echo "macOS note: Ghostty uses Maple Mono NF CN 16pt; install it with: brew install --cask font-maple-mono-nf-cn"
 fi
 
