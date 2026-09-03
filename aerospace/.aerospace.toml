@@ -53,6 +53,24 @@ on-window-detected = [
   { if.app-id = 'com.apple.iBooksX', run = 'move-node-to-workspace 6' },
 ]
 
+# AeroSpace defaults every gap to 0, which tiles windows against the very top
+# of each monitor's visible frame. Only the monitor holding the macOS menu bar
+# reserves space up there, so sketchybar (display=all, topmost=on) painted over
+# the first 33px of every window on the secondary monitor.
+#
+# sketchybar occupies y 0..33 (height=32 plus border_width=1). Aiming for a
+# window top of 41 leaves the same 8px below the bar on both monitors:
+#   main       visible frame starts at 31 (menu bar) -> 31 + 10 = 41
+#   secondary  visible frame starts at 0             ->  0 + 41 = 41
+# Re-measure with `osascript -e 'tell application "System Events" to get
+# position of window 1 of process "Finder"'` if the bar height ever changes.
+gaps.inner.horizontal = 8
+gaps.inner.vertical = 8
+gaps.outer.left = 8
+gaps.outer.right = 8
+gaps.outer.bottom = 8
+gaps.outer.top = [{ monitor.main = 10 }, 41]
+
 [mode.main.binding]
 alt-h = 'focus --boundaries all-monitors-outer-frame left'
 alt-j = 'focus --boundaries all-monitors-outer-frame down'
