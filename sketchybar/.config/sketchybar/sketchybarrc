@@ -16,6 +16,8 @@ sketchybar --bar \
   color="$BG" \
   border_width=1 \
   border_color="$BORDER" \
+  display=all \
+  topmost=on \
   shadow=off \
   sticky=on \
   padding_left=8 \
