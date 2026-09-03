@@ -9,15 +9,21 @@ if [[ -n "$percentage" ]]; then
   level="${percentage%%%}"
 
   case "$level" in
-    9[0-9] | 100) icon="" ;;
-    [6-8][0-9]) icon="" ;;
-    [3-5][0-9]) icon="" ;;
-    [1-2][0-9]) icon="" ;;
-    *) icon="" ;;
+    100) icon="󰁹" ;;
+    9[0-9]) icon="󰂂" ;;
+    8[0-9]) icon="󰂁" ;;
+    7[0-9]) icon="󰂀" ;;
+    6[0-9]) icon="󰁿" ;;
+    5[0-9]) icon="󰁾" ;;
+    4[0-9]) icon="󰁽" ;;
+    3[0-9]) icon="󰁼" ;;
+    2[0-9]) icon="󰁻" ;;
+    1[0-9]) icon="󰁺" ;;
+    *) icon="󰂃" ;;
   esac
 
   if [[ -n "$charging" ]]; then
-    icon=""
+    icon="󰂄"
   fi
 
   sketchybar --set "$NAME" drawing=on icon="$icon" label="$percentage"
