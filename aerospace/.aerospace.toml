@@ -58,6 +58,7 @@ alt-shift-k = 'move up'
 alt-shift-l = 'move right'
 
 alt-f = 'fullscreen'
+alt-b = 'exec-and-forget /bin/bash -lc ~/.config/sketchybar/toggle.sh'
 alt-shift-space = 'layout floating tiling'
 alt-slash = ['layout tiling', 'layout tiles horizontal vertical']
 alt-comma = ['layout tiling', 'layout accordion horizontal vertical']
