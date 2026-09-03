@@ -101,6 +101,7 @@ def hot_reload() -> None:
         subprocess.run(["sketchybar", "--reload"], check=False)
         print("reloaded sketchybar")
     print("nvim and Doom pick up the new theme on next start")
+    print("Ghostty has no CLI reload; press Cmd+Shift+, in each window")
 
 
 def main() -> int:

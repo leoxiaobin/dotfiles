@@ -62,9 +62,18 @@ Starship, Yazi, and Ghostty) remain explicit post-install requirements on Linux.
 Detailed coding-agent instructions live in [AGENTS.md](AGENTS.md). This README
 stays focused on human setup, project overview, and daily workflow.
 
-Ghostty reads `~/.config/ghostty/config.ghostty` from the `ghostty` stow package.
-Keep machine-specific overrides in `~/.config/ghostty/config`; Ghostty loads that
-after `config.ghostty`.
+Ghostty loads **every** file in `~/.config/ghostty/` in alphabetical order, so
+`config` (machine-local, untracked) is read *before* `config.ghostty` (this
+repo's `ghostty` stow package). For single-value keys the repo therefore wins.
+
+Two traps follow from that. `font-family` is repeatable and *appends a fallback*
+rather than replacing, so a `font-family` in `config` becomes the primary font
+and silently demotes the repo's. Reset the list with `font-family = ""` first if
+you really want to override it. Separately, picking a theme from Ghostty's menu
+writes `~/Library/Application Support/com.mitchellh.ghostty/auto/theme.ghostty`,
+which is easy to forget about later.
+
+Check what actually loaded with `ghostty +show-config`.
 
 AeroSpace reads `~/.aerospace.toml` from the `aerospace` stow package. Launch
 the app once to grant Accessibility permission; later config changes can be
@@ -73,10 +82,11 @@ applied with `aerospace reload-config`.
 ## Theme
 
 `theme/colors.toml` is the single source of truth for the 素 (Su) palette.
-Six configs are generated from it and carry a "do not edit by hand" header:
+Seven configs are generated from it and carry a "do not edit by hand" header:
 
-| Generated file                                      | Consumer     |
-|-----------------------------------------------------|--------------|
+| Generated file                                       | Consumer     |
+|------------------------------------------------------|--------------|
+| `ghostty/.config/ghostty/config.ghostty`             | Terminal     |
 | `nvim/.config/nvim/colors/su.lua`                    | Neovim       |
 | `doom/.config/doom/themes/su-theme.el`               | Doom Emacs   |
 | `starship/.config/starship.toml`                     | Prompt       |
@@ -97,8 +107,9 @@ They use `{{ name }}` for `#295f8a` and `{{ name.raw }}` for `295f8a`, which is
 what SketchyBar's `0xff` ARGB values need. `--check` is the guard worth running
 before a commit: it proves no generated file was hand-edited out of sync.
 
-Ghostty and tmux are deliberately **not** generated — they currently follow the
-macOS light/dark appearance via Catppuccin rather than the fixed Su palette.
+The Ghostty template only owns colours; font, keybinds and shell integration
+stay hand-written in it. tmux is deliberately **not** generated yet — it still
+carries its own copy of the palette.
 
 For Windows Terminal/WSL, use the `Su` color scheme and `Maple Mono NF CN`
 at 16pt; see `templates/windows-terminal-profile.example.jsonc`.

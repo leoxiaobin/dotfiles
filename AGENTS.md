@@ -267,8 +267,13 @@ Known long-running steps:
   provide `font-symbola`; this is not blocking when Symbols Nerd Font Mono is
   present.
 - **Linux**: Font and clipboard should work automatically with modern terminal emulators.
-- **Ghostty**: Shared settings live in `~/.config/ghostty/config.ghostty`.
-  Put machine-specific overrides in `~/.config/ghostty/config`, which Ghostty loads afterward.
+- **Ghostty**: Ghostty loads *every* file in `~/.config/ghostty/` alphabetically, so
+  the untracked machine-local `config` is read **before** the repo's `config.ghostty`;
+  for single-value keys the repo wins. Beware `font-family`: it appends a fallback
+  instead of replacing, so a `font-family` in `config` becomes the primary font and
+  demotes the repo's. Reset with `font-family = ""` first. Ghostty's theme menu also
+  writes `~/Library/Application Support/com.mitchellh.ghostty/auto/theme.ghostty`.
+  Confirm the result with `ghostty +show-config`, not by reading one file.
 - **Terminal Emacs**: Themes render poorly if `TERM=xterm-color`; `.zshrc` upgrades it
   to `xterm-256color` and exports `COLORTERM=truecolor`.
 
@@ -540,9 +545,10 @@ Terminal descriptions:
 
 ## When Modifying These Configs
 
-- **Never hand-edit a generated theme file.** These six are rendered from
+- **Never hand-edit a generated theme file.** These seven are rendered from
   `theme/colors.toml` and carry a "do not edit by hand" header; direct edits are
   silently overwritten on the next render:
+  `ghostty/.config/ghostty/config.ghostty`,
   `nvim/.config/nvim/colors/su.lua`, `doom/.config/doom/themes/su-theme.el`,
   `starship/.config/starship.toml`,
   `sketchybar/.config/sketchybar/sketchybarrc`,

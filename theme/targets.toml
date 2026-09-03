@@ -8,3 +8,4 @@
 "sketchybarrc.tmpl" = "sketchybar/.config/sketchybar/sketchybarrc"
 "sketchybar-aerospace.sh.tmpl" = "sketchybar/.config/sketchybar/plugins/aerospace.sh"
 "apply-su-macos.sh.tmpl" = "scripts/apply-su-macos.sh"
+"ghostty-config.ghostty.tmpl" = "ghostty/.config/ghostty/config.ghostty"
