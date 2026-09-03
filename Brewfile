@@ -1,7 +1,9 @@
 # Package sources
 tap "azure/kubelogin"
 tap "d12frosted/emacs-plus"
+tap "FelixKratz/formulae"
 tap "int128/kubelogin"
+tap "nikitabobko/tap"
 
 # Core shell and workstation tools
 brew "bat"
@@ -16,6 +18,7 @@ brew "jq"
 brew "lazygit"
 brew "lsd"
 brew "mactop"
+brew "FelixKratz/formulae/borders"
 brew "ripgrep"
 brew "sevenzip"
 brew "shellcheck"
@@ -51,3 +54,4 @@ cask "font-maple-mono-nf-cn"
 cask "font-symbols-only-nerd-font"
 cask "ghostty"
 cask "git-credential-manager"
+cask "nikitabobko/tap/aerospace"
