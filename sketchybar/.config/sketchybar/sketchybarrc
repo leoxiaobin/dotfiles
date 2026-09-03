@@ -27,6 +27,10 @@ default=(
   padding_left=4
   padding_right=4
   icon.drawing=off
+  icon.color="$MUTED"
+  icon.font="Maple Mono NF CN:Regular:14.0"
+  icon.padding_left=6
+  icon.padding_right=2
   label.color="$FG"
   label.font="Maple Mono NF CN:Regular:13.0"
   label.padding_left=7
@@ -60,23 +64,29 @@ sketchybar --add item front_app center \
 
 sketchybar --add item battery right \
   --set battery \
+    icon.drawing=on \
     update_freq=120 \
     script="$PLUGIN_DIR/battery.sh" \
   --subscribe battery system_woke power_source_change
 
 sketchybar --add item volume right \
   --set volume \
+    icon.drawing=on \
     script="$PLUGIN_DIR/volume.sh" \
   --subscribe volume volume_change
 
 sketchybar --add item bluetooth right \
   --set bluetooth \
+    icon=󰂯 \
+    icon.drawing=on \
     update_freq=60 \
     script="$PLUGIN_DIR/bluetooth.sh" \
   --subscribe bluetooth system_woke
 
 sketchybar --add item clock right \
   --set clock \
+    icon=󰥔 \
+    icon.drawing=on \
     update_freq=10 \
     script="$PLUGIN_DIR/clock.sh"
 

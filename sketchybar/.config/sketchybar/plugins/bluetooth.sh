@@ -8,7 +8,7 @@ devices="$(
 )"
 
 if [[ -n "$devices" ]]; then
-  sketchybar --set "$NAME" label="BT $devices"
+  sketchybar --set "$NAME" label="$devices"
 else
-  sketchybar --set "$NAME" label="BT —"
+  sketchybar --set "$NAME" label="—"
 fi
