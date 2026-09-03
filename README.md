@@ -82,11 +82,12 @@ applied with `aerospace reload-config`.
 ## Theme
 
 `theme/colors.toml` is the single source of truth for the 素 (Su) palette.
-Seven configs are generated from it and carry a "do not edit by hand" header:
+Eight configs are generated from it and carry a "do not edit by hand" header:
 
 | Generated file                                       | Consumer     |
 |------------------------------------------------------|--------------|
 | `ghostty/.config/ghostty/config.ghostty`             | Terminal     |
+| `borders/.config/borders/bordersrc`                  | Window borders |
 | `nvim/.config/nvim/colors/su.lua`                    | Neovim       |
 | `doom/.config/doom/themes/su-theme.el`               | Doom Emacs   |
 | `starship/.config/starship.toml`                     | Prompt       |

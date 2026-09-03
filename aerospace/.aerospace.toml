@@ -3,7 +3,11 @@ config-version = 2
 # AeroSpace must be launched once manually to receive Accessibility permission.
 start-at-login = true
 
-after-startup-command = ['exec-and-forget sketchybar']
+# borders reads ~/.config/borders/bordersrc when started with no arguments.
+after-startup-command = [
+  'exec-and-forget sketchybar',
+  'exec-and-forget borders',
+]
 
 exec-on-workspace-change = [
   '/bin/bash',

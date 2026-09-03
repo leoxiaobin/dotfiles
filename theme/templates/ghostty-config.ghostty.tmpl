@@ -26,10 +26,10 @@ palette = 15={{ fg }}
 window-theme = system
 
 # AeroSpace tiles these windows, so the titlebar is dead space: the traffic
-# lights duplicate keybindings and the title duplicates SketchyBar. "hidden"
-# drops it while keeping the native frame and rounded corners, which
-# window-decoration = none would square off. Only affects new windows.
-macos-titlebar-style = hidden
+# lights duplicate keybindings and the title duplicates SketchyBar. "none"
+# also squares the corners, which matters in a tiled layout: rounded corners
+# leave four gaps of desktop showing at every window junction.
+window-decoration = none
 
 # Maple Mono NF CN includes Latin, Chinese, and Nerd Font glyphs.
 font-family = Maple Mono NF CN

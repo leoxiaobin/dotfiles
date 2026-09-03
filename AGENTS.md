@@ -545,10 +545,11 @@ Terminal descriptions:
 
 ## When Modifying These Configs
 
-- **Never hand-edit a generated theme file.** These seven are rendered from
+- **Never hand-edit a generated theme file.** These eight are rendered from
   `theme/colors.toml` and carry a "do not edit by hand" header; direct edits are
   silently overwritten on the next render:
   `ghostty/.config/ghostty/config.ghostty`,
+  `borders/.config/borders/bordersrc`,
   `nvim/.config/nvim/colors/su.lua`, `doom/.config/doom/themes/su-theme.el`,
   `starship/.config/starship.toml`,
   `sketchybar/.config/sketchybar/sketchybarrc`,

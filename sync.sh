@@ -59,7 +59,7 @@ packages=("${common_packages[@]}")
 case "$os" in
   Darwin)
     platform_name=macOS
-    packages+=(aerospace sketchybar)
+    packages+=(aerospace sketchybar borders)
     ;;
   Linux)
     if [[ -r /proc/version ]] && grep -qiE 'microsoft|wsl' /proc/version; then
