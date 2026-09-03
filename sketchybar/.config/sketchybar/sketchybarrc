@@ -49,23 +49,28 @@ for sid in 1 2 3 4 5 6; do
     --subscribe "workspace.$sid" aerospace_workspace_change
 done
 
-sketchybar --add item front_app left \
+sketchybar --add item front_app center \
   --set front_app \
     label="Desktop" \
     label.color="$MUTED" \
     script="$PLUGIN_DIR/front_app.sh" \
   --subscribe front_app front_app_switched
 
-sketchybar --add item clock right \
-  --set clock \
-    update_freq=10 \
-    script="$PLUGIN_DIR/clock.sh"
-
 sketchybar --add item battery right \
   --set battery \
     update_freq=120 \
     script="$PLUGIN_DIR/battery.sh" \
   --subscribe battery system_woke power_source_change
+
+sketchybar --add item volume right \
+  --set volume \
+    script="$PLUGIN_DIR/volume.sh" \
+  --subscribe volume volume_change
+
+sketchybar --add item clock right \
+  --set clock \
+    update_freq=10 \
+    script="$PLUGIN_DIR/clock.sh"
 
 focused_workspace="$(aerospace list-workspaces --focused 2>/dev/null || true)"
 if [[ -n "$focused_workspace" ]]; then
