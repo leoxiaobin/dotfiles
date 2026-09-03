@@ -83,3 +83,11 @@ k = 'resize height -50'
 l = 'resize width +50'
 enter = 'mode main'
 esc = 'mode main'
+
+[workspace-to-monitor-force-assignment]
+1 = 'main'
+2 = 'main'
+3 = 'main'
+4 = ['secondary', 'main']
+5 = ['secondary', 'main']
+6 = ['secondary', 'main']
