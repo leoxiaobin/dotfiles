@@ -1,33 +1,48 @@
 # 素 (Su) · lsd 色彩映射
-# 浅色背景优化：避免缃色/赭石在大片文字中难读
-# 改用深色系（墨、青花、竹青）作主色，暖色只做点缀
-# 使用 ANSI 256 色号而非颜色名，对应 Su 16 色调色板
+#
+# lsd 只接受 ANSI 色号，而 ANSI 0-15 由终端的 Su 调色板定义
+# (ghostty/.config/ghostty/config.ghostty)，所以这里写的是语义到色号的
+# 映射，真正的色值仍然来自 theme/colors.toml。
+#
+# 3 = 缃色 #6a5d12  4 = 青花 #295f8a  15 = 墨 #38342c
+# 在 #f3eee1 的浅底上缃色只有 5.69:1，墨色有 10.69:1，所以每行都出现的
+# user 和数量最多的 size.medium 用墨色，暖色只做点缀。
 
-user: 15               # ANSI 15 = 墨 #38342C（前景色，最清晰）
-group: 2               # ANSI 2 = 竹青（内容/数据）
-
+user: 15               # 墨 — 每行都出现，用最高对比
+group: 7
 permission:
-  read: 2              # 竹青（读取=内容）
-  write: 1             # 朱砂（写入=重要）
-  exec: 1              # 朱砂（执行=特殊权限）
-  exec-sticky: 5       # 黛紫（粘滞=更特殊）
-  no-access: 8         # 墨痕（无权限=淡化）
-
-size:
-  none: 8              # 墨痕
-  small: 2             # 竹青
-  medium: 15           # 墨色（中等文件，高对比）
-  large: 4             # 青花（大文件醒目但不刺眼）
-
+  read: 2
+  write: 3
+  exec: 1
+  exec-sticky: 5
+  no-access: 8
+  octal: 6
+  acl: 14
+  context: 7
 date:
-  hour-old: 2          # 竹青（新鲜）
-  day-old: 4           # 青花（近期，更清晰）
-  older: 6             # 天青（久远）
-
+  hour-old: 6
+  day-old: 6
+  older: 4
+size:
+  none: 8
+  small: 2
+  medium: 15           # 墨 — 中等文件最常见
+  large: 1
 inode:
-  valid: 4             # 青花（结构）
-  invalid: 8           # 墨痕
-
+  valid: 5
+  invalid: 8
 links:
-  valid: 6             # 天青（链接，清晰可读）
-  invalid: 8           # 墨痕
+  valid: 13
+  invalid: 8
+tree-edge: 8
+git-status:
+  default: 7
+  unmodified: 8
+  ignored: 8
+  new-in-index: 2
+  new-in-workdir: 2
+  typechange: 3
+  deleted: 1
+  renamed: 4
+  modified: 3
+  conflicted: 1
