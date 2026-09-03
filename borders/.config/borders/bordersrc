@@ -8,6 +8,13 @@
 #
 # style=square matches Ghostty's window-decoration = none. Rounded borders
 # around square windows leave a visible notch at each corner.
+#
+# Every other app stays rounded, so those borders are the ones slightly out of
+# step, and that is deliberate. macOS rounds the standard window frame in the
+# WindowServer: there is no defaults key for it, and the tools that override it
+# need SIP disabled, which this setup will not do. Ghostty escapes it only by
+# drawing its own frame. Squaring the borders therefore favours the one window
+# that is genuinely square over the many that cannot be.
 
 options=(
 	style=square
