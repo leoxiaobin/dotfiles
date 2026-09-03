@@ -5,11 +5,11 @@ set -euo pipefail
 
 PLUGIN_DIR="$CONFIG_DIR/plugins"
 
-BG=0xfff3eee1
-BG_SOFT=0xffe9e1cf
-FG=0xff38342c
-MUTED=0xff5f584c
-BORDER=0xffddd4bf
+BG=0xff{{ bg.raw }}
+BG_SOFT=0xff{{ bg_soft.raw }}
+FG=0xff{{ fg.raw }}
+MUTED=0xff{{ muted.raw }}
+BORDER=0xff{{ border.raw }}
 
 sketchybar --bar \
   position=top \

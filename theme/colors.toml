@@ -1,3 +1,9 @@
+# 素 (Su) palette — the single source of truth for every themed config.
+#
+# Every value here was extracted from a config file that already used it; none
+# were invented. Edit a colour here, then run bin/theme-set to regenerate the
+# consumers listed in targets.toml.
+
 [colors]
 # Neutral surfaces and text
 bg = "#f3eee1"
@@ -8,6 +14,8 @@ selection = "#d6cbae"
 border = "#ddd4bf"
 fg = "#38342c"
 muted = "#5f584c"
+dim = "#5a5447"       # Doom base6, Ghostty ANSI 0
+ink = "#1f1a16"       # Doom base8, darkest ink
 
 # Traditional accent colors
 keyword = "#295f8a"   # 青花

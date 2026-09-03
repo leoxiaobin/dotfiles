@@ -1,0 +1,179 @@
+#!/usr/bin/env python3
+"""Render every themed config from theme/colors.toml.
+
+The palette lives in theme/colors.toml and each consumer has one template in
+theme/templates/, mapped to its output path by theme/targets.toml. Templates
+use two placeholders:
+
+    {{ name }}       ->  #295f8a
+    {{ name.raw }}   ->  295f8a
+
+Run with --check to diff the rendered output against the files on disk without
+writing anything; that is what proves the palette and the configs agree.
+"""
+
+from __future__ import annotations
+
+import argparse
+import difflib
+import os
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+PLACEHOLDER = re.compile(r"\{\{\s*([A-Za-z0-9_]+)(\.raw)?\s*\}\}")
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+PALETTE_FILE = REPO_ROOT / "theme" / "colors.toml"
+TARGETS_FILE = REPO_ROOT / "theme" / "targets.toml"
+TEMPLATE_DIR = REPO_ROOT / "theme" / "templates"
+
+
+def load_toml(path: Path) -> dict:
+    """Parse a TOML file, falling back to a minimal reader on Python < 3.11."""
+    try:
+        import tomllib
+    except ModuleNotFoundError:
+        return _load_simple_toml(path)
+    with path.open("rb") as handle:
+        return tomllib.load(handle)
+
+
+def _load_simple_toml(path: Path) -> dict:
+    """Handle the single-table `key = "value"` subset these two files use."""
+    data: dict[str, dict[str, str]] = {}
+    table: dict[str, str] | None = None
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.split("#", 1)[0].strip()
+        if not line:
+            continue
+        if line.startswith("[") and line.endswith("]"):
+            table = data.setdefault(line[1:-1].strip(), {})
+            continue
+        if table is None or "=" not in line:
+            continue
+        key, value = (part.strip() for part in line.split("=", 1))
+        table[key.strip('"')] = value.strip('"')
+    return data
+
+
+def load_palette() -> dict[str, str]:
+    colors = load_toml(PALETTE_FILE).get("colors", {})
+    if not colors:
+        sys.exit(f"error: no [colors] table in {PALETTE_FILE}")
+
+    for name, value in colors.items():
+        if not re.fullmatch(r"#[0-9a-f]{6}", value):
+            sys.exit(f"error: {name} is not a lowercase #rrggbb colour: {value}")
+    return colors
+
+
+def load_targets() -> dict[str, str]:
+    targets = load_toml(TARGETS_FILE).get("targets", {})
+    if not targets:
+        sys.exit(f"error: no [targets] table in {TARGETS_FILE}")
+    return targets
+
+
+def render(template: str, palette: dict[str, str], source: Path) -> str:
+    missing: set[str] = set()
+
+    def substitute(match: re.Match[str]) -> str:
+        name, raw = match.group(1), match.group(2)
+        if name not in palette:
+            missing.add(name)
+            return match.group(0)
+        return palette[name][1:] if raw else palette[name]
+
+    result = PLACEHOLDER.sub(substitute, template)
+    if missing:
+        sys.exit(
+            f"error: {source.name} uses colours missing from colors.toml: "
+            + ", ".join(sorted(missing))
+        )
+    return result
+
+
+def hot_reload() -> None:
+    if shutil.which("sketchybar"):
+        subprocess.run(["sketchybar", "--reload"], check=False)
+        print("reloaded sketchybar")
+    print("nvim and Doom pick up the new theme on next start")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="diff rendered output against the files on disk; write nothing",
+    )
+    parser.add_argument(
+        "--no-reload",
+        action="store_true",
+        help="write the files but skip hot-reloading anything",
+    )
+    args = parser.parse_args()
+
+    palette = load_palette()
+    targets = load_targets()
+
+    changed: list[str] = []
+    for template_name, output_path in sorted(targets.items()):
+        template_file = TEMPLATE_DIR / template_name
+        if not template_file.is_file():
+            sys.exit(f"error: missing template: {template_file}")
+
+        output_file = REPO_ROOT / output_path
+        rendered = render(
+            template_file.read_text(encoding="utf-8"), palette, template_file
+        )
+        current = (
+            output_file.read_text(encoding="utf-8") if output_file.is_file() else ""
+        )
+
+        if rendered == current:
+            continue
+
+        changed.append(output_path)
+        if args.check:
+            sys.stdout.writelines(
+                difflib.unified_diff(
+                    current.splitlines(keepends=True),
+                    rendered.splitlines(keepends=True),
+                    fromfile=f"a/{output_path}",
+                    tofile=f"b/{output_path}",
+                )
+            )
+            continue
+
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        mode = output_file.stat().st_mode if output_file.is_file() else None
+        output_file.write_text(rendered, encoding="utf-8")
+        if mode is not None:
+            os.chmod(output_file, mode)
+        print(f"rendered {output_path}")
+
+    if args.check:
+        if changed:
+            print(
+                f"\n{len(changed)} file(s) differ from theme/colors.toml",
+                file=sys.stderr,
+            )
+            return 1
+        print(f"all {len(targets)} generated files match theme/colors.toml")
+        return 0
+
+    if not changed:
+        print(f"all {len(targets)} generated files already up to date")
+        return 0
+
+    if not args.no_reload:
+        hot_reload()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

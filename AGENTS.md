@@ -540,6 +540,17 @@ Terminal descriptions:
 
 ## When Modifying These Configs
 
+- **Never hand-edit a generated theme file.** These six are rendered from
+  `theme/colors.toml` and carry a "do not edit by hand" header; direct edits are
+  silently overwritten on the next render:
+  `nvim/.config/nvim/colors/su.lua`, `doom/.config/doom/themes/su-theme.el`,
+  `starship/.config/starship.toml`,
+  `sketchybar/.config/sketchybar/sketchybarrc`,
+  `sketchybar/.config/sketchybar/plugins/aerospace.sh`,
+  `scripts/apply-su-macos.sh`.
+  To change a colour, edit `theme/colors.toml` (or the matching template in
+  `theme/templates/`), then run `./bin/theme-set` and commit both sides.
+  Verify with `./bin/theme-set --check`, which exits non-zero on any drift.
 - Edit files in `~/dotfiles/`, not the symlink targets
 - Run `./sync.sh` after adding or changing managed dotfiles
 - To sync another machine after changes are pushed: `cd ~/dotfiles && git pull --ff-only && ./sync.sh`
@@ -547,6 +558,7 @@ Terminal descriptions:
 - Prefer `./sync.sh` over raw `stow`; use direct `stow` only when debugging the sync script itself
 - Preserve local override files (`~/.zshrc.local`, `~/.gitconfig.local`, `~/.config/ghostty/config`)
 - After running `./sync.sh`, verify the synced environment before reporting success:
+  - `./bin/theme-set --check`
   - `zsh -n ~/.zshrc`
   - `test -L ~/.tmux.conf`
   - `tmux source-file ~/.tmux.conf` when tmux is installed

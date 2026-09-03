@@ -3,11 +3,11 @@
 
 set -euo pipefail
 
-BG=0xfff3eee1
-FG=0xff38342c
-BG_SOFT=0xffe9e1cf
-ACCENT=0xff295f8a
-ATTENTION=0xff6a5d12
+BG=0xff{{ bg.raw }}
+FG=0xff{{ fg.raw }}
+BG_SOFT=0xff{{ bg_soft.raw }}
+ACCENT=0xff{{ keyword.raw }}
+ATTENTION=0xff{{ accent.raw }}
 
 sid="${NAME#workspace.}"
 focused_workspace="${FOCUSED_WORKSPACE:-$(aerospace list-workspaces --focused 2>/dev/null || true)}"

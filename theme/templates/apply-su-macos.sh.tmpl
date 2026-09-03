@@ -7,9 +7,9 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
   exit 1
 fi
 
-su_bg="#f3eee1"       # 宣纸
-su_bg_soft="#e9e1cf" # 面板
-su_sel_rgb="0.839216 0.796078 0.682353" # #d6cbae
+su_bg="{{ bg }}"       # 宣纸
+su_bg_soft="{{ bg_soft }}" # 面板
+su_sel_rgb="0.839216 0.796078 0.682353" # {{ selection }}
 
 wallpaper_dir="$HOME/Pictures/Su Theme"
 wallpaper_ppm="$wallpaper_dir/su-wallpaper.ppm"
@@ -73,7 +73,7 @@ cat <<EOF
 Applied Su macOS settings:
 - Appearance: Light
 - Accent: Blue, closest built-in match for 青花
-- Highlight: #d6cbae selection tone
+- Highlight: {{ selection }} selection tone
 - Window tinting/transparency: reduced for stable paper panels
 - Wallpaper: $su_bg → $su_bg_soft rice-paper gradient
 

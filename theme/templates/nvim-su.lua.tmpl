@@ -13,26 +13,26 @@ vim.g.colors_name = "su"
 -- 规范调色板
 local colors = {
   -- 中性色
-  bg = "#f3eee1", -- 宣纸
-  bg_soft = "#e9e1cf",
-  bg_code = "#eee6d5",
-  bg_hl = "#e3dac3", -- 当前行
-  sel = "#d6cbae", -- 选区
-  border = "#ddd4bf",
-  fg = "#38342c", -- 墨
-  fg_dim = "#5f584c",
-  comment = "#5f584c", -- 墨痕（注释；AA 对比，仍弱于正文）
-  comment_dim = "#5f584c",
+  bg = "{{ bg }}", -- 宣纸
+  bg_soft = "{{ bg_soft }}",
+  bg_code = "{{ bg_code }}",
+  bg_hl = "{{ bg_highlight }}", -- 当前行
+  sel = "{{ selection }}", -- 选区
+  border = "{{ border }}",
+  fg = "{{ fg }}", -- 墨
+  fg_dim = "{{ muted }}",
+  comment = "{{ muted }}", -- 墨痕（注释；AA 对比，仍弱于正文）
+  comment_dim = "{{ muted }}",
 
   -- 强调色（传统色）
-  qinghua = "#295f8a", -- 青花（keyword）
-  tianqing = "#236b5c", -- 天青（type）
-  zhuqing = "#3f6428", -- 竹青（string）
-  xiang = "#6a5d12", -- 缃色（function）
-  zheshi = "#8f3c22", -- 赭石（number）
-  zhusha = "#8c1234", -- 朱砂（error）
-  daizi = "#5a4685", -- 黛紫（builtin）
-  yanzhi = "#84394f", -- 胭脂（field）
+  qinghua = "{{ keyword }}", -- 青花（keyword）
+  tianqing = "{{ type }}", -- 天青（type）
+  zhuqing = "{{ string }}", -- 竹青（string）
+  xiang = "{{ accent }}", -- 缃色（function）
+  zheshi = "{{ number }}", -- 赭石（number）
+  zhusha = "{{ error }}", -- 朱砂（error）
+  daizi = "{{ builtin }}", -- 黛紫（builtin）
+  yanzhi = "{{ field }}", -- 胭脂（field）
 }
 
 local function hi(group, opts)

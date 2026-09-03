@@ -1,0 +1,10 @@
+# Maps each template in theme/templates/ to the file it generates.
+# Paths are relative to the repository root.
+
+[targets]
+"nvim-su.lua.tmpl" = "nvim/.config/nvim/colors/su.lua"
+"doom-su-theme.el.tmpl" = "doom/.config/doom/themes/su-theme.el"
+"starship.toml.tmpl" = "starship/.config/starship.toml"
+"sketchybarrc.tmpl" = "sketchybar/.config/sketchybar/sketchybarrc"
+"sketchybar-aerospace.sh.tmpl" = "sketchybar/.config/sketchybar/plugins/aerospace.sh"
+"apply-su-macos.sh.tmpl" = "scripts/apply-su-macos.sh"

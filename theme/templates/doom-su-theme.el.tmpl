@@ -23,29 +23,29 @@
 宣纸底、水墨字、传统色。高级感来自克制。"
 
   ;; 规范调色板
-  ((bg         '("#f3eee1")) ;; 宣纸
-   (fg         '("#38342c")) ;; 墨
-   (bg-alt     '("#e9e1cf")) ;; 面板
-   (fg-alt     '("#5f584c")) ;; 次前景
-   (base0      '("#e3dac3")) ;; 当前行
-   (base1      '("#d6cbae")) ;; 选区
-   (base2      '("#ddd4bf")) ;; 边框
-   (base3      '("#5f584c"))
-   (base4      '("#5f584c")) ;; 墨痕（注释）
-   (base5      '("#5f584c"))
-   (base6      '("#5a5447"))
-   (base7      '("#38342c"))
-   (base8      '("#1f1a16"))
+  ((bg         '("{{ bg }}")) ;; 宣纸
+   (fg         '("{{ fg }}")) ;; 墨
+   (bg-alt     '("{{ bg_soft }}")) ;; 面板
+   (fg-alt     '("{{ muted }}")) ;; 次前景
+   (base0      '("{{ bg_highlight }}")) ;; 当前行
+   (base1      '("{{ selection }}")) ;; 选区
+   (base2      '("{{ border }}")) ;; 边框
+   (base3      '("{{ muted }}"))
+   (base4      '("{{ muted }}")) ;; 墨痕（注释）
+   (base5      '("{{ muted }}"))
+   (base6      '("{{ dim }}"))
+   (base7      '("{{ fg }}"))
+   (base8      '("{{ ink }}"))
 
    ;; 强调色（传统色）
-   (qinghua    '("#295f8a")) ;; 青花（keyword）
-   (tianqing   '("#236b5c")) ;; 天青（type）
-   (zhuqing    '("#3f6428")) ;; 竹青（string）
-   (xiang      '("#6a5d12")) ;; 缃色（function）
-   (zheshi     '("#8f3c22")) ;; 赭石（number）
-   (zhusha     '("#8c1234")) ;; 朱砂（error）
-   (daizi      '("#5a4685")) ;; 黛紫（builtin）
-   (yanzhi     '("#84394f")) ;; 胭脂（field）
+   (qinghua    '("{{ keyword }}")) ;; 青花（keyword）
+   (tianqing   '("{{ type }}")) ;; 天青（type）
+   (zhuqing    '("{{ string }}")) ;; 竹青（string）
+   (xiang      '("{{ accent }}")) ;; 缃色（function）
+   (zheshi     '("{{ number }}")) ;; 赭石（number）
+   (zhusha     '("{{ error }}")) ;; 朱砂（error）
+   (daizi      '("{{ builtin }}")) ;; 黛紫（builtin）
+   (yanzhi     '("{{ field }}")) ;; 胭脂（field）
 
    ;; Doom 语义映射
    (grey       base4)
