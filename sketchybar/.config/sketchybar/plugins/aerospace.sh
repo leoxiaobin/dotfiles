@@ -12,11 +12,16 @@ sid="${NAME#workspace.}"
 focused_workspace="${FOCUSED_WORKSPACE:-$(aerospace list-workspaces --focused 2>/dev/null || true)}"
 label="$sid"
 has_attention=false
+has_nonnumeric_attention=false
 
 if [[ "$sid" == "4" ]]; then
   unread_count=0
 
-  for bundle_id in com.microsoft.teams2 com.tinyspeck.slackmacgap; do
+  for bundle_id in \
+    com.microsoft.teams2 \
+    com.tinyspeck.slackmacgap \
+    com.microsoft.Outlook
+  do
     asn="$(lsappinfo find "bundleID=$bundle_id" 2>/dev/null | head -1)"
     [[ -n "$asn" ]] || continue
 
@@ -29,11 +34,15 @@ if [[ "$sid" == "4" ]]; then
       unread_count=$((unread_count + badge))
     elif [[ -n "$badge" ]]; then
       has_attention=true
+      has_nonnumeric_attention=true
     fi
   done
 
   if ((unread_count > 0)); then
     label="4 +$unread_count"
+    if $has_nonnumeric_attention; then
+      label="$label •"
+    fi
     has_attention=true
   elif $has_attention; then
     label="4 •"
