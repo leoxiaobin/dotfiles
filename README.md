@@ -12,6 +12,7 @@ Terminal-centric development environment managed with [GNU Stow](https://www.gnu
 | `doom`       | Doom Emacs: LSP, vterm, org capture, magit, AI helpers                 |
 | `nvim`       | LazyVim: Su theme, org-mode, OSC 52 clipboard                          |
 | `ghostty`    | Ghostty terminal: Su palette, Maple Mono NF CN 16pt                    |
+| `sketchybar` | SketchyBar: AeroSpace workspaces, focused app, battery, and clock       |
 | `aerospace`  | AeroSpace: keyboard-first window focus, movement, and workspaces       |
 | `lsd`        | `lsd` listing colors tuned for light and dark terminals                |
 | `yazi`       | Yazi file openers, including HTML files in Google Chrome               |

@@ -9,6 +9,7 @@ packages=(
   nvim
   ghostty
   aerospace
+  sketchybar
   lsd
   yazi
   fontconfig

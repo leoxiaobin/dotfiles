@@ -3,6 +3,14 @@ config-version = 2
 # AeroSpace must be launched once manually to receive Accessibility permission.
 start-at-login = true
 
+after-startup-command = ['exec-and-forget sketchybar']
+
+exec-on-workspace-change = [
+  '/bin/bash',
+  '-c',
+  'sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE',
+]
+
 # Workspace roles: 1 CODE, 2 WEB, 3 AI, 4 COMM, 5 MONITOR, 6 DOCS.
 persistent-workspaces = ['1', '2', '3', '4', '5', '6']
 

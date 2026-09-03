@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+
+BG=0xfff3eee1
+BG_SOFT=0xffe9e1cf
+FG=0xff38342c
+MUTED=0xff5f584c
+BORDER=0xffddd4bf
+
+sketchybar --bar \
+  position=top \
+  height=32 \
+  color="$BG" \
+  border_width=1 \
+  border_color="$BORDER" \
+  shadow=off \
+  sticky=on \
+  padding_left=8 \
+  padding_right=8
+
+default=(
+  padding_left=4
+  padding_right=4
+  icon.drawing=off
+  label.color="$FG"
+  label.font="Maple Mono NF CN:Regular:13.0"
+  label.padding_left=7
+  label.padding_right=7
+)
+sketchybar --default "${default[@]}"
+
+sketchybar --add event aerospace_workspace_change
+
+for sid in 1 2 3 4 5 6; do
+  sketchybar --add item "workspace.$sid" left \
+    --set "workspace.$sid" \
+      label="$sid" \
+      background.color="$BG_SOFT" \
+      background.corner_radius=5 \
+      background.height=24 \
+      background.drawing=on \
+      script="$PLUGIN_DIR/aerospace.sh" \
+      click_script="aerospace workspace $sid" \
+    --subscribe "workspace.$sid" aerospace_workspace_change
+done
+
+sketchybar --add item front_app left \
+  --set front_app \
+    label="Desktop" \
+    label.color="$MUTED" \
+    script="$PLUGIN_DIR/front_app.sh" \
+  --subscribe front_app front_app_switched
+
+sketchybar --add item clock right \
+  --set clock \
+    update_freq=10 \
+    script="$PLUGIN_DIR/clock.sh"
+
+sketchybar --add item battery right \
+  --set battery \
+    update_freq=120 \
+    script="$PLUGIN_DIR/battery.sh" \
+  --subscribe battery system_woke power_source_change
+
+focused_workspace="$(aerospace list-workspaces --focused 2>/dev/null || true)"
+if [[ -n "$focused_workspace" ]]; then
+  sketchybar --trigger aerospace_workspace_change "FOCUSED_WORKSPACE=$focused_workspace"
+fi
+
+sketchybar --update
