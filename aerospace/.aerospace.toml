@@ -38,6 +38,7 @@ on-window-detected = [
 
   # MONITOR
   { if.app-id = 'com.apple.ActivityMonitor', run = 'move-node-to-workspace 5' },
+  { if.app-id = 'com.microsoft.rdc.macos', run = 'move-node-to-workspace 5' },
 
   # DOCS
   { if.app-id = 'org.zotero.zotero', run = 'move-node-to-workspace 6' },
