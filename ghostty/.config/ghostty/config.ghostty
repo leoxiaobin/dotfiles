@@ -35,6 +35,9 @@ clipboard-write = allow
 # Global Quick Terminal toggle; requires macOS Accessibility permission.
 keybind = global:cmd+grave_accent=toggle_quick_terminal
 
+# Open a new AeroSpace-managed window instead of adding a tab.
+keybind = cmd+t=new_window
+
 # Ghostty's default TERM is xterm-ghostty, which most remote hosts and container
 # images do not carry in their terminfo database. With no entry, tput and clear
 # fail, tmux refuses to start, and every arrow/Home/End/Delete key resolves to an
