@@ -1,0 +1,20 @@
+[colors]
+# Neutral surfaces and text
+bg = "#f3eee1"
+bg_soft = "#e9e1cf"
+bg_code = "#eee6d5"
+bg_highlight = "#e3dac3"
+selection = "#d6cbae"
+border = "#ddd4bf"
+fg = "#38342c"
+muted = "#5f584c"
+
+# Traditional accent colors
+keyword = "#295f8a"   # 青花
+type = "#236b5c"      # 天青
+string = "#3f6428"    # 竹青
+accent = "#6a5d12"    # 缃色
+number = "#8f3c22"    # 赭石
+error = "#8c1234"     # 朱砂
+builtin = "#5a4685"   # 黛紫
+field = "#84394f"     # 胭脂
