@@ -9,6 +9,10 @@ after-startup-command = [
   'exec-and-forget borders',
 ]
 
+# front_app_switched only fires when the frontmost application changes, so it
+# cannot tell two Ghostty windows apart. This fires on every focus change.
+on-focus-changed = ['exec-and-forget sketchybar --trigger aerospace_focus_change']
+
 exec-on-workspace-change = [
   '/bin/bash',
   '-c',

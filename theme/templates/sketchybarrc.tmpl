@@ -40,6 +40,7 @@ default=(
 sketchybar --default "${default[@]}"
 
 sketchybar --add event aerospace_workspace_change
+sketchybar --add event aerospace_focus_change
 
 for sid in 1 2 3 4 5 6; do
   sketchybar --add item "workspace.$sid" left \
@@ -60,8 +61,9 @@ sketchybar --add item front_app center \
   --set front_app \
     label="Desktop" \
     label.color="$MUTED" \
+    label.max_chars=45 \
     script="$PLUGIN_DIR/front_app.sh" \
-  --subscribe front_app front_app_switched
+  --subscribe front_app front_app_switched aerospace_focus_change
 
 sketchybar --add item battery right \
   --set battery \
