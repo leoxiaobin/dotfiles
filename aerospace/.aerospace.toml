@@ -1,0 +1,77 @@
+config-version = 2
+
+# AeroSpace must be launched once manually to receive Accessibility permission.
+start-at-login = true
+
+# Workspace roles: 1 CODE, 2 WEB, 3 AI, 4 COMM, 5 MONITOR, 6 DOCS.
+persistent-workspaces = ['1', '2', '3', '4', '5', '6']
+
+on-window-detected = [
+  # CODE
+  { if.app-id = 'com.mitchellh.ghostty', run = 'move-node-to-workspace 1' },
+
+  # WEB
+  { if.app-id = 'company.thebrowser.Browser', run = 'move-node-to-workspace 2' },
+  { if.app-id = 'com.google.Chrome', run = 'move-node-to-workspace 2' },
+  { if.app-id = 'com.kagi.kagimacOS', run = 'move-node-to-workspace 2' },
+  { if.app-id = 'com.apple.Safari', run = 'move-node-to-workspace 2' },
+
+  # AI
+  { if.app-id = 'com.openai.codex', run = 'move-node-to-workspace 3' },
+  { if.app-id = 'com.openai.chat', run = 'move-node-to-workspace 3' },
+  { if.app-id = 'com.anthropic.claudefordesktop', run = 'move-node-to-workspace 3' },
+
+  # COMM
+  { if.app-id = 'com.microsoft.teams2', run = 'move-node-to-workspace 4' },
+  { if.app-id = 'com.microsoft.Outlook', run = 'move-node-to-workspace 4' },
+  { if.app-id = 'com.apple.mail', run = 'move-node-to-workspace 4' },
+  { if.app-id = 'org.whispersystems.signal-desktop', run = 'move-node-to-workspace 4' },
+  { if.app-id = 'com.tinyspeck.slackmacgap', run = 'move-node-to-workspace 4' },
+
+  # MONITOR
+  { if.app-id = 'com.apple.ActivityMonitor', run = 'move-node-to-workspace 5' },
+
+  # DOCS
+  { if.app-id = 'org.zotero.zotero', run = 'move-node-to-workspace 6' },
+  { if.app-id = 'com.apple.Preview', run = 'move-node-to-workspace 6' },
+  { if.app-id = 'com.apple.iBooksX', run = 'move-node-to-workspace 6' },
+]
+
+[mode.main.binding]
+alt-h = 'focus --boundaries all-monitors-outer-frame left'
+alt-j = 'focus --boundaries all-monitors-outer-frame down'
+alt-k = 'focus --boundaries all-monitors-outer-frame up'
+alt-l = 'focus --boundaries all-monitors-outer-frame right'
+
+alt-shift-h = 'move left'
+alt-shift-j = 'move down'
+alt-shift-k = 'move up'
+alt-shift-l = 'move right'
+
+alt-f = 'fullscreen'
+alt-shift-space = 'layout floating tiling'
+alt-slash = ['layout tiling', 'layout tiles horizontal vertical']
+alt-comma = ['layout tiling', 'layout accordion horizontal vertical']
+alt-r = 'mode resize'
+
+alt-1 = 'workspace 1'
+alt-2 = 'workspace 2'
+alt-3 = 'workspace 3'
+alt-4 = 'workspace 4'
+alt-5 = 'workspace 5'
+alt-6 = 'workspace 6'
+
+alt-shift-1 = 'move-node-to-workspace 1'
+alt-shift-2 = 'move-node-to-workspace 2'
+alt-shift-3 = 'move-node-to-workspace 3'
+alt-shift-4 = 'move-node-to-workspace 4'
+alt-shift-5 = 'move-node-to-workspace 5'
+alt-shift-6 = 'move-node-to-workspace 6'
+
+[mode.resize.binding]
+h = 'resize width -50'
+j = 'resize height +50'
+k = 'resize height -50'
+l = 'resize width +50'
+enter = 'mode main'
+esc = 'mode main'

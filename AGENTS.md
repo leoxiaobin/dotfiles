@@ -26,7 +26,7 @@ This visible marker helps confirm that the agent found and is following
 ## What This Repo Is
 
 A GNU Stow-managed dotfiles repo for a terminal-centric dev workflow.
-Covers: zsh, git, tmux, Doom Emacs, LazyVim (Neovim), Ghostty, lsd, Yazi, fontconfig, starship.
+Covers: zsh, git, tmux, Doom Emacs, LazyVim (Neovim), Ghostty, AeroSpace, lsd, Yazi, fontconfig, starship.
 
 ## Directory Structure
 
@@ -46,6 +46,7 @@ dotfiles/
   nvim/.config/nvim/stylua.toml       → ~/.config/nvim/stylua.toml
   nvim/.config/nvim/lua/              → ~/.config/nvim/lua/
   ghostty/.config/ghostty/config.ghostty → ~/.config/ghostty/config.ghostty
+  aerospace/.aerospace.toml           → ~/.aerospace.toml
   lsd/.config/lsd/{config,colors}.yaml → ~/.config/lsd/
   yazi/.config/yazi/yazi.toml          → ~/.config/yazi/yazi.toml
   fontconfig/.config/fontconfig/      → ~/.config/fontconfig/
@@ -91,6 +92,11 @@ brew upgrade neovim
 ```bash
 brew install --cask ghostty
 # Linux: install from https://ghostty.org/docs/install/binary
+```
+
+**AeroSpace window manager (macOS only):**
+```bash
+brew install --cask nikitabobko/tap/aerospace
 ```
 
 ### 2. Required CLI tools
@@ -545,6 +551,7 @@ Terminal descriptions:
   - `test -L ~/.tmux.conf`
   - `tmux source-file ~/.tmux.conf` when tmux is installed
   - `ghostty +validate-config --config-file=~/.config/ghostty/config.ghostty` when Ghostty is installed
+  - `aerospace reload-config --no-gui --dry-run --warnings-as-errors` when AeroSpace is installed
   - `nvim --headless "+Lazy! sync" +qa`
   - `doom sync --force --rebuild`
   - `PAGER=cat doom doctor`

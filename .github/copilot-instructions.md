@@ -19,6 +19,7 @@ This is a GNU Stow-managed dotfiles repository for a terminal-centric developmen
 | Lint one shell script              | `shellcheck sync.sh` or `shellcheck tmux/.tmux/custom/git_status.sh`            |
 | Reload tmux after syncing          | `tmux source-file ~/.tmux.conf`                                                 |
 | Validate Ghostty config            | `ghostty +validate-config --config-file=ghostty/.config/ghostty/config.ghostty` |
+| Validate AeroSpace config          | `aerospace reload-config --no-gui --dry-run --warnings-as-errors`               |
 | Sync LazyVim plugins/config        | `nvim --headless "+Lazy! sync" +qa`                                             |
 | Build the GPU development image    | `./docker/build.sh`                                                             |
 | Build and publish the GPU image    | `./docker/build.sh --cuda <cu126\|cu129\|cu130\|cu132> --push`                  |
@@ -30,7 +31,7 @@ Use the narrowest relevant command above for the package being changed, then run
 
 ## Architecture
 
-Each top-level directory is a Stow package: `zsh`, `git`, `tmux`, `doom`, `nvim`, `ghostty`, `lsd`, `yazi`, `fontconfig`, and `starship`. `sync.sh` hard-codes this package list and runs `stow --no-folding -R` into `$HOME`; add new managed packages there when adding a new top-level package.
+Each top-level directory is a Stow package: `zsh`, `git`, `tmux`, `doom`, `nvim`, `ghostty`, `aerospace`, `lsd`, `yazi`, `fontconfig`, and `starship`. `sync.sh` hard-codes this package list and runs `stow --no-folding -R` into `$HOME`; add new managed packages there when adding a new top-level package.
 
 `zsh/.zshrc` is the shell entry point. It sets cross-platform defaults, loads Oh My Zsh when present, initializes starship and zoxide opportunistically, lazy-loads nvm, provides tmux/yazi helpers, and exposes the `ai <tool>` launcher that starts AI CLIs at the current git root.
 

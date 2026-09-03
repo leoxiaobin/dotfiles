@@ -12,6 +12,7 @@ Terminal-centric development environment managed with [GNU Stow](https://www.gnu
 | `doom`       | Doom Emacs: LSP, vterm, org capture, magit, AI helpers                 |
 | `nvim`       | LazyVim: Su theme, org-mode, OSC 52 clipboard                          |
 | `ghostty`    | Ghostty terminal: Su palette, Maple Mono NF CN 16pt                    |
+| `aerospace`  | AeroSpace: keyboard-first window focus, movement, and workspaces       |
 | `lsd`        | `lsd` listing colors tuned for light and dark terminals                |
 | `yazi`       | Yazi file openers, including HTML files in Google Chrome               |
 | `fontconfig` | Font fallback: Maple Mono NF CN                                        |
@@ -29,6 +30,9 @@ cd ~/dotfiles
 # Install GNU Stow
 sudo apt install stow   # Debian/Ubuntu
 brew install stow        # macOS
+
+# AeroSpace (macOS only)
+brew install --cask nikitabobko/tap/aerospace
 
 # Apply managed dotfiles
 ./sync.sh
@@ -48,6 +52,10 @@ stays focused on human setup, project overview, and daily workflow.
 Ghostty reads `~/.config/ghostty/config.ghostty` from the `ghostty` stow package.
 Keep machine-specific overrides in `~/.config/ghostty/config`; Ghostty loads that
 after `config.ghostty`.
+
+AeroSpace reads `~/.aerospace.toml` from the `aerospace` stow package. Launch
+the app once to grant Accessibility permission; later config changes can be
+applied with `aerospace reload-config`.
 
 For Windows Terminal/WSL, use the `Su` color scheme and `Maple Mono NF CN`
 at 16pt; see `templates/windows-terminal-profile.example.jsonc`.
@@ -414,6 +422,7 @@ doom sync
 │       ├── config/      # LazyVim core config
 │       └── plugins/     # plugin specs
 ├── ghostty/.config/ghostty/config.ghostty
+├── aerospace/.aerospace.toml
 ├── yazi/.config/yazi/yazi.toml
 ├── fontconfig/.config/fontconfig/fonts.conf
 ├── starship/.config/starship.toml
