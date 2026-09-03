@@ -2,4 +2,7 @@
 
 set -euo pipefail
 
-sketchybar --set "$NAME" label="$(date '+%Y-%m-%d %H:%M')"
+local_time="$(date '+%m-%d %H:%M')"
+beijing_time="$(TZ=Asia/Shanghai date '+%m-%d %H:%M')"
+
+sketchybar --set "$NAME" label="$local_time · BJ $beijing_time"
