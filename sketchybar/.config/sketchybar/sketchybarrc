@@ -17,7 +17,7 @@ sketchybar --bar \
   color="$BG" \
   border_width=1 \
   border_color="$BORDER" \
-  display=all \
+  display=main \
   topmost=on \
   shadow=off \
   sticky=on \

@@ -100,6 +100,7 @@ if $pull; then
     echo "DRY-RUN: git -C $repo_dir pull --ff-only"
   else
     git -C "$repo_dir" pull --ff-only
+    exec "$repo_dir/sync.sh"
   fi
 fi
 
@@ -112,6 +113,24 @@ if $dry_run; then
 fi
 
 stow "${stow_args[@]}" "${packages[@]}"
+
+if [[ "$platform_name" == macOS ]]; then
+  if $dry_run; then
+    echo "DRY-RUN: reload AeroSpace and SketchyBar when they are running"
+  else
+    if command -v aerospace >/dev/null 2>&1 &&
+      pgrep -x AeroSpace >/dev/null 2>&1; then
+      aerospace reload-config --no-gui --warnings-as-errors
+      echo "Reloaded AeroSpace."
+    fi
+
+    if command -v sketchybar >/dev/null 2>&1 &&
+      pgrep -x sketchybar >/dev/null 2>&1; then
+      sketchybar --reload
+      echo "Reloaded SketchyBar."
+    fi
+  fi
+fi
 
 tmux_target="$HOME/.tmux.conf"
 if $dry_run; then

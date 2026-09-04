@@ -58,6 +58,13 @@ Debian/Ubuntu dependency list and installs a checksum-verified Neovim `v0.12.5`
 under `~/.local` when the existing version is older than `0.12`. Some
 cross-platform tools that aren't reliably available from apt (including
 Starship, Yazi, and Ghostty) remain explicit post-install requirements on Linux.
+Raycast is installed on macOS through the Brewfile, but its preferences remain
+machine-local.
+
+On macOS, `sync.sh` reloads AeroSpace and SketchyBar when they are already
+running; it does not launch either application. `sync.sh --pull` re-executes the
+newly pulled script before applying packages, so changes to the package list
+take effect in the same command.
 
 Detailed coding-agent instructions live in [AGENTS.md](AGENTS.md). This README
 stays focused on human setup, project overview, and daily workflow.

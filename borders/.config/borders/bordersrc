@@ -15,12 +15,15 @@
 # need SIP disabled, which this setup will not do. Ghostty escapes it only by
 # drawing its own frame. Squaring the borders therefore favours the one window
 # that is genuinely square over the many that cannot be.
+#
+# Keep only the active border visible: the border is a keyboard-focus cue, not
+# permanent window chrome.
 
 options=(
 	style=square
 	active_color=0xff295f8a
-	inactive_color=0xffddd4bf
-	width=5.0
+	inactive_color=0x00000000
+	width=3.0
 )
 
 borders "${options[@]}"
