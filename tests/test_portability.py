@@ -419,17 +419,23 @@ class TmuxClipboardTests(IsolatedConfigTest):
         )
         self.tmux_run("copy-mode", "-t", session)
         self.tmux_run("send-keys", "-t", session, "-X", "search-backward", text.split()[0])
-        for action in ("start-of-line", "begin-selection", "end-of-line"):
+        for action in ("start-of-line", "begin-selection"):
             self.tmux_run("send-keys", "-t", session, "-X", action)
+        # end-of-line includes a newline before tmux 3.7, but not on 3.7.
+        self.tmux_run(
+            "send-keys", "-t", session, "-N", str(len(text) - 1), "-X", "cursor-right",
+        )
         self.drain()
         for output in self.output.values():
             output.clear()
         os.write(master, b"y")
         self.wait_for(
-            lambda: (text + "\n").encode() in self.clipboard(master),
-            "Copy did not deliver OSC 52 to the originating terminal",
+            lambda: bool(self.clipboard(master)),
+            "Copy did not emit OSC 52 to the originating terminal",
         )
-        self.assertEqual(self.tmux_run("show-buffer"), text)
+        self.assertEqual(self.clipboard(master), [text.encode()])
+        result = self.run_command(self.command + ["save-buffer", "-"])
+        self.assertEqual(result.stdout, text)
 
     def test_normal_pane_copies_to_terminal_and_one_shared_buffer(self):
         master, _ = self.attach()
