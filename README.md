@@ -447,12 +447,22 @@ In Doom Emacs: `SPC g g` for Magit.
 | `C-q h/j/k/l`     | Navigate panes (vim-style)  |
 | `C-q z`           | Zoom/unzoom pane            |
 | `C-q c`           | New window                  |
+| `C-q T`           | Floating scratch session    |
+| `C-q [` → `v` → `y` | Select and copy to tmux and the terminal clipboard |
+| `C-q ]`           | Paste from tmux's buffer    |
 | `C-q C-s`         | Save session                |
 | `C-q C-r`         | Restore session             |
 
 Status bar shows: directory | windows `[pane-count]` | git branch | session | time.
 Pane borders show each pane number/command, and the active pane gets a bright
 `ACTIVE` label.
+
+Copying with `y` also works inside the floating scratch session: the popup
+forwards the selection to the terminal that opened it, including when multiple
+terminal clients are connected. This uses OSC 52 on macOS, Linux, and over SSH;
+no `pbcopy`, `xclip`, or `wl-copy` is required. The receiving terminal must allow
+OSC 52 clipboard writes (enabled in the shared Ghostty config). Use `Cmd+V` on
+macOS or your Linux terminal's paste shortcut for the system clipboard.
 
 ### Org Notes
 

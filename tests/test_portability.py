@@ -2,15 +2,24 @@
 
 from __future__ import annotations
 
+import base64
 import contextlib
+import errno
+import fcntl
 import io
 import os
 from pathlib import Path
+import pty
+import re
 import runpy
+import select
 import shlex
 import shutil
+import struct
 import subprocess
 import tempfile
+import termios
+import time
 import unittest
 from unittest import mock
 
@@ -284,15 +293,194 @@ class TmuxTests(IsolatedConfigTest):
                 "-f", str(ROOT / "tmux/.tmux/.tmux.conf"),
                 "new-session", "-d", "-s", "portability", "-c", str(project), "/bin/sh",
             ])
-            result = self.run_command(command + ["list-keys", "-T", "copy-mode-vi", "y"])
-            self.assertIn("copy-selection-and-cancel", result.stdout)
+            # tmux 3.7 sends single-key queries to the status line, not stdout.
+            result = self.run_command(command + ["list-keys", "-T", "copy-mode-vi"])
+            self.assertRegex(
+                result.stdout,
+                r"(?m)^bind-key\s+-T copy-mode-vi\s+y\s+send-keys -X pipe-and-cancel .*copy-to-clipboard\.sh",
+            )
             self.assertNotIn("xclip", result.stdout)
+            self.assertNotIn("pbcopy", result.stdout)
             result = self.run_command(command + ["show-options", "-gv", "status-right"])
             self.assertIn("#{q:pane_current_path}", result.stdout)
             result = self.run_command(command + ["display-message", "-p", "#{q:pane_current_path}"])
             self.assertEqual(shlex.split(result.stdout.strip()), [str(project.resolve())])
         finally:
             self.run_command(command + ["kill-server"], check=False)
+
+
+class TmuxClipboardTests(IsolatedConfigTest):
+    """Exercise real terminal output without touching the system clipboard."""
+
+    def setUp(self):
+        super().setUp()
+        self.tmux = self.tool("tmux")
+        self.command = [self.tmux, "-S", str(self.root / "clipboard.sock")]
+        self.clients = []
+        self.output = {}
+        self.addCleanup(self.stop_tmux)
+        self.script(self.bin / "tmux", f"exec {shlex.quote(self.tmux)} \"$@\"\n")
+        self.script(self.home / ".tmux/plugins/tpm/tpm", "exit 0\n")
+        self.script(
+            self.home / ".tmux/plugins/tmux-continuum/scripts/continuum_save.sh",
+            "exit 0\n",
+        )
+        scripts = self.home / ".tmux/scripts"
+        scripts.mkdir(parents=True)
+        for name in ("scratch-popup.sh", "copy-to-clipboard.sh"):
+            (scripts / name).symlink_to(ROOT / "tmux/.tmux/scripts" / name)
+        self.tmux_run(
+            "-f", str(ROOT / "tmux/.tmux/.tmux.conf"),
+            "new-session", "-d", "-s", "outer", "exec sleep 300",
+        )
+        self.tmux_run("set-option", "-g", "default-shell", "/bin/sh")
+        self.tmux_run("set-option", "-g", "default-command", "exec sleep 300")
+
+    def tmux_run(self, *args):
+        return self.run_command(self.command + list(args)).stdout.strip()
+
+    def stop_tmux(self):
+        self.run_command(self.command + ["kill-server"], check=False)
+        for process, master, slave, _ in self.clients:
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.terminate()
+                process.wait(timeout=5)
+            os.close(master)
+            os.close(slave)
+
+    def drain(self, duration=0.1):
+        deadline = time.monotonic() + duration
+        while time.monotonic() < deadline:
+            ready, _, _ = select.select(list(self.output), [], [], 0.05)
+            for fd in ready:
+                try:
+                    data = os.read(fd, 65536)
+                except OSError as error:
+                    if error.errno != errno.EIO:
+                        raise
+                    data = b""  # Linux PTYs report EIO when their client exits.
+                self.output[fd].extend(data)
+
+    def wait_for(self, predicate, description):
+        deadline = time.monotonic() + 8
+        while time.monotonic() < deadline:
+            self.drain()
+            if predicate():
+                return
+        self.fail(description)
+
+    def attach(self, session="outer"):
+        master, slave = pty.openpty()
+        fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 40, 120, 0, 0))
+        terminal = os.ttyname(slave)
+        process = subprocess.Popen(
+            self.command + ["attach-session", "-t", session],
+            stdin=slave, stdout=slave, stderr=slave, env=self.env,
+            start_new_session=True,
+        )
+        self.clients.append((process, master, slave, terminal))
+        self.output[master] = bytearray()
+        self.wait_for(
+            lambda: terminal in self.tmux_run("list-clients", "-F", "#{client_tty}").splitlines(),
+            "Terminal client did not attach",
+        )
+        return master, terminal
+
+    def popup_clients(self):
+        return [
+            line for line in self.tmux_run(
+                "list-clients", "-F", "#{session_name} #{client_tty}",
+            ).splitlines() if line.startswith("temp ")
+        ]
+
+    def open_popup(self, master, count=1):
+        os.write(master, b"\x11T")
+        self.wait_for(lambda: len(self.popup_clients()) == count, "Scratch popup did not attach")
+
+    def clipboard(self, master):
+        return [
+            base64.b64decode(payload)
+            for payload in re.findall(
+                rb"\x1b\]52;[^;]*;([A-Za-z0-9+/=]*)(?:\x07|\x1b\\)",
+                bytes(self.output[master]),
+            )
+        ]
+
+    def copy(self, session, master, text):
+        self.tmux_run(
+            "respawn-pane", "-k", "-t", session,
+            f"printf '%s\\n' {shlex.quote(text)}; exec sleep 300",
+        )
+        self.wait_for(
+            lambda: text in self.tmux_run("capture-pane", "-p", "-t", session),
+            "Probe text did not render",
+        )
+        self.tmux_run("copy-mode", "-t", session)
+        self.tmux_run("send-keys", "-t", session, "-X", "search-backward", text.split()[0])
+        for action in ("start-of-line", "begin-selection", "end-of-line"):
+            self.tmux_run("send-keys", "-t", session, "-X", action)
+        self.drain()
+        for output in self.output.values():
+            output.clear()
+        os.write(master, b"y")
+        self.wait_for(
+            lambda: (text + "\n").encode() in self.clipboard(master),
+            "Copy did not deliver OSC 52 to the originating terminal",
+        )
+        self.assertEqual(self.tmux_run("show-buffer"), text)
+
+    def test_normal_pane_copies_to_terminal_and_one_shared_buffer(self):
+        master, _ = self.attach()
+        self.copy("outer", master, "normal clipboard: 'quotes' and $dollars")
+        self.assertEqual(len(self.tmux_run("list-buffers").splitlines()), 1)
+
+    def test_popup_copies_before_closing_and_survives_session_switch(self):
+        master, terminal = self.attach()
+        self.open_popup(master)
+        self.copy("temp", master, "popup clipboard probe")
+        self.assertEqual(len(self.popup_clients()), 1)
+        os.write(master, b"\x11d")
+        self.wait_for(lambda: not self.popup_clients(), "Scratch popup did not detach")
+        self.wait_for(
+            lambda: "@popup-clipboard-" not in self.tmux_run("show-options", "-s"),
+            "Popup clipboard route was not cleaned up",
+        )
+        self.tmux_run("new-session", "-d", "-s", "receiver")
+        self.tmux_run("switch-client", "-c", terminal, "-t", "receiver")
+        self.assertEqual(self.tmux_run("show-buffer"), "popup clipboard probe")
+
+    def test_two_popups_send_to_their_own_terminal_only(self):
+        first, _ = self.attach()
+        self.open_popup(first)
+        second, _ = self.attach()
+        self.open_popup(second, count=2)
+        self.copy("temp", first, "first terminal probe")
+        self.drain()
+        self.assertEqual(self.clipboard(second), [])
+        self.copy("temp", second, "second terminal probe")
+        self.drain()
+        self.assertEqual(self.clipboard(first), [])
+
+    def test_missing_parent_does_not_fall_back_to_another_client(self):
+        master, terminal = self.attach()
+        self.tmux_run(
+            "set-option", "-s", "@popup-clipboard-" + terminal.replace("/", "_"),
+            "/dev/missing-popup-parent",
+        )
+        result = subprocess.run(
+            [
+                "bash", str(ROOT / "tmux/.tmux/scripts/copy-to-clipboard.sh"),
+                str(self.root / "clipboard.sock"), terminal,
+            ],
+            input="must not reach another clipboard", text=True, capture_output=True,
+            env=self.env, timeout=10,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("clipboard copy failed", result.stderr)
+        self.drain()
+        self.assertEqual(self.clipboard(master), [])
 
 
 class DoomTests(IsolatedConfigTest):
