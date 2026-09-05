@@ -284,8 +284,11 @@ class TmuxTests(IsolatedConfigTest):
                 "-f", str(ROOT / "tmux/.tmux/.tmux.conf"),
                 "new-session", "-d", "-s", "portability", "-c", str(project), "/bin/sh",
             ])
-            result = self.run_command(command + ["list-keys", "-T", "copy-mode-vi", "y"])
-            self.assertIn("copy-selection-and-cancel", result.stdout)
+            result = self.run_command(command + ["list-keys", "-T", "copy-mode-vi"])
+            self.assertRegex(
+                result.stdout,
+                r"(?m)^bind-key -T copy-mode-vi y\s+send-keys -X copy-selection-and-cancel$",
+            )
             self.assertNotIn("xclip", result.stdout)
             result = self.run_command(command + ["show-options", "-gv", "status-right"])
             self.assertIn("#{q:pane_current_path}", result.stdout)
