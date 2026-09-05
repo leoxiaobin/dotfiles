@@ -92,7 +92,10 @@
        (yaml +lsp)        ; JSON, but readable
 
        :email
-       (mu4e +org)
+       (:if (and (executable-find "mu")
+                 (executable-find "mbsync")
+                 (executable-find "msmtp"))
+        (mu4e +org))
 
        :app
 

@@ -5,8 +5,30 @@
 #   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 # fi
 
-# If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
+# Platform flags are also used by machine-local overrides.
+IS_MACOS=false
+IS_WSL=false
+case "$(uname -s)" in
+  Darwin) IS_MACOS=true ;;
+  Linux)
+    case "$(uname -r)" in
+      *[Mm]icrosoft*) IS_WSL=true ;;
+    esac
+    ;;
+esac
+
+# Login shells do not necessarily inherit Homebrew's PATH.
+if [[ "$IS_MACOS" == true ]]; then
+  for _brew_prefix in "${HOMEBREW_PREFIX:-}" /opt/homebrew /usr/local; do
+    if [[ -n "$_brew_prefix" && -x "$_brew_prefix/bin/brew" ]]; then
+      export HOMEBREW_PREFIX="$_brew_prefix"
+      path+=("$_brew_prefix/bin" "$_brew_prefix/sbin")
+      break
+    fi
+  done
+  unset _brew_prefix
+fi
+typeset -U path
 export PATH="$HOME/.local/bin:$PATH"
 [[ -d /snap/bin ]] && export PATH="$PATH:/snap/bin"
 
@@ -22,9 +44,8 @@ export COLORTERM=truecolor
 # emacsclient -t cannot find a usable terminfo entry there and renders terminal
 # themes with incorrect backgrounds. Unset it so ncurses falls back to the system
 # terminfo database. Doom also caches env vars at sync time, so this keeps
-# `doom env` regenerations clean. The path test is macOS-only by construction,
-# which matters here because IS_MACOS is not defined this early.
-if [[ -n "$TERMINFO" && "$TERMINFO" == /Applications/Ghostty.app/* ]]; then
+# `doom env` regenerations clean.
+if [[ "$IS_MACOS" == true && "$TERMINFO" == /Applications/Ghostty.app/* ]]; then
   # Only drop it when the system database can still describe this terminal.
   # On a Mac where Ghostty's bundled directory is the only source of the entry,
   # unsetting would strip every capability from the local session instead.
@@ -126,7 +147,7 @@ zstyle ':omz:update' mode auto      # update automatically without asking
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 # plugins=(git)
-plugins=(git zsh-syntax-highlighting)
+plugins=(git)
 
 [[ -s "$ZSH/oh-my-zsh.sh" ]] && source "$ZSH/oh-my-zsh.sh"
 
@@ -170,13 +191,6 @@ alias b='brix'
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 # [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-# ─── Platform Detection ──────────────────────────────────────────────
-if [[ "$(uname -r)" == *microsoft* || "$(uname -r)" == *Microsoft* ]]; then
-  IS_WSL=true
-elif [[ "$(uname)" == "Darwin" ]]; then
-  IS_MACOS=true
-fi
-
 # WSL-only tools
 [[ $IS_WSL == true ]] && alias tailscale="/mnt/c/Program\ Files/Tailscale/tailscale.exe"
 
@@ -209,21 +223,47 @@ function y() {
 
 # fzf shell integration (keybindings + completion)
 export FZF_DEFAULT_OPTS="--color=fg:#1F1412,bg:#FBF0DC,hl:#946A3A,fg+:#1F1412,bg+:#D8C8A8,hl+:#946A3A,info:#51453E,prompt:#946A3A,pointer:#946A3A,marker:#435B31,spinner:#946A3A,header:#51453E,border:#D8C8A8 ${FZF_DEFAULT_OPTS:-}"
-if [[ -f /opt/homebrew/opt/fzf/shell/key-bindings.zsh ]]; then
-  source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
-  source /opt/homebrew/opt/fzf/shell/completion.zsh
-elif [[ -f ~/.fzf.zsh ]]; then
+if [[ -r ~/.fzf.zsh ]]; then
   source ~/.fzf.zsh
+elif (( $+commands[fzf] )); then
+  if fzf --zsh >/dev/null 2>&1; then
+    source <(fzf --zsh)
+  else
+    # Older distro packages ship integration files instead of `fzf --zsh`.
+    _fzf_prefix="${commands[fzf]:A:h:h}"
+    _fzf_loaded=false
+    for _fzf_dir in \
+      "$_fzf_prefix/shell" \
+      "$_fzf_prefix/share/fzf" \
+      "$_fzf_prefix/share/fzf/shell" \
+      "$_fzf_prefix/share/doc/fzf/examples"; do
+      if [[ -r "$_fzf_dir/key-bindings.zsh" ]]; then
+        source "$_fzf_dir/key-bindings.zsh"
+        [[ -r "$_fzf_dir/completion.zsh" ]] && source "$_fzf_dir/completion.zsh"
+        _fzf_loaded=true
+        break
+      fi
+    done
+    if [[ "$_fzf_loaded" != true ]]; then
+      print -u2 "dotfiles: fzf shell integration is missing; install its shell files or upgrade fzf."
+    fi
+    unset _fzf_prefix _fzf_dir _fzf_loaded
+  fi
 fi
 # Cross-platform aliases: bat/fd have different names on Debian/Ubuntu vs macOS/Arch
 if (( $+commands[fdfind] )); then alias fd=fdfind; fi
 [[ -d "$HOME/.local/share/bob/nvim-bin" ]] && export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
 
 # SASL plugin path for mbsync XOAUTH2 (system libsasl2 needs to find Homebrew plugins)
-[[ -d /opt/homebrew/lib/sasl2 ]] && export SASL_PATH=/opt/homebrew/lib/sasl2
+if [[ "$IS_MACOS" == true && -n "$HOMEBREW_PREFIX" &&
+      -z "$SASL_PATH" && -d "$HOMEBREW_PREFIX/lib/sasl2" ]]; then
+  export SASL_PATH="$HOMEBREW_PREFIX/lib/sasl2"
+fi
 
 # Zoxide — smarter cd (replaces autojump)
 (( $+commands[zoxide] )) && eval "$(zoxide init zsh)"
+
+(( $+commands[direnv] )) && eval "$(direnv hook zsh)"
 
 typeset -g POWERLEVEL9K_INSTANT_PROMPT=off
 
@@ -337,3 +377,18 @@ if [ -n "$OTTY_SHELL_INTEGRATION" ] && [ -r "$OTTY_SHELL_INTEGRATION/otty-integr
   . "$OTTY_SHELL_INTEGRATION/otty-integration.zsh"
 fi
 # <<< otty shell integration <<<
+
+# Load highlighting last so it sees widgets installed by fzf and local hooks.
+if (( ! $+functions[_zsh_highlight] )); then
+  for _syntax_file in \
+    "${ZSH_CUSTOM:-$ZSH/custom}/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+    "$ZSH/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+    "${HOMEBREW_PREFIX:-/usr/local}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+    "/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"; do
+    if [[ -r "$_syntax_file" ]]; then
+      source "$_syntax_file"
+      break
+    fi
+  done
+  unset _syntax_file
+fi

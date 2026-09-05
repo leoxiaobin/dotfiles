@@ -24,7 +24,7 @@ Usage: ./sync.sh [--pull] [--dry-run]
 Re-stow this dotfiles repo into $HOME after pulling changes.
 
 Options:
-  --pull      Run `git pull --ff-only` before syncing.
+  --pull      Run `git pull --no-rebase --ff-only` before syncing.
   --dry-run   Show what would change without modifying files.
   -h, --help  Show this help.
 EOF
@@ -59,9 +59,10 @@ packages=("${common_packages[@]}")
 case "$os" in
   Darwin)
     platform_name=macOS
-    packages+=(aerospace sketchybar borders)
+    packages+=(aerospace sketchybar borders ghostty-macos)
     ;;
   Linux)
+    packages+=(ghostty-linux)
     if [[ -r /proc/version ]] && grep -qiE 'microsoft|wsl' /proc/version; then
       platform_name=WSL
     else
@@ -92,14 +93,14 @@ for package in "${packages[@]}"; do
 done
 
 if $pull; then
-  if [[ ! -d "$repo_dir/.git" ]]; then
+  if ! git -C "$repo_dir" rev-parse --git-dir >/dev/null 2>&1; then
     echo "error: --pull requires a Git checkout: $repo_dir" >&2
     exit 1
   fi
   if $dry_run; then
-    echo "DRY-RUN: git -C $repo_dir pull --ff-only"
+    echo "DRY-RUN: git -C $repo_dir pull --no-rebase --ff-only"
   else
-    git -C "$repo_dir" pull --ff-only
+    git -C "$repo_dir" -c merge.autoStash=false pull --no-rebase --ff-only
     exec "$repo_dir/sync.sh"
   fi
 fi
@@ -120,8 +121,19 @@ if [[ "$platform_name" == macOS ]]; then
   else
     if command -v aerospace >/dev/null 2>&1 &&
       pgrep -x AeroSpace >/dev/null 2>&1; then
-      aerospace reload-config --no-gui --warnings-as-errors
-      echo "Reloaded AeroSpace."
+      if aerospace_output="$(aerospace reload-config --no-gui --warnings-as-errors 2>&1)"; then
+        [[ -z "$aerospace_output" ]] || printf '%s\n' "$aerospace_output"
+        echo "Reloaded AeroSpace."
+      else
+        aerospace_status=$?
+        if [[ "$aerospace_status" -eq 2 &&
+              "$aerospace_output" == "AeroSpace server is disabled and doesn't accept commands."* ]]; then
+          echo "Skipped AeroSpace reload: window management is disabled." >&2
+        else
+          printf '%s\n' "$aerospace_output" >&2
+          exit "$aerospace_status"
+        fi
+      fi
     fi
 
     if command -v sketchybar >/dev/null 2>&1 &&

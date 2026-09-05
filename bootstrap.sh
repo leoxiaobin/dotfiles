@@ -45,6 +45,14 @@ if ! $skip_packages; then
   case "$os" in
     Darwin)
       if ! command -v brew >/dev/null 2>&1; then
+        for prefix in "${HOMEBREW_PREFIX:-}" /opt/homebrew /usr/local; do
+          if [[ -n "$prefix" && -x "$prefix/bin/brew" ]]; then
+            export PATH="$prefix/bin:$prefix/sbin:$PATH"
+            break
+          fi
+        done
+      fi
+      if ! command -v brew >/dev/null 2>&1; then
         echo "error: Homebrew is required on macOS: https://brew.sh" >&2
         exit 1
       fi
@@ -77,7 +85,11 @@ fi
 
 cat <<'EOF'
 
-Bootstrap complete.
-macOS defaults are intentionally not applied automatically. Review and run
-./macos-defaults.sh separately when you want those system-wide preferences.
+Package and dotfile setup complete.
+See AGENTS.md for Oh My Zsh, TPM, Doom, fonts, and Yazi plugin initialization.
 EOF
+
+if [[ "$os" == Darwin ]]; then
+  printf '%s\n' \
+    'macOS defaults are not applied automatically. Review ./macos-defaults.sh before running it.'
+fi

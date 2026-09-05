@@ -27,11 +27,11 @@ This is a GNU Stow-managed dotfiles repository for a terminal-centric developmen
 | Sync Doom Emacs after Doom changes | `doom sync --force --rebuild`                                                   |
 | Check Doom Emacs health            | `PAGER=cat doom doctor`                                                         |
 
-Use the narrowest relevant command above for the package being changed, then run `./sync.sh --dry-run` when a change affects Stow layout.
+Use the narrowest relevant command above for the package being changed, then run `./sync.sh --dry-run` when a change affects Stow layout. Shared-platform regressions run with `python3 -B -m unittest discover -s tests -v`.
 
 ## Architecture
 
-Each top-level directory is a Stow package: `zsh`, `git`, `tmux`, `doom`, `nvim`, `ghostty`, `aerospace`, `lsd`, `yazi`, `fontconfig`, and `starship`. `sync.sh` hard-codes this package list and runs `stow --no-folding -R` into `$HOME`; add new managed packages there when adding a new top-level package.
+`sync.sh` runs `stow --no-folding -R` into `$HOME`, selecting shared packages plus the current platform's packages. It selects exactly one of `ghostty-macos` and `ghostty-linux` for the shared Ghostty config's explicit `platform.ghostty` include; AeroSpace, SketchyBar, and JankyBorders are macOS-only. Add new managed packages to the appropriate platform list in `sync.sh`.
 
 `zsh/.zshrc` is the shell entry point. It sets cross-platform defaults, loads Oh My Zsh when present, initializes starship and zoxide opportunistically, lazy-loads nvm, provides tmux/yazi helpers, and exposes the `ai <tool>` launcher that starts AI CLIs at the current git root.
 

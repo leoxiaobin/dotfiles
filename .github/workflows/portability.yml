@@ -1,0 +1,40 @@
+name: Config portability
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  configs:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Linux prerequisites
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y zsh tmux stow shellcheck emacs-nox
+      - name: Install macOS prerequisites
+        if: runner.os == 'macOS'
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+        run: brew install zsh tmux stow shellcheck emacs
+      - name: Check shell syntax and theme generation
+        run: |
+          zsh -n zsh/.zshrc
+          shellcheck bootstrap.sh sync.sh install/linux.sh tmux/.tmux/custom/git_status.sh
+          python3 bin/theme-set --check
+      - name: Exercise portable configuration
+        run: python3 -B -m unittest discover -s tests -v

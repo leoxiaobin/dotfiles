@@ -1,0 +1,6 @@
+# AeroSpace manages window layout; SketchyBar supplies the window title.
+window-decoration = none
+keybind = cmd+t=new_window
+
+# Requires macOS Accessibility permission.
+keybind = global:cmd+grave_accent=toggle_quick_terminal

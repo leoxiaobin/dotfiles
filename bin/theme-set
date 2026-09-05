@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import difflib
+import json
 import os
 import re
 import shutil
@@ -45,17 +46,29 @@ def _load_simple_toml(path: Path) -> dict:
     """Handle the single-table `key = "value"` subset these two files use."""
     data: dict[str, dict[str, str]] = {}
     table: dict[str, str] | None = None
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
-        line = raw_line.split("#", 1)[0].strip()
-        if not line:
+    quoted = r'"(?:[^"\\]|\\.)*"'
+    assignment = re.compile(
+        rf"(?P<key>{quoted}|[A-Za-z0-9_-]+)\s*=\s*(?P<value>{quoted})\s*(?:#.*)?"
+    )
+    for line_number, raw_line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
             continue
-        if line.startswith("[") and line.endswith("]"):
-            table = data.setdefault(line[1:-1].strip(), {})
+        header = re.fullmatch(r"\[([A-Za-z0-9_-]+)\]\s*(?:#.*)?", line)
+        if header:
+            name = header.group(1)
+            if name in data:
+                raise ValueError(f"{path}:{line_number}: duplicate table {name}")
+            table = data[name] = {}
             continue
-        if table is None or "=" not in line:
-            continue
-        key, value = (part.strip() for part in line.split("=", 1))
-        table[key.strip('"')] = value.strip('"')
+        entry = assignment.fullmatch(line)
+        if table is None or entry is None:
+            raise ValueError(f"{path}:{line_number}: expected a table or quoted string assignment")
+        key = entry.group("key")
+        key = json.loads(key) if key.startswith('"') else key
+        if key in table:
+            raise ValueError(f"{path}:{line_number}: duplicate key {key}")
+        table[key] = json.loads(entry.group("value"))
     return data
 
 
@@ -97,11 +110,12 @@ def render(template: str, palette: dict[str, str], source: Path) -> str:
 
 
 def hot_reload() -> None:
-    if shutil.which("sketchybar"):
-        subprocess.run(["sketchybar", "--reload"], check=False)
+    if sys.platform == "darwin" and shutil.which("sketchybar"):
+        subprocess.run(["sketchybar", "--reload"], check=True)
         print("reloaded sketchybar")
     print("nvim and Doom pick up the new theme on next start")
-    print("Ghostty has no CLI reload; press Cmd+Shift+, in each window")
+    shortcut = "Cmd+Shift+," if sys.platform == "darwin" else "Ctrl+Shift+,"
+    print(f"Ghostty has no CLI reload; press {shortcut} in each window")
 
 
 def main() -> int:

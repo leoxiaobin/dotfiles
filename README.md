@@ -15,7 +15,7 @@ Terminal-centric development environment managed with [GNU Stow](https://www.gnu
 | `sketchybar` | SketchyBar: AeroSpace workspaces, focused app, battery, and clock       |
 | `aerospace`  | AeroSpace: keyboard-first window focus, movement, and workspaces       |
 | `lsd`        | `lsd` listing colors tuned for light and dark terminals                |
-| `yazi`       | Yazi file openers, including HTML files in Google Chrome               |
+| `yazi`       | Yazi file openers, including browser and terminal HTML readers         |
 | `fontconfig` | Font fallback: Maple Mono NF CN                                        |
 | `starship`   | Starship prompt config                                                 |
 | `scripts`    | Helper scripts, including macOS Su system appearance setup             |
@@ -48,7 +48,7 @@ cp templates/gitconfig.local.example ~/.gitconfig.local
 ```
 
 `sync.sh` detects macOS, Linux, and WSL. Shared packages are applied on every
-platform; AeroSpace and SketchyBar are applied only on macOS. The Linux
+platform; AeroSpace, SketchyBar, and JankyBorders are applied only on macOS. The Linux
 bootstrap currently supports Debian and Ubuntu, including WSL, and asks before
 using `sudo`. Unsupported distributions fail with an explicit error instead of
 guessing package names.
@@ -56,24 +56,55 @@ guessing package names.
 `Brewfile` is the macOS dependency manifest. `install/linux.sh` contains the
 Debian/Ubuntu dependency list and installs a checksum-verified Neovim `v0.12.5`
 under `~/.local` when the existing version is older than `0.12`. Some
-cross-platform tools that aren't reliably available from apt (including
-Starship, Yazi, and Ghostty) remain explicit post-install requirements on Linux.
+cross-platform tools that aren't reliably available from apt (Starship, Delta,
+lazygit, Yazi, and Ghostty) remain explicit post-install requirements on Linux.
 Raycast is installed on macOS through the Brewfile, but its preferences remain
 machine-local.
 
 On macOS, `sync.sh` reloads AeroSpace and SketchyBar when they are already
-running; it does not launch either application. `sync.sh --pull` re-executes the
+running; it does not launch either application or enable disabled AeroSpace
+window management. `sync.sh --pull` re-executes the
 newly pulled script before applying packages, so changes to the package list
 take effect in the same command.
+
+### Cross-platform behavior
+
+Shared configs support macOS and Linux; the automated Linux installer targets
+Debian/Ubuntu, including WSL. Other distributions need equivalent dependencies
+installed with their own package manager.
+
+- Shell startup supports Apple Silicon and Intel Homebrew, distro-packaged fzf,
+  and upstream fzf. Syntax highlighting works with either the Oh My Zsh plugin
+  or the system package; direnv activates approved project environments.
+- Tmux and Neovim use OSC 52 for copying without requiring an X11 clipboard.
+  The terminal must support OSC 52; Ghostty enables it in the shared config.
+- Ghostty loads `platform.ghostty` explicitly. `sync.sh` selects `ghostty-macos`
+  for Cmd shortcuts and AeroSpace decoration settings, or `ghostty-linux` for
+  Ctrl+Shift shortcuts and native decorations. Linux Quick Terminal is opt-in
+  because it requires a compatible Wayland compositor; X11 and GNOME lack support.
+- HTML opens in the system's default browser (`open` / `xdg-open`). Yazi's
+  interactive **Open with** menu also offers `w3m` for headless Linux/SSH,
+  editing, and Chrome on macOS. HTML previews need `ya pkg add yazi-rs/plugins:piper`.
+- Doom mail is enabled only when `mu`, `mbsync`, and `msmtp` are available.
+  Install `mu isync msmtp` with Homebrew, or `mu4e isync msmtp` on Debian/Ubuntu,
+  configure your account locally, then run `doom sync`. Other Doom features
+  do not require a mail setup.
+
+Bootstrap installs packages and links configs, not the editor/shell frameworks.
+Complete the Oh My Zsh, TPM, Doom, and font setup in the agent runbook on a new
+machine. Neovim must be at least 0.12; the theme renderer also supports the
+system Python 3.9 supplied by older macOS installations.
 
 Detailed coding-agent instructions live in [AGENTS.md](AGENTS.md). This README
 stays focused on human setup, project overview, and daily workflow.
 
-Ghostty loads **every** file in `~/.config/ghostty/` in alphabetical order, so
-`config` (machine-local, untracked) is read *before* `config.ghostty` (this
-repo's `ghostty` stow package). For single-value keys the repo therefore wins.
+Ghostty reads `config.ghostty` and the legacy `config` from its supported XDG
+and macOS configuration locations. Additional files need an explicit
+`config-file` include; do not rely on arbitrary files loading alphabetically.
+Keep machine-local preferences in the untracked `config` and inspect the
+effective result with `ghostty +show-config`.
 
-Two traps follow from that. `font-family` is repeatable and *appends a fallback*
+Two traps are worth knowing. `font-family` is repeatable and *appends a fallback*
 rather than replacing, so a `font-family` in `config` becomes the primary font
 and silently demotes the repo's. Reset the list with `font-family = ""` first if
 you really want to override it. Separately, picking a theme from Ghostty's menu
@@ -115,8 +146,9 @@ They use `{{ name }}` for `#295f8a` and `{{ name.raw }}` for `295f8a`, which is
 what SketchyBar's `0xff` ARGB values need. `--check` is the guard worth running
 before a commit: it proves no generated file was hand-edited out of sync.
 
-The Ghostty template only owns colours; font, keybinds and shell integration
-stay hand-written in it. tmux is deliberately **not** generated yet — it still
+The Ghostty template owns colours plus shared font and shell-integration
+settings. Platform keybinds live in `ghostty-macos` and `ghostty-linux`.
+tmux is deliberately **not** generated yet — it still
 carries its own copy of the palette.
 
 For Windows Terminal/WSL, use the `Su` color scheme and `Maple Mono NF CN`
@@ -484,6 +516,8 @@ doom sync
 │       ├── config/      # LazyVim core config
 │       └── plugins/     # plugin specs
 ├── ghostty/.config/ghostty/config.ghostty
+├── ghostty-macos/.config/ghostty/platform.ghostty
+├── ghostty-linux/.config/ghostty/platform.ghostty
 ├── aerospace/.aerospace.toml
 ├── yazi/.config/yazi/yazi.toml
 ├── fontconfig/.config/fontconfig/fonts.conf

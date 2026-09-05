@@ -1,0 +1,5 @@
+# Keep native window decorations for both tiled and non-tiled desktops.
+window-decoration = auto
+keybind = ctrl+shift+t=new_window
+
+# Quick Terminal is intentionally opt-in: X11 and GNOME do not support it.

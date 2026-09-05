@@ -307,7 +307,7 @@ Reuses an existing buffer if one exists for this project+name."
 ;; ============================================================
 (after! mu4e
   (setq mu4e-maildir "~/Mail"
-        mu4e-get-mail-command "SASL_PATH=/opt/homebrew/lib/sasl2 mbsync -a"
+        mu4e-get-mail-command "mbsync -a"
         mu4e-update-interval 300  ; auto-sync every 5 minutes
         mu4e-index-update-in-background t)
 
@@ -351,9 +351,10 @@ Reuses an existing buffer if one exists for this project+name."
           (:name "This week" :query "date:7d..now" :key ?w)
           (:name "Flagged"   :query "flag:flagged" :key ?f))))
 
-;; Open mu4e with SPC o m
-(map! :leader
-      :desc "Email (mu4e)" "o m" #'mu4e)
+;; Mail is optional on hosts without the mu/mbsync/msmtp toolchain.
+(when (modulep! :email mu4e)
+  (map! :leader
+        :desc "Email (mu4e)" "o m" #'mu4e))
 
 ;; ============================================================
 ;; OPTIONAL: Future AI packages (all disabled)

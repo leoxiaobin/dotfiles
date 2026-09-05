@@ -28,6 +28,26 @@ This visible marker helps confirm that the agent found and is following
 A GNU Stow-managed dotfiles repo for a terminal-centric dev workflow.
 Covers: zsh, git, tmux, Doom Emacs, LazyVim (Neovim), Ghostty, AeroSpace, lsd, Yazi, fontconfig, starship.
 
+## Cross-platform validation
+
+Run `python3 -B -m unittest discover -s tests -v` for host-config regressions.
+The suite requires Python 3.9+, zsh, Git, Stow, tmux, and Emacs; Python 3.11+
+also parses the Yazi TOML. It uses temporary homes and a private tmux socket,
+never the user's sessions or local overrides. `.github/workflows/portability.yml`
+runs it on both macOS and Ubuntu without building the GPU image.
+
+`ghostty` contains shared settings. `sync.sh` additionally selects exactly one
+of `ghostty-macos` and `ghostty-linux`, which provide the explicitly included
+`platform.ghostty`. Do not Stow both platform packages into the same home.
+Keep macOS-only GUI commands out of shared startup paths. The Docker scripts
+remain Linux-container tooling; they are not host-portable Stow packages.
+
+Shell integration must support upstream `fzf --zsh`, the container's `.fzf.zsh`,
+and older distro integration files. Homebrew paths must work on Intel and Apple
+Silicon. Mail is optional: Doom's mu4e module and keybinding are gated on the
+mu/mbsync/msmtp toolchain. Do not hard-code Homebrew's SASL path in its command;
+the macOS shell supplies it through the environment when available.
+
 ## Directory Structure
 
 Each top-level folder is a "stow package" that mirrors `$HOME`:
@@ -46,6 +66,8 @@ dotfiles/
   nvim/.config/nvim/stylua.toml       → ~/.config/nvim/stylua.toml
   nvim/.config/nvim/lua/              → ~/.config/nvim/lua/
   ghostty/.config/ghostty/config.ghostty → ~/.config/ghostty/config.ghostty
+  ghostty-macos/.config/ghostty/platform.ghostty → ~/.config/ghostty/platform.ghostty (macOS)
+  ghostty-linux/.config/ghostty/platform.ghostty → ~/.config/ghostty/platform.ghostty (Linux/WSL)
   aerospace/.aerospace.toml           → ~/.aerospace.toml
   lsd/.config/lsd/{config,colors}.yaml → ~/.config/lsd/
   yazi/.config/yazi/yazi.toml          → ~/.config/yazi/yazi.toml
@@ -267,9 +289,10 @@ Known long-running steps:
   provide `font-symbola`; this is not blocking when Symbols Nerd Font Mono is
   present.
 - **Linux**: Font and clipboard should work automatically with modern terminal emulators.
-- **Ghostty**: Ghostty loads *every* file in `~/.config/ghostty/` alphabetically, so
-  the untracked machine-local `config` is read **before** the repo's `config.ghostty`;
-  for single-value keys the repo wins. Beware `font-family`: it appends a fallback
+- **Ghostty**: Ghostty reads `config.ghostty` and legacy `config` from its supported
+  locations; extra files need `config-file` includes, not alphabetical discovery.
+  The shared config explicitly includes the platform package's `platform.ghostty`.
+  Beware `font-family`: it appends a fallback
   instead of replacing, so a `font-family` in `config` becomes the primary font and
   demotes the repo's. Reset with `font-family = ""` first. Ghostty's theme menu also
   writes `~/Library/Application Support/com.mitchellh.ghostty/auto/theme.ghostty`.

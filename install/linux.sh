@@ -55,6 +55,7 @@ esac
 packages=(
   bat
   build-essential
+  cmake
   curl
   direnv
   emacs
@@ -63,6 +64,9 @@ packages=(
   fzf
   git
   jq
+  less
+  libtool
+  libvterm-dev
   lsd
   nodejs
   npm
@@ -75,7 +79,11 @@ packages=(
   stow
   tmux
   unzip
+  w3m
+  xdg-utils
+  zoxide
   zsh
+  zsh-syntax-highlighting
 )
 
 if $dry_run; then
@@ -203,6 +211,6 @@ cat <<'EOF'
 Core Linux dependencies installed.
 Neovim v0.12.5 is installed from its official release with SHA-256 verification
 when the existing version is too old. Optional tools not consistently packaged
-by Debian/Ubuntu (such as Starship, Yazi, and Ghostty) must be installed from
-their official distributions.
+by Debian/Ubuntu (Starship, Delta, lazygit, Yazi, and Ghostty) must be installed
+from their official distributions. See AGENTS.md for framework and font setup.
 EOF

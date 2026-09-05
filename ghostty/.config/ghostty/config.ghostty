@@ -25,11 +25,8 @@ palette = 14=#236b5c
 palette = 15=#38342c
 window-theme = system
 
-# AeroSpace tiles these windows, so the titlebar is dead space: the traffic
-# lights duplicate keybindings and the title duplicates SketchyBar. "none"
-# also squares the corners, which matters in a tiled layout: rounded corners
-# leave four gaps of desktop showing at every window junction.
-window-decoration = none
+# sync.sh selects the matching macOS or Linux Stow package.
+config-file = ?platform.ghostty
 
 # Maple Mono NF CN includes Latin, Chinese, and Nerd Font glyphs.
 font-family = Maple Mono NF CN
@@ -38,12 +35,6 @@ font-size = 16
 # Allow programs to read/write system clipboard via OSC 52
 clipboard-read = allow
 clipboard-write = allow
-
-# Global Quick Terminal toggle; requires macOS Accessibility permission.
-keybind = global:cmd+grave_accent=toggle_quick_terminal
-
-# Open a new AeroSpace-managed window instead of adding a tab.
-keybind = cmd+t=new_window
 
 # Ghostty's default TERM is xterm-ghostty, which most remote hosts and container
 # images do not carry in their terminfo database. With no entry, tput and clear
