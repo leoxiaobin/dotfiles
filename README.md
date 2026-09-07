@@ -448,6 +448,7 @@ In Doom Emacs: `SPC g g` for Magit.
 | `C-q z`           | Zoom/unzoom pane            |
 | `C-q c`           | New window                  |
 | `C-q T`           | Floating scratch session    |
+| `C-q y`           | Yazi in a new window at the current directory |
 | `C-q [` → `v` → `y` | Select and copy to tmux and the terminal clipboard |
 | `C-q ]`           | Paste from tmux's buffer    |
 | `C-q C-s`         | Save session                |
@@ -463,6 +464,16 @@ terminal clients are connected. This uses OSC 52 on macOS, Linux, and over SSH;
 no `pbcopy`, `xclip`, or `wl-copy` is required. The receiving terminal must allow
 OSC 52 clipboard writes (enabled in the shared Ghostty config). Use `Cmd+V` on
 macOS or your Linux terminal's paste shortcut for the system clipboard.
+
+Inline images (for example, in Copilot CLI) require a graphics-capable terminal
+such as Ghostty. Tmux enables `allow-passthrough on` so visible panes can forward
+Kitty graphics; hidden panes cannot. Restart an already-running image-producing
+app after enabling passthrough so it can detect the terminal again. The `C-q T`
+scratch session nests a tmux client inside a popup, which drops image data even
+with passthrough enabled. From a regular pane, use `C-q y` to open Yazi in its own
+graphics-capable window; `q` exits Yazi and closes that window. If already inside
+the scratch popup, first press `C-q d` to detach it without stopping its programs,
+then `C-q y`. This works on macOS and Linux without requiring a tmux upgrade.
 
 ### Org Notes
 

@@ -309,8 +309,8 @@ class TmuxTests(IsolatedConfigTest):
             self.run_command(command + ["kill-server"], check=False)
 
 
-class TmuxClipboardTests(IsolatedConfigTest):
-    """Exercise real terminal output without touching the system clipboard."""
+class TmuxTerminalTests(IsolatedConfigTest):
+    """Exercise terminal output without touching the user's display or clipboard."""
 
     def setUp(self):
         super().setUp()
@@ -487,6 +487,88 @@ class TmuxClipboardTests(IsolatedConfigTest):
         self.assertIn("clipboard copy failed", result.stderr)
         self.drain()
         self.assertEqual(self.clipboard(master), [])
+
+    def test_yazi_shortcut_preserves_path_graphics_and_returns_on_exit(self):
+        project = self.root / "project with spaces"
+        project.mkdir()
+        query = b"\x1b_Ga=q,i=315,s=1,v=1,f=24;AAAA\x1b\\"
+        wrapped = b"\x1bPtmux;" + query.replace(b"\x1b", b"\x1b\x1b") + b"\x1b\\"
+        escaped = "".join(f"\\{byte:03o}" for byte in wrapped)
+        self.script(
+            self.bin / "yazi",
+            f"printf '%b' '{escaped}'\nprintf 'yazi-probe-ready\\n'\nread -r reply\n",
+        )
+        self.tmux_run(
+            "respawn-pane", "-k", "-t", "outer", "-c", str(project),
+            "exec sleep 300",
+        )
+        master, _ = self.attach()
+        original_window = self.tmux_run(
+            "display-message", "-p", "-t", "outer", "#{window_id}",
+        )
+        self.drain()
+        self.output[master].clear()
+        os.write(master, b"\x11y")
+        self.wait_for(
+            lambda: "yazi-probe-ready" in self.tmux_run("capture-pane", "-p", "-t", "outer"),
+            "Yazi shortcut did not open a window",
+        )
+        self.assertEqual(
+            self.tmux_run("display-message", "-p", "-t", "outer", "#{window_name}"),
+            "yazi",
+        )
+        self.assertEqual(
+            self.tmux_run("display-message", "-p", "-t", "outer", "#{pane_current_path}"),
+            str(project.resolve()),
+        )
+        self.assertEqual(len(self.tmux_run("list-windows", "-t", "outer").splitlines()), 2)
+        self.assertEqual(self.popup_clients(), [])
+        self.wait_for(
+            lambda: query in self.output[master],
+            "Yazi window did not forward Kitty graphics",
+        )
+        self.tmux_run("send-keys", "-t", "outer", "q", "Enter")
+        self.wait_for(
+            lambda: self.tmux_run("display-message", "-p", "-t", "outer", "#{window_id}")
+            == original_window,
+            "Exiting Yazi did not return to the original window",
+        )
+        self.assertEqual(len(self.tmux_run("list-windows", "-t", "outer").splitlines()), 1)
+
+    def test_graphics_passthrough_is_limited_to_visible_panes(self):
+        master, _ = self.attach()
+        self.assertEqual(self.tmux_run("show-options", "-gv", "allow-passthrough"), "on")
+        query = b"\x1b_Ga=q,i=314,s=1,v=1,f=24;AAAA\x1b\\"
+        wrapped = b"\x1bPtmux;" + query.replace(b"\x1b", b"\x1b\x1b") + b"\x1b\\"
+        escaped = "".join(f"\\{byte:03o}" for byte in wrapped)
+        probe = self.home / "graphics-probe.sh"
+        self.script(
+            probe,
+            f"printf '%b' '{escaped}'\nprintf 'graphics-probe-complete\\n'\nexec sleep 300\n",
+        )
+        self.tmux_run("new-session", "-d", "-s", "hidden")
+        for session in ("outer", "hidden"):
+            with self.subTest(session=session):
+                self.drain()
+                self.output[master].clear()
+                self.tmux_run(
+                    "respawn-pane", "-k", "-t", session,
+                    f"exec /bin/sh {shlex.quote(str(probe))}",
+                )
+                self.wait_for(
+                    lambda: "graphics-probe-complete" in self.tmux_run(
+                        "capture-pane", "-p", "-t", session,
+                    ),
+                    "Graphics probe did not finish writing",
+                )
+                if session == "outer":
+                    self.wait_for(
+                        lambda: query in self.output[master],
+                        "Kitty graphics query did not reach the outer terminal",
+                    )
+                else:
+                    self.drain()
+                    self.assertNotIn(query, self.output[master])
 
 
 class DoomTests(IsolatedConfigTest):
