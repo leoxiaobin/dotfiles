@@ -205,13 +205,13 @@ Reuses an existing buffer if one exists for this project+name."
         +org-capture-todo-file "inbox.org"
         +org-capture-journal-file (expand-file-name "daily.org" org-directory)
         org-id-locations-file (expand-file-name ".orgids" org-directory)
-        ;; Directory entries discover new files without restarting Emacs.
-        ;; Do not scan the root: test.org and README.org are not agenda notes.
+        ;; Explicit files keep scratch notes and practice guides out of the agenda.
+        ;; Add any future standalone notebook file here explicitly.
         org-agenda-skip-unavailable-files t
         org-agenda-files
         (mapcar (lambda (path) (expand-file-name path org-directory))
-                '("inbox.org" "daily.org" "research/" "experiments/"
-                  "engineering/" "meetings/"))
+                '("inbox.org" "daily.org" "projects.org" "research.org"
+                  "experiments.org" "meetings.org" "personal.org"))
         org-refile-targets '((org-agenda-files :maxlevel . 3))
         org-refile-use-outline-path 'file
         org-outline-path-complete-in-steps nil
@@ -225,21 +225,17 @@ Reuses an existing buffer if one exists for this project+name."
           ("d" "Daily log" entry (file "daily.org")
            "* %U %?\n" :empty-lines 1)
           ("e" "Experiment log" entry
-           (file "experiments/log.org")
+           (file "experiments.org")
            "* %? :experiment:\n%U\n" :empty-lines 1)
           ("m" "Meeting note" entry
-           (file "meetings/log.org")
+           (file "meetings.org")
            "* %? :meeting:\n%U\n" :empty-lines 1)
-          ("p" "Coding prompt" entry
-           (file+headline "engineering/coding-prompts.org" "Prompts")
-           "* %?\n%U\n" :empty-lines 1)
-          ("i" "Agent instruction" entry
-           (file+headline "engineering/agent-instructions.org" "Instructions")
+          ("p" "Project" entry
+           (file "projects.org")
            "* %?\n%U\n" :empty-lines 1)))
-  ;; Git does not preserve empty directories. Create only the folder structure;
-  ;; capture creates the note files on first use, including inbox and daily.
-  (dolist (dir '("research" "experiments" "engineering" "meetings"))
-    (make-directory (expand-file-name dir org-directory) t)))
+  ;; Create only the notebook root; never overwrite existing notes.
+  ;; Capture creates destination files on first use.
+  (make-directory org-directory t))
 
 (after! org
   (add-hook 'org-mode-hook #'org-cdlatex-mode)

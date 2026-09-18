@@ -7,14 +7,15 @@ return {
     ft = { "org" },
     config = function()
       require("orgmode").setup({
-        -- Scan the notebook files and working folders, not root test.org.
+        -- Explicit notebook files exclude scratch notes and practice guides.
         org_agenda_files = {
           "~/notes/inbox.org",
           "~/notes/daily.org",
-          "~/notes/research/*.org",
-          "~/notes/experiments/*.org",
-          "~/notes/engineering/*.org",
-          "~/notes/meetings/*.org",
+          "~/notes/projects.org",
+          "~/notes/research.org",
+          "~/notes/experiments.org",
+          "~/notes/meetings.org",
+          "~/notes/personal.org",
         },
         org_default_notes_file = "~/notes/inbox.org",
         org_startup_folded = "content",
@@ -41,24 +42,17 @@ return {
           m = {
             description = "Meeting note",
             template = "* %? :meeting:\n%U\n",
-            target = "~/notes/meetings/log.org",
+            target = "~/notes/meetings.org",
           },
           p = {
-            description = "Coding prompt",
+            description = "Project",
             template = "* %?\n%U\n",
-            target = "~/notes/engineering/coding-prompts.org",
-            headline = "Prompts",
-          },
-          i = {
-            description = "Agent instruction",
-            template = "* %?\n%U\n",
-            target = "~/notes/engineering/agent-instructions.org",
-            headline = "Instructions",
+            target = "~/notes/projects.org",
           },
           e = {
             description = "Experiment log",
             template = "* %? :experiment:\n%U\n",
-            target = "~/notes/experiments/log.org",
+            target = "~/notes/experiments.org",
           },
         },
       })

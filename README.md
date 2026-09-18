@@ -483,21 +483,27 @@ Shared `~/notes/` notebook for Doom Emacs and LazyVim:
 |------|---------|
 | `inbox.org` | Quick ideas and TODOs |
 | `daily.org` | Short timestamped research logs |
-| `research/` | Questions, derivations, and understanding |
-| `experiments/` | Setup, runs, results, and conclusions |
-| `engineering/` | Implementation, debugging, prompts, and instructions |
-| `meetings/` | Discussion, decisions, and actions |
+| `projects.org` | Goals, plans, TODOs, engineering notes, and links |
+| `research.org` | Concepts, papers, equations, derivations, and questions |
+| `experiments.org` | Setup, runs, results, and conclusions |
+| `meetings.org` | Discussions, decisions, and follow-ups |
+| `personal.org` | Life administration and personal notes |
+
+Use a flat notebook with one shared inbox and daily log. Organize each file
+with headings; project entries link to detailed research, experiments, and
+meetings. Keep each task in one place. Narrow with `M-x org-narrow-to-subtree`,
+restore the full view with `M-x widen`, or use `M-x org-tree-to-indirect-buffer`
+to edit a subtree in another buffer sharing the same content.
 
 Doom capture: `SPC X`, then `n` (note), `t` (TODO), `d` (daily),
-`e` (experiment), `m` (meeting), `p` (coding prompt), or `i` (agent instruction).
+`e` (experiment), `m` (meeting), or `p` (project).
 Finish with `C-c C-c`; cancel with `C-c C-k`.
 
-Experiment and meeting captures append minimal timestamped entries to
-`experiments/log.org` and `meetings/log.org`. Prompt/instruction captures go
-under `engineering/`. These files are created on first use; no topic templates
-or mandatory setup/result sections are imposed.
-Opening Org in Doom initializes the four empty working folders if needed;
-agenda skips notebook files that have not been created yet.
+Experiment and meeting captures append timestamped entries to
+`experiments.org` and `meetings.org`. Project capture (`p`) adds a top-level
+heading and timestamp directly to `projects.org`. No mandatory note templates
+are imposed. Opening Org initializes only the notebook root; capture creates
+missing destination files on first use. Existing notes are never overwritten.
 
 For math entry, CDLaTeX is enabled in Org. Type `fr` then Tab inside math for
 a fraction; use `texenv` then Tab for a LaTeX environment with linked names.
@@ -520,9 +526,9 @@ support, or every optional Doom module. `dvisvgm` provides SVG previews;
 `dvipng` provides the fallback for Emacs builds without SVG support.
 Your `~/notes/` content is a separate repository and must be synced separately.
 
-Agenda and refile targets cover `inbox.org`, `daily.org`, and `.org` files directly
-inside the four working folders. Root `test.org` and `README.org` are excluded.
-Add any future nested directories explicitly to both editors' agenda settings.
+Agenda and refile targets cover exactly the seven main files above.
+`test.org`, `README.org`, and `workflow-practice.org` are excluded.
+Add future standalone notebook files explicitly to both editors' agenda settings.
 Doom refiling (`C-c C-w`) offers file-level targets and headings up to level 3.
 Doom's note-directory navigation follows `org-directory` into `~/notes/`.
 Existing `~/org/` notes remain available but are not migrated or scanned.
