@@ -509,6 +509,17 @@ backend. Install a TeX distribution plus `dvisvgm` or `dvipng` for previews;
 the Emacs packages alone do not supply a TeX engine. On macOS, the config adds
 the standard MacTeX executable directory when it exists.
 
+On another machine, `./sync.sh` (including `--dry-run`) prints advisory warnings
+for missing notebook tools: Git, Emacs, ripgrep, fd/fdfind, the Doom framework,
+and LaTeX preview prerequisites (`latex` plus a converter). A missing second
+converter is an optional suggestion, not a dependency warning. It provides
+macOS or Ubuntu/Debian install
+commands and reminds you to run `doom sync` for the configured Emacs packages.
+It does not install packages or verify the full TeX distribution, Emacs image
+support, or every optional Doom module. `dvisvgm` provides SVG previews;
+`dvipng` provides the fallback for Emacs builds without SVG support.
+Your `~/notes/` content is a separate repository and must be synced separately.
+
 Agenda and refile targets cover `inbox.org`, `daily.org`, and `.org` files directly
 inside the four working folders. Root `test.org` and `README.org` are excluded.
 Add any future nested directories explicitly to both editors' agenda settings.

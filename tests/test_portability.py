@@ -177,6 +177,52 @@ class SyncTests(IsolatedConfigTest):
         super().setUp()
         self.script(self.bin / "stow", f"exec {shlex.quote(self.tool('stow'))} \"$@\"\n")
 
+    def test_notebook_warnings_are_advisory_and_dry_run_is_read_only(self):
+        # Restrict PATH so results do not depend on the host's installed tools.
+        for name in ("dirname", "grep"):
+            (self.bin / name).symlink_to(self.tool(name))
+        self.script(self.bin / "stow", "exit 0\n")
+        self.env["PATH"] = str(self.bin)
+        command = [self.tool("bash"), str(ROOT / "sync.sh"), "--dry-run"]
+        result = self.run_command(command)
+        for message in ("git emacs rg fd", "Doom framework not found",
+                        "latex is missing", "no Org preview converter found",
+                        "sudo apt install"):
+            self.assertIn(message, result.stderr)
+        self.assertIn("Dotfiles sync complete", result.stdout)
+        self.assertEqual(list(self.home.iterdir()), [])
+
+        for name in ("git", "emacs", "rg", "fdfind", "latex", "dvisvgm", "dvipng"):
+            self.script(self.bin / name, "exit 99\n")
+        self.script(self.home / ".config/emacs/bin/doom", "exit 99\n")
+        result = self.run_command(command)
+        self.assertNotIn("warning:", result.stderr)
+        self.assertIn("sync to install/update", result.stdout)
+        # Either converter alone is sufficient for dependency detection.
+        for absent, present in (("dvisvgm", "dvipng"), ("dvipng", "dvisvgm")):
+            (self.bin / absent).unlink()
+            result = self.run_command(command)
+            self.assertNotIn("warning:", result.stderr)
+            self.assertNotIn("Install TeX tools", result.stderr)
+            self.assertNotIn("sudo apt install", result.stderr)
+            self.assertIn(f"Optional: add {absent}", result.stdout)
+            self.assertIn(present, result.stdout)
+            self.script(self.bin / absent, "exit 99\n")
+
+        # Install advice must not add an unrelated second Emacs distribution.
+        (self.bin / "rg").unlink()
+        for platform, install in (("Linux", "sudo apt install"), ("Darwin", "brew install")):
+            self.env["TEST_OS"] = platform
+            result = self.run_command(command)
+            self.assertIn(f"{install} ripgrep\n", result.stderr)
+            self.assertNotIn(f"{install} git", result.stderr)
+            self.assertNotIn("emacs-plus", result.stderr)
+        self.script(self.bin / "rg", "exit 99\n")
+        (self.bin / "emacs").unlink()
+        result = self.run_command(command)
+        self.assertIn("brew install d12frosted/emacs-plus/emacs-plus@30\n", result.stderr)
+        self.assertNotIn("brew install emacs", result.stderr)
+
     def test_platform_packages_and_ghostty_fragment(self):
         for platform, fragment in (("Linux", "ghostty-linux"), ("Darwin", "ghostty-macos")):
             with self.subTest(platform=platform):

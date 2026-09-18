@@ -157,4 +157,92 @@ elif [[ "$platform_name" == macOS ]]; then
   echo "macOS note: Ghostty uses Maple Mono NF CN 16pt; install it with: brew install --cask font-maple-mono-nf-cn"
 fi
 
+# Advisory only: Stow links configuration; it does not install notebook tools.
+check_notebook_dependencies() {
+  local tool doom_bin="" tex_missing=false
+  local missing=() install_packages=()
+  for tool in git emacs rg; do
+    command -v "$tool" >/dev/null 2>&1 || missing+=("$tool")
+  done
+  if ! command -v fd >/dev/null 2>&1 && ! command -v fdfind >/dev/null 2>&1; then
+    missing+=(fd)
+  fi
+  if ((${#missing[@]})); then
+    printf 'warning: notebook/editor tools missing from PATH: %s\n' "${missing[*]}" >&2
+    for tool in "${missing[@]}"; do
+      case "$tool" in
+        rg) install_packages+=(ripgrep) ;;
+        emacs)
+          if [[ "$os" == Darwin ]]; then
+            install_packages+=(d12frosted/emacs-plus/emacs-plus@30)
+          else
+            install_packages+=(emacs)
+          fi
+          ;;
+        fd)
+          if [[ "$os" == Darwin ]]; then
+            install_packages+=(fd)
+          else
+            install_packages+=(fd-find)
+          fi
+          ;;
+        *) install_packages+=("$tool") ;;
+      esac
+    done
+    if [[ "$os" == Darwin ]]; then
+      printf '  Install missing tools with: brew install %s\n' "${install_packages[*]}" >&2
+    else
+      printf '  Ubuntu/Debian: sudo apt install %s\n' "${install_packages[*]}" >&2
+    fi
+  fi
+
+  for tool in "$HOME/.config/emacs/bin/doom" "$HOME/.emacs.d/bin/doom"; do
+    if [[ -x "$tool" ]]; then
+      doom_bin="$tool"
+      break
+    fi
+  done
+  if [[ -z "$doom_bin" ]]; then
+    doom_bin="$(command -v doom || true)"
+  fi
+  if [[ -z "$doom_bin" ]]; then
+    echo 'warning: Doom framework not found. Follow the Doom setup runbook in AGENTS.md.' >&2
+  else
+    printf 'Notebook setup: run "%s" sync to install/update the configured Emacs packages (including CDLaTeX, AUCTeX, and snippets), then restart Emacs.\n' "$doom_bin"
+  fi
+
+  # Doom also adds this directory for GUI Emacs, even before a terminal restart.
+  local tex_path="$PATH"
+  if [[ "$os" == Darwin && -d /Library/TeX/texbin ]]; then
+    tex_path="/Library/TeX/texbin:$tex_path"
+  fi
+  if ! PATH="$tex_path" command -v latex >/dev/null 2>&1; then
+    echo 'warning: latex is missing; Org equation previews need a TeX distribution.' >&2
+    tex_missing=true
+  fi
+  local has_png=false has_svg=false
+  PATH="$tex_path" command -v dvipng >/dev/null 2>&1 && has_png=true
+  PATH="$tex_path" command -v dvisvgm >/dev/null 2>&1 && has_svg=true
+  if ! $has_png && ! $has_svg; then
+    echo 'warning: no Org preview converter found; install dvisvgm or dvipng.' >&2
+    tex_missing=true
+  elif ! $has_svg; then
+    echo 'Optional: add dvisvgm for sharper SVG previews; dvipng is available.'
+  elif ! $has_png; then
+    echo 'Optional: add dvipng for PNG fallback. The available dvisvgm backend requires Emacs SVG support.'
+  fi
+  if $tex_missing; then
+    if [[ "$os" == Darwin ]]; then
+      echo '  Install TeX tools: brew install --cask mactex-no-gui' >&2
+      # shellcheck disable=SC2016 # Print the command for the user to execute.
+      echo '  Then restart the terminal or run: eval "$(/usr/libexec/path_helper)"' >&2
+    else
+      echo '  Ubuntu/Debian: sudo apt install texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended dvisvgm dvipng' >&2
+    fi
+    echo '  Plain Org notes and capture work without TeX. No packages were installed by sync.' >&2
+  fi
+}
+
+check_notebook_dependencies
+
 echo "Dotfiles sync complete."
