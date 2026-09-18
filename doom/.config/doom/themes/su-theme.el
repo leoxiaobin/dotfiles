@@ -184,6 +184,9 @@
    (org-level-8 :foreground fg-alt)
    (org-todo :foreground zhusha :weight 'bold)
    (org-done :foreground zhuqing :weight 'bold)
+   (org-tag :foreground qinghua :weight 'bold)
+   (org-modern-tag :inherit 'org-modern-label
+                   :foreground qinghua :background base0 :inverse-video nil)
    (org-headline-done :foreground base4 :strike-through t)
    (org-date :foreground tianqing :underline t)
    (org-link :foreground qinghua :underline t)

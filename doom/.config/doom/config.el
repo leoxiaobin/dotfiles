@@ -12,9 +12,28 @@
 (add-to-list 'custom-theme-load-path (expand-file-name "themes" doom-user-dir))
 (setq doom-theme 'su)
 (setq display-line-numbers-type t)
-(setq org-directory "~/org/")
+(setq org-directory "~/notes/")
+;; GUI launches (including Emacs Plus) may supply a PATH without MacTeX.
+;; Keep both Emacs executable lookup and TeX subprocess lookup working.
+(when (and (eq system-type 'darwin)
+           (file-directory-p "/Library/TeX/texbin"))
+  (add-to-list 'exec-path "/Library/TeX/texbin")
+  (unless (member "/Library/TeX/texbin"
+                  (split-string (or (getenv "PATH") "") path-separator t))
+    (setenv "PATH" (concat "/Library/TeX/texbin" path-separator (getenv "PATH")))))
 (setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode 1)
+
+;; Terminal frames do not need the text menu bar. Keep GUI menus unchanged.
+(defun my/hide-terminal-menu-bar (&optional frame)
+  (let ((frame (or frame (selected-frame))))
+    (unless (display-graphic-p frame)
+      (set-frame-parameter frame 'menu-bar-lines 0))))
+
+(add-hook 'after-make-frame-functions #'my/hide-terminal-menu-bar)
+(add-hook 'window-setup-hook #'my/hide-terminal-menu-bar)
+(dolist (frame (frame-list))
+  (my/hide-terminal-menu-bar frame))
 
 ;; Emacs daemon/client support. Skip this in noninteractive commands such as
 ;; `doom sync' so package operations do not start a server.
@@ -167,24 +186,70 @@ Reuses an existing buffer if one exists for this project+name."
 ;; ============================================================
 ;; Org-mode — prompts, notes, experiment logs
 ;; ============================================================
-(after! org
-  (setq org-capture-templates
+(defun my/org-display-math-newlines (_id action _context)
+  "Put a newly inserted display-math pair on separate lines."
+  (when (eq action 'insert)
+    (let ((indent (make-string (current-indentation) ?\s)))
+      (insert "\n" indent)
+      (save-excursion (insert "\n" indent)))))
+
+(after! smartparens
+  (sp-local-pair 'org-mode "\\[" "\\]"
+                 :post-handlers '(my/org-display-math-newlines)))
+
+(defun my/org-notebook-setup ()
+  "Use the notes workspace for capture, agenda, and refiling."
+  (setq org-directory (expand-file-name "~/notes/")
+        org-default-notes-file (expand-file-name "inbox.org" org-directory)
+        +org-capture-notes-file "inbox.org"
+        +org-capture-todo-file "inbox.org"
+        +org-capture-journal-file (expand-file-name "daily.org" org-directory)
+        org-id-locations-file (expand-file-name ".orgids" org-directory)
+        ;; Directory entries discover new files without restarting Emacs.
+        ;; Do not scan the root: test.org and README.org are not agenda notes.
+        org-agenda-skip-unavailable-files t
+        org-agenda-files
+        (mapcar (lambda (path) (expand-file-name path org-directory))
+                '("inbox.org" "daily.org" "research/" "experiments/"
+                  "engineering/" "meetings/"))
+        org-refile-targets '((org-agenda-files :maxlevel . 3))
+        org-refile-use-outline-path 'file
+        org-outline-path-complete-in-steps nil
+        org-capture-templates
         '(("n" "Quick note" entry
            (file+headline "inbox.org" "Notes")
            "* %?\n%U\n" :empty-lines 1)
-
-          ("p" "Coding prompt" entry
-           (file+headline "coding-prompts.org" "Prompts")
-           "* %?\n%U\n#+begin_src\n\n#+end_src\n" :empty-lines 1)
-
-          ("i" "Agent instruction" entry
-           (file+headline "agent-instructions.org" "Instructions")
-           "* %?\n%U\n" :empty-lines 1)
-
+          ("t" "Quick TODO" entry
+           (file+headline "inbox.org" "Notes")
+           "* TODO %?\n%U\n" :empty-lines 1)
+          ("d" "Daily log" entry (file "daily.org")
+           "* %U %?\n" :empty-lines 1)
           ("e" "Experiment log" entry
-           (file+headline "experiments.org" "Log")
-           "* %? :experiment:\n%U\n** Goal\n\n** Setup\n\n** Result\n\n** Notes\n"
-           :empty-lines 1)))
+           (file "experiments/log.org")
+           "* %? :experiment:\n%U\n" :empty-lines 1)
+          ("m" "Meeting note" entry
+           (file "meetings/log.org")
+           "* %? :meeting:\n%U\n" :empty-lines 1)
+          ("p" "Coding prompt" entry
+           (file+headline "engineering/coding-prompts.org" "Prompts")
+           "* %?\n%U\n" :empty-lines 1)
+          ("i" "Agent instruction" entry
+           (file+headline "engineering/agent-instructions.org" "Instructions")
+           "* %?\n%U\n" :empty-lines 1)))
+  ;; Git does not preserve empty directories. Create only the folder structure;
+  ;; capture creates the note files on first use, including inbox and daily.
+  (dolist (dir '("research" "experiments" "engineering" "meetings"))
+    (make-directory (expand-file-name dir org-directory) t)))
+
+(after! org
+  (add-hook 'org-mode-hook #'org-cdlatex-mode)
+  ;; Prefer vector previews on hosts with SVG support and dvisvgm.
+  (when (and (image-type-available-p 'svg) (executable-find "dvisvgm"))
+    (setq org-preview-latex-default-process 'dvisvgm))
+  (setq org-format-latex-options
+        (plist-put org-format-latex-options :scale 2.0))
+
+  (my/org-notebook-setup)
 
   ;; Org-mode niceties
   (setq org-log-done 'time)

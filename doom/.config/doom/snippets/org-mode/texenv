@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: LaTeX environment
+# key: texenv
+# --
+\begin{${1:bmatrix}}
+$0
+\end{$1}

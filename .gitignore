@@ -3,6 +3,7 @@
 
 # Neovim (managed by lazy.nvim)
 .config/nvim/lazy-lock.json
+/nvim.log
 
 # Local overrides (machine-specific, contain secrets)
 .zshrc.local

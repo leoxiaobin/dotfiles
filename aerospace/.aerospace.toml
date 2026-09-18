@@ -48,6 +48,7 @@ on-window-detected = [
   { if.app-id = 'com.apple.ActivityMonitor', run = 'move-node-to-workspace 5' },
 
   # DOCS
+  { if.app-id = 'org.gnu.Emacs', run = 'move-node-to-workspace 6' },
   { if.app-id = 'org.zotero.zotero', run = 'move-node-to-workspace 6' },
   { if.app-id = 'com.apple.Preview', run = 'move-node-to-workspace 6' },
   { if.app-id = 'com.apple.iBooksX', run = 'move-node-to-workspace 6' },

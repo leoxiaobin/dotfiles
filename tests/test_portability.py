@@ -572,6 +572,11 @@ class TmuxTerminalTests(IsolatedConfigTest):
 
 
 class DoomTests(IsolatedConfigTest):
+    def test_notebook_capture_agenda_math_and_terminal_frames(self):
+        self.run_command([
+            self.tool("emacs"), "--batch", "-Q", "-l", "tests/org-notebook.el",
+        ])
+
     def test_lisp_syntax_and_optional_mail_gate(self):
         expression = r"""
         (progn

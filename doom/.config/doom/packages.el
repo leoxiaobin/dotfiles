@@ -11,6 +11,11 @@
 ;; plain text with normal stars, drawers, tables, and checkboxes.
 (package! org-modern)
 
+;; Fast mathematical input in Org without the full LaTeX editing module.
+(package! cdlatex)
+;; Org's CDLaTeX integration requires AUCTeX's texmathp library.
+(package! auctex)
+
 ;; Markdown reading/writing enhancements
 (package! mixed-pitch)        ; variable-pitch prose + fixed-pitch code
 (package! grip-mode)          ; GitHub-style markdown preview in browser

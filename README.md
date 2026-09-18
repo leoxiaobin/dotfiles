@@ -477,17 +477,44 @@ then `C-q y`. This works on macOS and Linux without requiring a tmux upgrade.
 
 ### Org Notes
 
-Shared `~/org/` directory accessible from both Doom Emacs and LazyVim:
+Shared `~/notes/` notebook for Doom Emacs and LazyVim:
 
-| File                           | Purpose                    |
-|--------------------------------|----------------------------|
-| `~/org/inbox.org`              | Quick capture              |
-| `~/org/coding-prompts.org`     | AI prompts                 |
-| `~/org/agent-instructions.org` | Agent system prompts       |
-| `~/org/research.org`           | Research notes             |
-| `~/org/workflow.org`           | This setup's documentation |
+| Path | Purpose |
+|------|---------|
+| `inbox.org` | Quick ideas and TODOs |
+| `daily.org` | Short timestamped research logs |
+| `research/` | Questions, derivations, and understanding |
+| `experiments/` | Setup, runs, results, and conclusions |
+| `engineering/` | Implementation, debugging, prompts, and instructions |
+| `meetings/` | Discussion, decisions, and actions |
 
-Doom capture: `SPC X` then select template.
+Doom capture: `SPC X`, then `n` (note), `t` (TODO), `d` (daily),
+`e` (experiment), `m` (meeting), `p` (coding prompt), or `i` (agent instruction).
+Finish with `C-c C-c`; cancel with `C-c C-k`.
+
+Experiment and meeting captures append minimal timestamped entries to
+`experiments/log.org` and `meetings/log.org`. Prompt/instruction captures go
+under `engineering/`. These files are created on first use; no topic templates
+or mandatory setup/result sections are imposed.
+Opening Org in Doom initializes the four empty working folders if needed;
+agenda skips notebook files that have not been created yet.
+
+For math entry, CDLaTeX is enabled in Org. Type `fr` then Tab inside math for
+a fraction; use `texenv` then Tab for a LaTeX environment with linked names.
+Keep the extra `latex-mode` snippets disabled in Org: their Beamer `fr` snippet
+conflicts with CDLaTeX. Typing `\[` creates a three-line display-math pair.
+In normal mode, Enter on a formula toggles its preview. Previews use SVG at
+scale 2.0 when `dvisvgm` and SVG support are available, otherwise Org's default
+backend. Install a TeX distribution plus `dvisvgm` or `dvipng` for previews;
+the Emacs packages alone do not supply a TeX engine. On macOS, the config adds
+the standard MacTeX executable directory when it exists.
+
+Agenda and refile targets cover `inbox.org`, `daily.org`, and `.org` files directly
+inside the four working folders. Root `test.org` and `README.org` are excluded.
+Add any future nested directories explicitly to both editors' agenda settings.
+Doom refiling (`C-c C-w`) offers file-level targets and headings up to level 3.
+Doom's note-directory navigation follows `org-directory` into `~/notes/`.
+Existing `~/org/` notes remain available but are not migrated or scanned.
 
 ## Updating Configs
 
