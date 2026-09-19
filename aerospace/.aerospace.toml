@@ -19,7 +19,7 @@ exec-on-workspace-change = [
   'sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE',
 ]
 
-# Workspace roles: 1 CODE, 2 WEB, 3 AI, 4 COMM, 5 MONITOR, 6 DOCS.
+# Workspace roles: 1 CODE, 2 WEB, 3 AI, 4 COMM, 5 NOTES, 6 DOCS.
 persistent-workspaces = ['1', '2', '3', '4', '5', '6']
 
 on-window-detected = [
@@ -44,11 +44,10 @@ on-window-detected = [
   { if.app-id = 'org.whispersystems.signal-desktop', run = 'move-node-to-workspace 4' },
   { if.app-id = 'com.tinyspeck.slackmacgap', run = 'move-node-to-workspace 4' },
 
-  # MONITOR
-  { if.app-id = 'com.apple.ActivityMonitor', run = 'move-node-to-workspace 5' },
+  # NOTES
+  { if.app-id = 'org.gnu.Emacs', run = 'move-node-to-workspace 5' },
 
   # DOCS
-  { if.app-id = 'org.gnu.Emacs', run = 'move-node-to-workspace 6' },
   { if.app-id = 'org.zotero.zotero', run = 'move-node-to-workspace 6' },
   { if.app-id = 'com.apple.Preview', run = 'move-node-to-workspace 6' },
   { if.app-id = 'com.apple.iBooksX', run = 'move-node-to-workspace 6' },
