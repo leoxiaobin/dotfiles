@@ -1,13 +1,13 @@
 [core]
 	editor = nvim
-	pager = delta
+	pager = "if command -v delta >/dev/null 2>&1; then delta; else less -FRX; fi"
 
 # Machine-specific config (user identity, credential helpers, etc.)
 # Keep account-specific GitHub identities out of the shared dotfiles repo.
 [include]
 	path = ~/.gitconfig.local
 [interactive]
-	diffFilter = delta --color-only
+	diffFilter = "if command -v delta >/dev/null 2>&1; then delta --color-only; else cat; fi"
 [delta]
 	navigate = true
 	side-by-side = true

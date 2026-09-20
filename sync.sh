@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/profile.sh
+source "$repo_dir/scripts/lib/profile.sh"
+
 common_packages=(
   zsh
   git
   tmux
   doom
   nvim
-  ghostty
   lsd
-  yazi
-  fontconfig
   starship
 )
 
@@ -19,11 +20,12 @@ pull=false
 
 usage() {
   cat <<'EOF'
-Usage: ./sync.sh [--pull] [--dry-run]
+Usage: ./sync.sh [--pull] [--dry-run] [--profile desktop|ssh]
 
 Re-stow this dotfiles repo into $HOME after pulling changes.
 
 Options:
+  --profile   Select desktop or ssh; subsequent syncs remember the choice.
   --pull      Run `git pull --no-rebase --ff-only` before syncing.
   --dry-run   Show what would change without modifying files.
   -h, --help  Show this help.
@@ -32,6 +34,14 @@ EOF
 
 while (($#)); do
   case "$1" in
+    --profile)
+      if [[ $# -lt 2 ]]; then
+        echo "error: --profile requires desktop or ssh" >&2
+        exit 2
+      fi
+      dotfiles_profile=$2
+      shift
+      ;;
     --pull)
       pull=true
       ;;
@@ -51,7 +61,7 @@ while (($#)); do
   shift
 done
 
-repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+validate_dotfiles_profile
 os="$(uname -s)"
 platform_name=
 packages=("${common_packages[@]}")
@@ -59,10 +69,14 @@ packages=("${common_packages[@]}")
 case "$os" in
   Darwin)
     platform_name=macOS
+    if [[ "$dotfiles_profile" == ssh ]]; then
+      echo "error: the SSH-only profile requires Linux" >&2
+      exit 1
+    fi
     packages+=(aerospace sketchybar borders ghostty-macos)
     ;;
   Linux)
-    packages+=(ghostty-linux)
+    [[ "$dotfiles_profile" == ssh ]] || packages+=(ghostty-linux)
     if [[ -r /proc/version ]] && grep -qiE 'microsoft|wsl' /proc/version; then
       platform_name=WSL
     else
@@ -74,6 +88,14 @@ case "$os" in
     exit 1
     ;;
 esac
+
+if [[ "$dotfiles_profile" == ssh ]]; then
+  packages+=(yazi-ssh)
+  excluded_packages=(ghostty ghostty-linux ghostty-macos fontconfig aerospace sketchybar borders yazi)
+else
+  packages+=(ghostty fontconfig yazi)
+  excluded_packages=(yazi-ssh)
+fi
 
 if ! command -v stow >/dev/null 2>&1; then
   echo "error: GNU Stow is required. Install it with brew or your system package manager." >&2
@@ -101,19 +123,29 @@ if $pull; then
     echo "DRY-RUN: git -C $repo_dir pull --no-rebase --ff-only"
   else
     git -C "$repo_dir" -c merge.autoStash=false pull --no-rebase --ff-only
-    exec "$repo_dir/sync.sh"
+    exec "$repo_dir/sync.sh" --profile "$dotfiles_profile"
   fi
 fi
 
+echo "Profile: $dotfiles_profile"
 echo "Syncing $platform_name dotfiles from $repo_dir to $HOME"
 printf 'Packages: %s\n' "${packages[*]}"
 
-stow_args=(--dir "$repo_dir" --target "$HOME" --no-folding -R)
+stow_args=(--dir "$repo_dir" --target "$HOME" --no-folding)
 if $dry_run; then
   stow_args=(-n -v "${stow_args[@]}")
 fi
 
-stow "${stow_args[@]}" "${packages[@]}"
+# One Stow plan handles both profile cleanup and new links, including dry runs.
+# Unstow only links owned by this checkout; unrelated files remain untouched.
+stow "${stow_args[@]}" -D "${excluded_packages[@]}" -R "${packages[@]}"
+
+if $dry_run; then
+  echo "DRY-RUN: remember profile $dotfiles_profile in $dotfiles_profile_file"
+else
+  mkdir -p "$(dirname -- "$dotfiles_profile_file")"
+  printf '%s\n' "$dotfiles_profile" > "$dotfiles_profile_file"
+fi
 
 if [[ "$platform_name" == macOS ]]; then
   if $dry_run; then
@@ -176,7 +208,11 @@ check_notebook_dependencies() {
           if [[ "$os" == Darwin ]]; then
             install_packages+=(d12frosted/emacs-plus/emacs-plus@30)
           else
-            install_packages+=(emacs)
+            if [[ "$dotfiles_profile" == ssh ]]; then
+              install_packages+=(emacs-nox)
+            else
+              install_packages+=(emacs)
+            fi
           fi
           ;;
         fd)
@@ -209,6 +245,11 @@ check_notebook_dependencies() {
     echo 'warning: Doom framework not found. Follow the Doom setup runbook in AGENTS.md.' >&2
   else
     printf 'Notebook setup: run "%s" sync to install/update the configured Emacs packages (including CDLaTeX, AUCTeX, and snippets), then restart Emacs.\n' "$doom_bin"
+  fi
+
+  if [[ "$dotfiles_profile" == ssh ]]; then
+    echo "SSH notebook: use emacs -nw or e; TeX preview tools are optional and terminal Emacs does not render inline formula images."
+    return
   fi
 
   # Doom also adds this directory for GUI Emacs, even before a terminal restart.
@@ -244,5 +285,19 @@ check_notebook_dependencies() {
 }
 
 check_notebook_dependencies
+
+if [[ "$dotfiles_profile" == ssh ]]; then
+  missing_tools=()
+  for tool in tmux zsh nvim fzf zoxide lsd bat delta starship yazi w3m file less pdftotext; do
+    command -v "$tool" >/dev/null 2>&1 && continue
+    [[ "$tool" == bat ]] && command -v batcat >/dev/null 2>&1 && continue
+    missing_tools+=("$tool")
+  done
+  if ((${#missing_tools[@]})); then
+    printf 'warning: terminal tools missing from PATH: %s\n' "${missing_tools[*]}" >&2
+    echo '  Run ./bootstrap.sh --profile ssh for packaged dependencies; see README.md for remaining CLI tools.' >&2
+  fi
+  echo "SSH note: fonts and terminal emulators belong on your local computer; use its paste shortcut and OSC 52 for copying."
+fi
 
 echo "Dotfiles sync complete."

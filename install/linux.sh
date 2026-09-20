@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=scripts/lib/profile.sh
+source "$repo_dir/scripts/lib/profile.sh"
 dry_run=false
 
 usage() {
   cat <<'EOF'
-Usage: install/linux.sh [--dry-run]
+Usage: install/linux.sh [--dry-run] [--profile desktop|ssh]
 
 Install shared dotfiles dependencies on Debian, Ubuntu, or WSL.
 The script asks before invoking sudo.
@@ -14,6 +17,14 @@ EOF
 
 while (($#)); do
   case "$1" in
+    --profile)
+      if [[ $# -lt 2 ]]; then
+        echo "error: --profile requires desktop or ssh" >&2
+        exit 2
+      fi
+      dotfiles_profile=$2
+      shift
+      ;;
     --dry-run | -n)
       dry_run=true
       ;;
@@ -29,6 +40,8 @@ while (($#)); do
   esac
   shift
 done
+
+validate_dotfiles_profile
 
 if [[ "$(uname -s)" != Linux ]]; then
   echo "error: this installer only supports Linux" >&2
@@ -58,9 +71,9 @@ packages=(
   cmake
   curl
   direnv
-  emacs
   fd-find
-  fontconfig
+  file
+  ncurses-term
   fzf
   git
   jq
@@ -80,15 +93,23 @@ packages=(
   tmux
   unzip
   w3m
-  xdg-utils
   zoxide
   zsh
   zsh-syntax-highlighting
 )
 
+if [[ "$dotfiles_profile" == ssh ]]; then
+  packages+=(emacs-nox poppler-utils)
+else
+  packages+=(emacs fontconfig xdg-utils)
+fi
+
+apt_install_options=(-y)
+[[ "$dotfiles_profile" != ssh ]] || apt_install_options+=(--no-install-recommends)
+
 if $dry_run; then
   printf 'DRY-RUN: apt-get update\n'
-  printf 'DRY-RUN: apt-get install -y %s\n' "${packages[*]}"
+  printf 'DRY-RUN: apt-get install %s %s\n' "${apt_install_options[*]}" "${packages[*]}"
   printf '%s\n' \
     'DRY-RUN: install verified Neovim v0.12.5 under ~/.local/opt' \
     'DRY-RUN: link ~/.local/bin/nvim to the verified installation'
@@ -119,7 +140,7 @@ else
 fi
 
 "${apt_command[@]}" update
-"${apt_command[@]}" install -y "${packages[@]}"
+"${apt_command[@]}" install "${apt_install_options[@]}" "${packages[@]}"
 
 install_neovim() {
   local required_version=0.12.0
@@ -211,6 +232,7 @@ cat <<'EOF'
 Core Linux dependencies installed.
 Neovim v0.12.5 is installed from its official release with SHA-256 verification
 when the existing version is too old. Optional tools not consistently packaged
-by Debian/Ubuntu (Starship, Delta, lazygit, Yazi, and Ghostty) must be installed
-from their official distributions. See AGENTS.md for framework and font setup.
+by Debian/Ubuntu (Starship, Delta, lazygit, and Yazi) must be installed
+from their official distributions. See AGENTS.md for framework setup.
+SSH-only hosts do not need Ghostty or local font packages.
 EOF

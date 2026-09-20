@@ -48,6 +48,29 @@ Silicon. Mail is optional: Doom's mu4e module and keybinding are gated on the
 mu/mbsync/msmtp toolchain. Do not hard-code Homebrew's SASL path in its command;
 the macOS shell supplies it through the environment when available.
 
+## SSH-only deployment profile
+
+- `./bootstrap.sh --profile ssh` installs terminal dependencies on Debian/Ubuntu
+  and syncs; `./sync.sh --profile ssh` only links configs on any Linux distro.
+- Default is `desktop`. The shared Bash reader in `scripts/lib/profile.sh` reads
+  `~/.config/dotfiles/profile` as data, never shell code. Do not select a profile
+  automatically from SSH_CONNECTION. Sync writes it after Stow succeeds;
+  `--dry-run` does not write it, and `--pull` forwards the selected profile.
+- SSH deploys `zsh git tmux doom nvim lsd starship yazi-ssh`; excludes GUI/font
+  packages. A single Stow plan unstows excluded managed links and restows the
+  selected packages so transitions and dry runs work without clobbering real files.
+- `yazi` and `yazi-ssh` own the same config path; never stow both together.
+  SSH open rules fully replace defaults so binary files cannot launch xdg-open.
+- Doom reads the marker at init (PDF module gated); rebuild Doom after switching
+  profiles. Neovim reads it when loading its Markdown plugin specs. Reopen editors.
+- `install/linux.sh` uses emacs-nox and no recommended packages for SSH. Do not
+  install fonts or terminal emulators on the server. OSC 52 writes are supported;
+  reads depend on the local terminal. TeX rendering/export is optional.
+- `tests/test_ssh_profile.py` covers profile persistence, migration, dry runs,
+  pull/bootstrap propagation, package selection, Doom gating, Yazi and Git fallbacks.
+  These run in the existing macOS/Linux portability job without real apt installs.
+- Docker remains separate and retains its existing provisioning scheme.
+
 ## Directory Structure
 
 Each top-level folder is a "stow package" that mirrors `$HOME`:

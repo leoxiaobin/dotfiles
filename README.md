@@ -47,8 +47,8 @@ cp templates/gitconfig.local.example ~/.gitconfig.local
 # Edit these ↑ with your machine-specific settings
 ```
 
-`sync.sh` detects macOS, Linux, and WSL. Shared packages are applied on every
-platform; AeroSpace, SketchyBar, and JankyBorders are applied only on macOS. The Linux
+`sync.sh` detects macOS, Linux, and WSL. Its default `desktop` profile applies
+shared packages on every platform; AeroSpace, SketchyBar, and JankyBorders are applied only on macOS. The Linux
 bootstrap currently supports Debian and Ubuntu, including WSL, and asks before
 using `sudo`. Unsupported distributions fail with an explicit error instead of
 guessing package names.
@@ -57,7 +57,8 @@ guessing package names.
 Debian/Ubuntu dependency list and installs a checksum-verified Neovim `v0.12.5`
 under `~/.local` when the existing version is older than `0.12`. Some
 cross-platform tools that aren't reliably available from apt (Starship, Delta,
-lazygit, Yazi, and Ghostty) remain explicit post-install requirements on Linux.
+lazygit, and Yazi) remain explicit post-install requirements on Linux. Ghostty
+is optional for Linux desktops and is not needed on SSH servers.
 Raycast is installed on macOS through the Brewfile, but its preferences remain
 machine-local.
 
@@ -66,6 +67,71 @@ running; it does not launch either application or enable disabled AeroSpace
 window management. `sync.sh --pull` re-executes the
 newly pulled script before applying packages, so changes to the package list
 take effect in the same command.
+
+### SSH-only Linux servers
+
+Use an explicit profile on remote hosts without a desktop:
+
+```bash
+cd ~/dotfiles
+./bootstrap.sh --profile ssh --dry-run
+./bootstrap.sh --profile ssh
+
+# If system dependencies are already installed, or you lack sudo:
+./sync.sh --profile ssh --dry-run
+./sync.sh --profile ssh
+
+# Later updates remember this machine's profile:
+./sync.sh --pull
+```
+
+The profile is stored in `~/.config/dotfiles/profile` after a successful Stow
+operation. Dry runs never write it. An SSH login alone does not select the SSH
+profile, so connecting to your desktop remotely does not change its setup.
+`--pull` preserves the profile while re-executing the updated script.
+
+| Component | SSH profile behavior |
+|-----------|----------------------|
+| zsh, Git, tmux, Doom, Neovim, lsd, Starship | Shared terminal configuration |
+| Yazi | Separate terminal-only openers: editor, w3m, PDF text via pdftotext/less; other binary formats show file information |
+| Ghostty, fontconfig, AeroSpace, SketchyBar, borders | Not deployed; fonts and the terminal emulator belong on your local computer |
+| Linux dependencies | `emacs-nox`, no explicit desktop fontconfig/xdg-utils packages, `--no-install-recommends` |
+| Doom | Graphical PDF module disabled; links open in EWW; Org capture, math input, clocking and agenda remain available |
+| Neovim | Browser Markdown preview plugin disabled; terminal editing and OSC 52 retained |
+| Git without Delta | Standard pager and uncolored interactive diff fallback |
+
+Switching profiles removes only this checkout's managed links for excluded
+packages, not installed applications or unrelated real files. Conflicting real
+Yazi config files must be backed up before Stow can replace them. Return to a
+Linux desktop with `./sync.sh --profile desktop`; install desktop dependencies
+with `./bootstrap.sh --profile desktop` if needed.
+
+The installer supports Debian/Ubuntu (including WSL). On other Linux distros,
+install equivalent CLI dependencies yourself, then use `sync.sh --profile ssh`.
+No sudo is needed by sync itself. It reports missing terminal tools but does not
+install them. Starship, Delta, lazygit and Yazi may require their upstream
+installations; see the prerequisite list in AGENTS.md. No API credentials or
+notes content are copied by sync.
+
+After initial setup, complete the framework setup in AGENTS.md, then run:
+
+```bash
+~/.config/emacs/bin/doom sync
+PAGER=cat ~/.config/emacs/bin/doom doctor
+nvim --headless "+Lazy! sync" +qa
+exec zsh
+# Terminal Emacs: emacs -nw, or e (emacsclient -t)
+```
+
+Restart running editors after changing profiles. Terminal Emacs edits LaTeX
+source but does not provide the GUI's inline equation images or PDF viewer;
+TeX tools remain optional for export. The SSH Yazi openers do not need piper.
+The local terminal must permit OSC 52 clipboard writes. Paste with the local
+terminal's paste shortcut: OSC 52 clipboard reads can be blocked, so Neovim's
+clipboard-register paste is not guaranteed on every terminal. zsh already
+falls back to `xterm-256color` when the remote host lacks your TERM entry;
+`ncurses-term` is included for common terminals. Install Maple Mono/Nerd Fonts
+on the computer displaying the terminal, not the server.
 
 ### Cross-platform behavior
 
@@ -82,7 +148,7 @@ installed with their own package manager.
   for Cmd shortcuts and AeroSpace decoration settings, or `ghostty-linux` for
   Ctrl+Shift shortcuts and native decorations. Linux Quick Terminal is opt-in
   because it requires a compatible Wayland compositor; X11 and GNOME lack support.
-- HTML opens in the system's default browser (`open` / `xdg-open`). Yazi's
+- In the desktop profile, HTML opens in the system's default browser (`open` / `xdg-open`). Yazi's
   interactive **Open with** menu also offers `w3m` for headless Linux/SSH,
   editing, and Chrome on macOS. HTML previews need `ya pkg add yazi-rs/plugins:piper`.
 - Doom mail is enabled only when `mu`, `mbsync`, and `msmtp` are available.

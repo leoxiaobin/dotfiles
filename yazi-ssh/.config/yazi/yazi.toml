@@ -1,0 +1,27 @@
+# Terminal-only open rules: no xdg-open, desktop browser, or GUI application.
+[opener]
+edit = [
+  { run = '${EDITOR:-vi} %s', block = true, desc = "Edit in terminal", for = "unix" },
+]
+text-browser = [
+  { run = 'w3m %s', block = true, desc = "Read HTML in terminal", for = "unix" },
+]
+pdf-text = [
+  { run = 'for path in %s; do pdftotext -layout "$path" - | less; done', block = true, desc = "Read PDF as text", for = "unix" },
+]
+inspect = [
+  { run = 'file -- %s; printf "Press Enter to return"; read -r answer', block = true, desc = "File information (no desktop opener)", for = "unix" },
+]
+
+[open]
+rules = [
+  { mime = "text/html", use = ["text-browser", "edit"] },
+  { url = "*.html", use = ["text-browser", "edit"] },
+  { url = "*.htm", use = ["text-browser", "edit"] },
+  { mime = "application/pdf", use = "pdf-text" },
+  { mime = "text/*", use = "edit" },
+  { mime = "application/{json,xml,javascript,x-shellscript,toml,yaml}", use = "edit" },
+  { mime = "inode/x-empty", use = "edit" },
+  { url = "*.org", use = "edit" },
+  { url = "*", use = "inspect" },
+]

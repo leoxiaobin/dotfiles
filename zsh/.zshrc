@@ -5,6 +5,13 @@
 #   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 # fi
 
+# Persisted deployment role, independent of whether this shell is an SSH session.
+DOTFILES_PROFILE=desktop
+if [[ -r "$HOME/.config/dotfiles/profile" ]]; then
+  IFS= read -r DOTFILES_PROFILE < "$HOME/.config/dotfiles/profile" || true
+fi
+export DOTFILES_PROFILE
+
 # Platform flags are also used by machine-local overrides.
 IS_MACOS=false
 IS_WSL=false
@@ -304,8 +311,8 @@ new_tmux () {
     fi
   fi
 
-  if [[ -n "$notification" ]]; then
-    if (( $+commands[notify-send] )); then
+  if [[ -n "$notification" && "$DOTFILES_PROFILE" != ssh && -z "$SSH_CONNECTION$SSH_TTY" ]]; then
+    if [[ -n "$DISPLAY$WAYLAND_DISPLAY" ]] && (( $+commands[notify-send] )); then
       notify-send "$notification"
     elif [[ "$IS_MACOS" == true ]] && (( $+commands[osascript] )); then
       osascript -e 'on run argv' \

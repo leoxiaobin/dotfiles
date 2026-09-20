@@ -14,6 +14,14 @@
 ;;      Alternatively, press 'gd' (or 'C-c c d') on a module to browse its
 ;;      directory (for easy access to its source code).
 
+;; A machine-local profile survives shells, tmux servers and Doom rebuilds.
+(defconst my/ssh-only-p
+  (let ((file (expand-file-name "~/.config/dotfiles/profile")))
+    (and (file-readable-p file)
+         (with-temp-buffer
+           (insert-file-contents file)
+           (equal (string-trim (buffer-string)) "ssh")))))
+
 (doom! :input
        ;;bidi              ; (tfel ot) thgir etirw uoy gnipleh
        ;;chinese
@@ -74,7 +82,7 @@
        lookup              ; navigate your code and its documentation
        lsp               ; M-x vscode
        magit             ; a git porcelain for Emacs
-       pdf               ; PDF viewer with search and annotations
+       (:if (not my/ssh-only-p) pdf) ; graphical PDF tools only on desktop hosts
        tree-sitter       ; syntax and parsing, sitting in a tree...
 
        :os

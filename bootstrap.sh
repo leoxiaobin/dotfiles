@@ -2,16 +2,19 @@
 set -euo pipefail
 
 repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/profile.sh
+source "$repo_dir/scripts/lib/profile.sh"
 dry_run=false
 skip_packages=false
 
 usage() {
   cat <<'EOF'
-Usage: ./bootstrap.sh [--dry-run] [--skip-packages]
+Usage: ./bootstrap.sh [--dry-run] [--skip-packages] [--profile desktop|ssh]
 
 Install platform dependencies and apply the matching Stow packages.
 
 Options:
+  --profile   Select desktop or ssh; subsequent syncs remember the choice.
   --dry-run        Print installation actions and preview Stow changes.
   --skip-packages  Skip package installation and only apply dotfiles.
   -h, --help       Show this help.
@@ -20,6 +23,14 @@ EOF
 
 while (($#)); do
   case "$1" in
+    --profile)
+      if [[ $# -lt 2 ]]; then
+        echo "error: --profile requires desktop or ssh" >&2
+        exit 2
+      fi
+      dotfiles_profile=$2
+      shift
+      ;;
     --dry-run | -n)
       dry_run=true
       ;;
@@ -39,7 +50,13 @@ while (($#)); do
   shift
 done
 
+validate_dotfiles_profile
 os="$(uname -s)"
+
+if [[ "$dotfiles_profile" == ssh && "$os" != Linux ]]; then
+  echo "error: the SSH-only installation profile requires Linux" >&2
+  exit 1
+fi
 
 if ! $skip_packages; then
   case "$os" in
@@ -65,9 +82,9 @@ if ! $skip_packages; then
       ;;
     Linux)
       if $dry_run; then
-        "$repo_dir/install/linux.sh" --dry-run
+        "$repo_dir/install/linux.sh" --profile "$dotfiles_profile" --dry-run
       else
-        "$repo_dir/install/linux.sh"
+        "$repo_dir/install/linux.sh" --profile "$dotfiles_profile"
       fi
       ;;
     *)
@@ -78,15 +95,16 @@ if ! $skip_packages; then
 fi
 
 if $dry_run; then
-  "$repo_dir/sync.sh" --dry-run
+  "$repo_dir/sync.sh" --profile "$dotfiles_profile" --dry-run
 else
-  "$repo_dir/sync.sh"
+  "$repo_dir/sync.sh" --profile "$dotfiles_profile"
 fi
 
 cat <<'EOF'
 
 Package and dotfile setup complete.
-See AGENTS.md for Oh My Zsh, TPM, Doom, fonts, and Yazi plugin initialization.
+See AGENTS.md for Oh My Zsh, TPM, and Doom initialization.
+Desktop fonts belong on the local terminal machine; see README.md for profiles.
 EOF
 
 if [[ "$os" == Darwin ]]; then

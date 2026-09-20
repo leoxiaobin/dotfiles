@@ -13,6 +13,10 @@
 (setq doom-theme 'su)
 (setq display-line-numbers-type t)
 (setq org-directory "~/notes/")
+;; Terminal-only hosts open links in the built-in text browser.
+(when (or (bound-and-true-p my/ssh-only-p)
+          (getenv "SSH_CONNECTION") (getenv "SSH_TTY"))
+  (setq browse-url-browser-function #'eww-browse-url))
 ;; GUI launches (including Emacs Plus) may supply a PATH without MacTeX.
 ;; Keep both Emacs executable lookup and TeX subprocess lookup working.
 (when (and (eq system-type 'darwin)
