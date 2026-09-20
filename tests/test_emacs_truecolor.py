@@ -1,4 +1,5 @@
 """True-color setup must preserve capabilities and leave non-RGB hosts alone."""
+import re
 import shlex
 from test_portability import IsolatedConfigTest, ROOT
 
@@ -24,8 +25,11 @@ class EmacsTruecolorTests(IsolatedConfigTest):
         self.assertFalse((self.home / ".terminfo/t/tmux-256color").exists())
         self.script(self.bin / "infocmp", f'exec {shlex.quote(self.tool("infocmp"))} "$@"\n')
         result = self.run_command([str(self.bin / "infocmp"), "-x", "tmux-256color-emacs-rgb"])
-        for capability in ("setf24=", "setb24=", "colors#256", "clear="):
+        for capability in ("setf24=", "setb24=", "clear="):
             self.assertIn(capability, result.stdout)
+        colors = re.search(r"\bcolors#(0x[0-9a-fA-F]+|[0-9]+)", result.stdout)
+        self.assertIsNotNone(colors)
+        self.assertEqual(int(colors.group(1), 0), 256)
         self.assertEqual(self.setup_color().stdout, "")
 
     def test_non_rgb_client_prevents_install_even_with_colorterm(self):
