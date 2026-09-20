@@ -362,7 +362,17 @@ ai () {
 
 # Doom Emacs
 export PATH="$HOME/.config/emacs/bin:$PATH"
-alias e='emacsclient -t -a ""'
+# Keep generic TERM entries unchanged; choose the RGB variant only for this
+# Emacs client and only after checking the current terminal's capabilities.
+typeset -g _dotfiles_emacs_helper="${${(%):-%x}:A:h:h}/scripts/setup-emacs-truecolor.sh"
+unalias e 2>/dev/null
+function e() {
+  local emacs_term=""
+  if [[ -x "$_dotfiles_emacs_helper" ]]; then
+    emacs_term=$("$_dotfiles_emacs_helper" --print-term)
+  fi
+  TERM="${emacs_term:-$TERM}" command emacsclient -t -a "" "$@"
+}
 alias eg='emacsclient -c -a ""'
 
 # Anthropic native — just `claude`, no overrides

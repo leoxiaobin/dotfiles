@@ -179,7 +179,7 @@ class SyncTests(IsolatedConfigTest):
 
     def test_notebook_warnings_are_advisory_and_dry_run_is_read_only(self):
         # Restrict PATH so results do not depend on the host's installed tools.
-        for name in ("dirname", "grep"):
+        for name in ("bash", "dirname", "find", "grep"):
             (self.bin / name).symlink_to(self.tool(name))
         self.script(self.bin / "stow", "exit 0\n")
         self.env["PATH"] = str(self.bin)

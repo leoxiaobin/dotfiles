@@ -673,3 +673,21 @@ doom sync
 ## License
 
 Personal configuration files. Use freely.
+
+### Emacs terminal colors and vterm
+
+Run `./sync.sh` from your normal terminal or tmux session. For supported terminal
+names, sync checks attached tmux clients for RGB support (or recognizes a direct
+Ghostty/WezTerm session) and installs a distinct `*-emacs-rgb` description in
+`~/.terminfo`. Generic terminal entries and their capabilities remain unchanged.
+Reload your shell and use `e`: it checks the current session again and selects
+the RGB name only for that Emacs client. Other sessions keep their original TERM.
+`--dry-run` does not write files; missing `tic`/`infocmp` produces an install hint.
+Unknown terminals are left unchanged; `COLORTERM` alone is not proof of RGB support.
+If an existing daemon retains stale terminal capabilities, save your work before
+restarting it. Sync never restarts the daemon automatically.
+
+On macOS, Doom clears obsolete absolute `CC`/`CXX` executable paths inherited
+from Emacs Plus. Valid paths and compiler commands containing arguments are
+retained. This does not install a compiler: macOS needs Xcode Command Line Tools
+and CMake; Linux uses the prerequisites in `install/linux.sh`.

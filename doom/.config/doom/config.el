@@ -13,6 +13,15 @@
 (setq doom-theme 'su)
 (setq display-line-numbers-type t)
 (setq org-directory "~/notes/")
+;; Emacs Plus may retain a removed Homebrew compiler in LSEnvironment after
+;; an upgrade. Let build tools select their default instead of using that path.
+(when (eq system-type 'darwin)
+  (dolist (variable '("CC" "CXX"))
+    (let ((compiler (getenv variable)))
+      (when (and compiler (not (string-match-p "[[:space:]]" compiler))
+                 (file-name-absolute-p compiler)
+                 (not (file-executable-p compiler)))
+        (setenv variable nil)))))
 ;; Terminal-only hosts open links in the built-in text browser.
 (when (or (bound-and-true-p my/ssh-only-p)
           (getenv "SSH_CONNECTION") (getenv "SSH_TTY"))

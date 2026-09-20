@@ -193,6 +193,12 @@ else
   printf '%s\n' "$dotfiles_profile" > "$dotfiles_profile_file"
 fi
 
+if $dry_run; then
+  "$repo_dir/scripts/setup-emacs-truecolor.sh" --dry-run
+else
+  "$repo_dir/scripts/setup-emacs-truecolor.sh"
+fi
+
 if [[ "$platform_name" == macOS ]]; then
   if $dry_run; then
     echo "DRY-RUN: reload AeroSpace and SketchyBar when they are running"
