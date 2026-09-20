@@ -37,6 +37,7 @@ class SSHProfileTests(IsolatedConfigTest):
         self.assertTrue((self.home / ".config/ghostty/config.ghostty").is_symlink())
         self.sync("--profile", "ssh")
         self.assertFalse((self.home / ".config/ghostty/config.ghostty").exists())
+        self.assertFalse((self.home / ".config/ghostty/platform.ghostty").is_symlink())
         self.assertEqual(own.read_text(), "user-owned\n")
         self.sync("--profile", "desktop", "--dry-run")
         self.assertEqual(self.profile.read_text(), "ssh\n")
@@ -49,6 +50,35 @@ class SSHProfileTests(IsolatedConfigTest):
         self.write(self.home / ".config/ghostty/config.ghostty", "user config\n")
         self.sync("--profile", "ssh")
         self.assertEqual((self.home / ".config/ghostty/config.ghostty").read_text(), "user config\n")
+
+    def test_partially_managed_excluded_package_preserves_user_file(self):
+        self.env["TEST_OS"] = "Darwin"
+        self.sync()
+        self.env["TEST_OS"] = "Linux"
+        # Pick an actual managed file rather than relying on a theme filename.
+        managed = list((self.home / ".config/sketchybar").rglob("*"))
+        links = [path for path in managed if path.is_symlink() and path.is_file()]
+        self.assertGreaterEqual(len(links), 2)
+        own = links[0]
+        own.unlink()
+        own.write_text("user config\n")
+        self.sync("--profile", "ssh", "--dry-run")
+        self.assertTrue(links[1].is_symlink())
+        self.sync("--profile", "ssh")
+        self.assertEqual(own.read_text(), "user config\n")
+        self.assertFalse(links[1].is_symlink())
+
+    def test_selected_file_conflict_aborts_profile_cleanup(self):
+        self.sync()
+        own = self.home / ".config/yazi/yazi.toml"
+        own.unlink()
+        own.write_text("user config\n")
+        for args in (("--dry-run",), ()):
+            result = self.sync("--profile", "ssh", *args, check=False)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertEqual(self.profile.read_text(), "desktop\n")
+            self.assertTrue((self.home / ".config/ghostty/config.ghostty").is_symlink())
+            self.assertEqual(own.read_text(), "user config\n")
 
     def test_profile_is_explicit_and_invalid_values_do_not_mutate_home(self):
         self.env["SSH_CONNECTION"] = "192.0.2.1 1000 192.0.2.2 22"

@@ -136,9 +136,55 @@ if $dry_run; then
   stow_args=(-n -v "${stow_args[@]}")
 fi
 
-# One Stow plan handles both profile cleanup and new links, including dry runs.
-# Unstow only links owned by this checkout; unrelated files remain untouched.
-stow "${stow_args[@]}" -D "${excluded_packages[@]}" -R "${packages[@]}"
+# Stow 2.3 (Ubuntu) treats ordinary files as unstow conflicts, and can also
+# mistake an already-planned unlink for an ordinary file. Only schedule cleanup
+# for installed packages, preserving unrelated targets in excluded packages.
+cleanup_packages=(-D)
+for package in "${excluded_packages[@]}"; do
+  installed=false
+  while IFS= read -r -d '' source; do
+    relative=${source#"$repo_dir/$package/"}
+    target=$HOME/$relative
+    if [[ -L "$target" && "$target" -ef "$source" ]]; then
+      installed=true
+    elif [[ -e "$target" || -L "$target" ]]; then
+      # Several excluded packages may share a target (e.g. Ghostty platforms).
+      # Never ignore a link that another excluded package needs to remove.
+      managed=false
+      if [[ -L "$target" ]]; then
+        for other_package in "${excluded_packages[@]}"; do
+          if [[ "$target" -ef "$repo_dir/$other_package/$relative" ]]; then
+            managed=true
+            break
+          fi
+        done
+      fi
+      if $managed; then
+        continue
+      fi
+      selected=false
+      for active_package in "${packages[@]}"; do
+        if [[ -e "$repo_dir/$active_package/$relative" || -L "$repo_dir/$active_package/$relative" ]]; then
+          selected=true
+          break
+        fi
+      done
+      # Selected paths must still be checked by Stow for genuine conflicts.
+      if ! $selected; then
+        pattern=$(printf '%s' "$relative" | sed 's/[][\\.^$*+?(){}|]/\\&/g')
+        stow_args+=("--ignore=^$pattern$")
+      fi
+    fi
+  done < <(find "$repo_dir/$package" \( -type f -o -type l \) -print0)
+  if $installed; then
+    cleanup_packages+=("$package")
+  fi
+done
+
+# Visit selected packages before removing old profile links: older Stow must
+# inspect overlapping targets before their unlink is queued. Keep one plan so
+# conflicts abort all changes and --dry-run previews the complete migration.
+stow "${stow_args[@]}" -R "${packages[@]}" "${cleanup_packages[@]}"
 
 if $dry_run; then
   echo "DRY-RUN: remember profile $dotfiles_profile in $dotfiles_profile_file"
