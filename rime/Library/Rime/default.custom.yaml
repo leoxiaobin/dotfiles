@@ -1,0 +1,17 @@
+patch:
+  # 只保留雾凇拼音
+  schema_list:
+    - schema: rime_ice
+
+  # 每页显示 7 个候选
+  menu/page_size: 7
+
+  # Rime 内部中英文切换
+  ascii_composer:
+    good_old_caps_lock: true
+    switch_key:
+      Caps_Lock: noop
+      Shift_L: commit_code
+      Shift_R: noop
+      Control_L: noop
+      Control_R: noop

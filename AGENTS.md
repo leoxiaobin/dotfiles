@@ -31,7 +31,7 @@ Covers: zsh, git, tmux, Doom Emacs, LazyVim (Neovim), Ghostty, AeroSpace, lsd, Y
 ## Cross-platform validation
 
 Run `python3 -B -m unittest discover -s tests -v` for host-config regressions.
-The suite requires Python 3.9+, zsh, Git, Stow, tmux, and Emacs; Python 3.11+
+The suite requires Python 3.9+, zsh, Git, Stow, rsync, tmux, and Emacs; Python 3.11+
 also parses the Yazi TOML. It uses temporary homes and a private tmux socket,
 never the user's sessions or local overrides. `.github/workflows/portability.yml`
 runs it on both macOS and Ubuntu without building the GPU image.
@@ -626,3 +626,15 @@ Terminal descriptions:
   (The running daemon won't pick up newly installed packages until restarted.)
 - After tmux changes: `C-q r` to reload
 - Keep platform-specific logic behind `IS_WSL` / `IS_MACOS` checks in .zshrc
+
+## Rime / Squirrel
+
+`rime/Library/Rime/` is a macOS-only Stow package containing custom YAML patches.
+Never vendor upstream Ice files or learned/runtime data into this package.
+`bootstrap.sh` installs the Brewfile cask and calls `scripts/rime.sh install`;
+`sync.sh` remains network-free for Rime and leaves conflicting files untouched.
+The helper stages Plum output before merging, so future upstream recipes cannot
+write through tracked patch symlinks or replace learned dictionaries. Keep the
+exclusion/protection tests in `tests/test_rime.py`. They require rsync (macOS ships
+it; Linux CI installs it). Squirrel `--reload` requests deployment asynchronously;
+only use it when the installed binary advertises it in `--help`.

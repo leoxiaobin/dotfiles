@@ -73,7 +73,7 @@ case "$os" in
       echo "error: the SSH-only profile requires Linux" >&2
       exit 1
     fi
-    packages+=(aerospace sketchybar borders ghostty-macos)
+    packages+=(aerospace sketchybar borders ghostty-macos rime)
     ;;
   Linux)
     [[ "$dotfiles_profile" == ssh ]] || packages+=(ghostty-linux)
@@ -353,3 +353,7 @@ if [[ "$dotfiles_profile" == ssh ]]; then
 fi
 
 echo "Dotfiles sync complete."
+
+if [[ "$os" == Darwin ]]; then
+  echo "Rime patches linked after sync; run scripts/rime.sh deploy (Squirrel menu -> Deploy)."
+fi

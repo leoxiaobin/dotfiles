@@ -25,7 +25,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y zsh tmux stow shellcheck emacs-nox
+          sudo apt-get install -y zsh tmux stow shellcheck emacs-nox rsync
       - name: Install macOS prerequisites
         if: runner.os == 'macOS'
         env:
@@ -34,7 +34,7 @@ jobs:
       - name: Check shell syntax and theme generation
         run: |
           zsh -n zsh/.zshrc
-          shellcheck bootstrap.sh sync.sh scripts/setup-emacs-truecolor.sh install/linux.sh scripts/lib/profile.sh tmux/.tmux/custom/git_status.sh tmux/.tmux/scripts/copy-to-clipboard.sh tmux/.tmux/scripts/scratch-popup.sh
+          shellcheck scripts/rime.sh bootstrap.sh sync.sh scripts/setup-emacs-truecolor.sh install/linux.sh scripts/lib/profile.sh tmux/.tmux/custom/git_status.sh tmux/.tmux/scripts/copy-to-clipboard.sh tmux/.tmux/scripts/scratch-popup.sh
           python3 bin/theme-set --check
       - name: Exercise portable configuration
         run: python3 -B -m unittest discover -s tests -v

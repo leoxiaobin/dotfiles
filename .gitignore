@@ -12,3 +12,7 @@
 # OS files
 .DS_Store
 Thumbs.db
+
+# Rime: only declarative patches belong in this Stow package.
+/rime/Library/Rime/*
+!/rime/Library/Rime/*.custom.yaml

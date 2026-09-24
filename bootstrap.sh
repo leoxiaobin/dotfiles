@@ -94,6 +94,14 @@ if ! $skip_packages; then
   esac
 fi
 
+if [[ "$os" == Darwin ]] && ! $skip_packages; then
+  if $dry_run; then
+    "$repo_dir/scripts/rime.sh" install --dry-run
+  else
+    "$repo_dir/scripts/rime.sh" install
+  fi
+fi
+
 if $dry_run; then
   "$repo_dir/sync.sh" --profile "$dotfiles_profile" --dry-run
 else
@@ -110,4 +118,12 @@ EOF
 if [[ "$os" == Darwin ]]; then
   printf '%s\n' \
     'macOS defaults are not applied automatically. Review ./macos-defaults.sh before running it.'
+fi
+
+if [[ "$os" == Darwin ]]; then
+  if $dry_run; then
+    "$repo_dir/scripts/rime.sh" deploy --dry-run
+  else
+    "$repo_dir/scripts/rime.sh" deploy
+  fi
 fi

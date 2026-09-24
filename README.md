@@ -691,3 +691,72 @@ On macOS, Doom clears obsolete absolute `CC`/`CXX` executable paths inherited
 from Emacs Plus. Valid paths and compiler commands containing arguments are
 retained. This does not install a compiler: macOS needs Xcode Command Line Tools
 and CMake; Linux uses the prerequisites in `install/linux.sh`.
+
+### macOS Chinese input: Squirrel / Rime Ice
+
+Architecture: **Squirrel** is the macOS frontend, **Rime** is its input engine,
+**Rime Ice** provides schemas/dictionaries, and our `*.custom.yaml` files patch
+its defaults. The Stow package mirrors `$HOME`:
+
+```text
+rime/Library/Rime/default.custom.yaml  -> ~/Library/Rime/default.custom.yaml
+rime/Library/Rime/squirrel.custom.yaml -> ~/Library/Rime/squirrel.custom.yaml
+```
+
+On a new Mac with Homebrew and the framework prerequisites installed:
+
+```bash
+./bootstrap.sh --dry-run
+./bootstrap.sh
+```
+
+The Brewfile installs `squirrel-app`. Bootstrap installs Plum at `~/plum`
+(`RIME_PLUM_DIR` can override this), installs Rime Ice if its schema is absent,
+then uses the normal `sync.sh`/Stow flow and requests deployment. Enable Squirrel
+in **System Settings → Keyboard → Input Sources**; macOS may require logging out
+and back in after first installing the input method. `--skip-packages` skips
+Homebrew and Plum/Ice installation. Ordinary `sync.sh` only manages the patches.
+
+Existing files or unexpected symlinks are Stow conflicts, never silently replaced.
+Back up conflicting files using the existing `~/dotfiles-backups/<timestamp>/`
+convention, then rerun `./sync.sh`. Compare and merge your patches before linking.
+
+Update upstream independently, without changing the tracked patches:
+
+```bash
+./scripts/rime.sh update --dry-run
+./scripts/rime.sh update
+./scripts/rime.sh deploy
+```
+
+The helper runs `bash rime-install iDvel/rime-ice` in Plum, with output staged in
+a temporary directory. It merges upstream files while excluding custom YAML,
+build/sync directories, user databases, installation/user metadata, and grammar
+models; an existing `custom_phrase.txt` is preserved. Nothing is deleted from
+the Rime user directory. `install` skips an existing Ice schema; `update` explicitly
+refreshes it. Neither command upgrades Plum itself.
+
+After editing a patch, run `./scripts/rime.sh deploy` or **Squirrel menu → Deploy**.
+Squirrel 1.1.2's installed `--help` advertises `--reload` as deploy; the helper
+checks that interface before using it and prints the menu instruction otherwise.
+A successful request is asynchronous, so check deployment results if input fails.
+
+Input behavior (preserved from the existing working files):
+
+- Only `rime_ice` is listed; candidate page size is 7.
+- Caps Lock → Hyper, configured outside Rime and unchanged here.
+- Left Shift → Chinese/ASCII toggle using `commit_code`.
+- Right Shift and either Control key do not toggle Rime.
+- `vim_mode` is enabled for Terminal, iTerm2, Ghostty, and VS Code:
+  Esc from Vim Insert → Normal mode + ASCII. No global forced ASCII mode or
+  special Emacs handling is added.
+
+Git owns only the two custom patches. Upstream YAML/schemas/dictionaries, Plum,
+`build/`, `*.userdb/`, `installation.yaml`, `user.yaml`, and learned vocabulary
+stay outside this repo. There is no grammar-model installation, custom domain
+dictionary, input-switching helper, or Rime Sync configuration.
+
+Troubleshooting: use `ls -l ~/Library/Rime/*.custom.yaml` and `readlink` to check
+the links, redeploy, then inspect `~/Library/Rime/build/` and Squirrel's logs.
+Edit the custom patches rather than upstream YAML files, which updates replace.
+See the [upstream installation guide](https://github.com/iDvel/rime-ice/blob/main/others/docs/Installation.md).

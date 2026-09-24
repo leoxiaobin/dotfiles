@@ -61,3 +61,6 @@ cask "ghostty"
 cask "git-credential-manager"
 cask "nikitabobko/tap/aerospace"
 cask "raycast"
+
+# Rime frontend; Rime Ice is installed separately via Plum
+cask "squirrel-app"
