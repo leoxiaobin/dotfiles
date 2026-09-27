@@ -39,7 +39,7 @@
        modeline          ; snazzy, Atom-inspired modeline, plus API
        ophints           ; highlight the region an operation acts on
        (popup +defaults)   ; tame sudden yet inevitable temporary windows
-       treemacs          ; a project drawer, like neotree but cooler
+       (treemacs +lsp)   ; project drawer and LSP symbol tree
        (vc-gutter +pretty) ; vcs diff in the fringe
        vi-tilde-fringe   ; fringe tildes to mark beyond EOB
        window-select     ; visually switch windows
